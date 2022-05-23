@@ -1,0 +1,53 @@
+name: Test
+
+on:
+  push:
+    branches: [master, devel]
+  pull_request:
+    branches: [master, devel]
+    
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        mysql-version: ["5.7", "8.0"]
+    
+    services:
+      mysql:
+        image: mysql:${{ matrix.mysql-version }}
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+        env:
+          MYSQL_RANDOM_ROOT_PASSWORD: yes
+          MYSQL_TCP_PORT: 3306
+          MYSQL_USER: "test"
+          MYSQL_PASSWORD: "test"
+          MYSQL_DATABASE: "mlwarehouse"
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Install Poetry
+        run: |
+          pipx install poetry
+        
+      - uses: actions/setup-python@v3
+        with:
+          python-version: '3.10'
+          architecture: 'x64'
+        
+      - name: Run poetry install
+        run: |
+          poetry env use '3.10'
+          poetry install
+        
+      - name: Run pytest
+        run: |
+          poetry run pytest
