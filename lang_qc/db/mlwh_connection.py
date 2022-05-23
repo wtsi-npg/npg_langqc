@@ -22,14 +22,14 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 
-config = {"DB_URL": os.environ.get("DB_URL"), "TEST": os.environ.get("LRQC_MODE")}
+config = {"DB_URL": os.environ.get("DB_URL"), "TEST": os.environ.get("LANGQC_MODE")}
 
 if config["TEST"]:
     config["DB_URL"] = "sqlite+pysqlite:///:memory:"
 
 if config["DB_URL"] is None or config["DB_URL"] == "":
     raise Exception(
-        "ENV['DB_URL'] must be set with a database URL, or LRQC_MODE must be set for testing."
+        "ENV['DB_URL'] must be set with a database URL, or LANGQC_MODE must be set for testing."
     )
 
 engine = create_engine(config["DB_URL"], future=True, echo=True)
