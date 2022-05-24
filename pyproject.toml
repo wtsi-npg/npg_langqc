@@ -3,7 +3,7 @@ name = "npg_langqc"
 version = "0.1.0"
 description = "FastAPI application for Long Read QC"
 authors = ["Adam Blanchet <ab59@sanger.ac.uk>"]
-license = "GPL-3.0-only"
+license = "GPL-3.0-or-later"
 
 [tool.poetry.dependencies]
 python = "^3.10"
