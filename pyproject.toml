@@ -12,7 +12,6 @@ uvicorn = { version = "^0.17", extras = ["standard"]}
 ml-warehouse = { git = "https://github.com/wtsi-npg/ml-warehouse-python.git", branch="devel" }
 SQLAlchemy = "^1.4.35"
 pydantic = "^1.9.0"
-certifi = "^2022.5.18"
 
 [tool.poetry.dev-dependencies]
 black = "^22.3.0"
