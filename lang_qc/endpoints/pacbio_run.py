@@ -25,8 +25,8 @@ from sqlalchemy import select, and_
 from ml_warehouse.schema import PacBioRun
 
 
-from lang_qc.mlwh.connection import get_mlwh_db
-from lang_qc.mlwh.models import PacBioRunResponse, Study, Sample
+from ..connection import get_mlwh_db
+from ..models import PacBioRunResponse, Study, Sample
 
 
 router = APIRouter()
