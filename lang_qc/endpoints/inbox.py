@@ -18,6 +18,7 @@
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
 from datetime import datetime, timedelta
+from typing import List
 
 from fastapi import APIRouter, Depends
 from ml_warehouse.schema import PacBioRunWellMetrics
@@ -25,7 +26,7 @@ from sqlalchemy import select, and_, or_
 from sqlalchemy.orm import Session
 
 from lang_qc.connection import get_mlwh_db
-from lang_qc.models import InboxResults
+from lang_qc.models import InboxResults, InboxResultEntry, WellInfo
 
 router = APIRouter()
 
@@ -53,16 +54,46 @@ def get_inbox(weeks: int, db_session: Session = Depends(get_mlwh_db)) -> InboxRe
         )
     )
 
-    results = db_session.execute(stmt).scalars().all()
+    results: List[PacBioRunWellMetrics] = db_session.execute(stmt).scalars().all()
 
-    output = {}
-    for res in results:
-        run_name = res.pac_bio_run_name
-        well_label = res.well_label
+    grouped = {}
 
-        if run_name in output:
-            output[run_name].append(well_label)
-        else:
-            output[run_name] = [well_label]
+    for well_metrics in results:
+        run_name = well_metrics.pac_bio_run_name
+        if run_name not in grouped:
+            grouped[run_name] = []
+        grouped[run_name].append(well_metrics)
 
+    def map_function(well_metrics: List[PacBioRunWellMetrics]) -> InboxResultEntry:
+        run_name, well_metrics = well_metrics  # unpack the grouped
+        run_name = well_metrics[0].pac_bio_run_name
+        time_start = well_metrics[0].run_start
+        time_complete = well_metrics[0].run_complete
+
+        wells = sorted(
+            map(
+                lambda well: WellInfo(
+                    label=well.well_label,
+                    start=well.well_start,
+                    complete=well.well_complete,
+                ),
+                well_metrics,
+            ),
+            key=lambda well: well.label,
+        )
+
+        return InboxResultEntry(
+            run_name=run_name,
+            time_start=time_start,
+            time_complete=time_complete,
+            wells=list(wells),
+        )
+
+    mapped = map(map_function, grouped.items())
+
+    output = sorted(
+        mapped,
+        key=lambda x: max(x.wells, key=lambda y: y.complete).complete,
+        reverse=True,
+    )
     return output
