@@ -58,6 +58,13 @@ __PACKAGE__->table("seq_product");
   is_foreign_key: 1
   is_nullable: 0
 
+=head2 id_seq_platform_dict
+
+  data_type: 'integer'
+  extra: {unsigned => 1}
+  is_foreign_key: 1
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -71,6 +78,13 @@ __PACKAGE__->add_columns(
   "id_product",
   { data_type => "char", is_nullable => 0, size => 64 },
   "id_product_category_dict",
+  {
+    data_type => "integer",
+    extra => { unsigned => 1 },
+    is_foreign_key => 1,
+    is_nullable => 0,
+  },
+  "id_seq_platform_dict",
   {
     data_type => "integer",
     extra => { unsigned => 1 },
@@ -137,17 +151,17 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
-=head2 product_compositions
+=head2 product_layouts
 
 Type: has_many
 
-Related object: L<langqc::Schema::Result::ProductComposition>
+Related object: L<langqc::Schema::Result::ProductLayout>
 
 =cut
 
 __PACKAGE__->has_many(
-  "product_compositions",
-  "langqc::Schema::Result::ProductComposition",
+  "product_layouts",
+  "langqc::Schema::Result::ProductLayout",
   { "foreign.id_seq_product" => "self.id_seq_product" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -182,9 +196,39 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 seq_platform_dict
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-06-06 10:18:13
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:/qWwe5hQhxlJjGlpgqrIaQ
+Type: belongs_to
+
+Related object: L<langqc::Schema::Result::SeqPlatformDict>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "seq_platform_dict",
+  "langqc::Schema::Result::SeqPlatformDict",
+  { id_seq_platform_dict => "id_seq_platform_dict" },
+  { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
+);
+
+=head2 statuses
+
+Type: has_many
+
+Related object: L<langqc::Schema::Result::Status>
+
+=cut
+
+__PACKAGE__->has_many(
+  "statuses",
+  "langqc::Schema::Result::Status",
+  { "foreign.id_seq_product" => "self.id_seq_product" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-06-09 17:57:38
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:xjez2+Wa1CnipFXMTF8HMw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -59,13 +59,6 @@ __PACKAGE__->table("product_annotation");
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 id_qc_outcome
-
-  data_type: 'bigint'
-  extra: {unsigned => 1}
-  is_foreign_key: 1
-  is_nullable: 1
-
 =cut
 
 __PACKAGE__->add_columns(
@@ -89,13 +82,6 @@ __PACKAGE__->add_columns(
     extra => { unsigned => 1 },
     is_foreign_key => 1,
     is_nullable => 0,
-  },
-  "id_qc_outcome",
-  {
-    data_type => "bigint",
-    extra => { unsigned => 1 },
-    is_foreign_key => 1,
-    is_nullable => 1,
   },
 );
 
@@ -128,26 +114,6 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
-=head2 qc_outcome
-
-Type: belongs_to
-
-Related object: L<langqc::Schema::Result::QcOutcome>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "qc_outcome",
-  "langqc::Schema::Result::QcOutcome",
-  { id_qc_outcome => "id_qc_outcome" },
-  {
-    is_deferrable => 1,
-    join_type     => "LEFT",
-    on_delete     => "NO ACTION",
-    on_update     => "NO ACTION",
-  },
-);
-
 =head2 seq_product
 
 Type: belongs_to
@@ -164,8 +130,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-06-06 10:18:13
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:laRpxvJtPucxntoRYN2N1A
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-06-08 17:39:30
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:oUm5DQT+krZHjYB3BXlhDQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

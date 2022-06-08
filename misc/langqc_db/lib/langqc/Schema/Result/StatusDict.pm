@@ -1,12 +1,12 @@
 use utf8;
-package langqc::Schema::Result::SubProductAttr;
+package langqc::Schema::Result::StatusDict;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-langqc::Schema::Result::SubProductAttr
+langqc::Schema::Result::StatusDict
 
 =cut
 
@@ -30,110 +30,111 @@ extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
-=head1 TABLE: C<sub_product_attr>
+=head1 TABLE: C<status_dict>
 
 =cut
 
-__PACKAGE__->table("sub_product_attr");
+__PACKAGE__->table("status_dict");
 
 =head1 ACCESSORS
 
-=head2 id_attr
+=head2 id_status_dict
 
   data_type: 'integer'
   extra: {unsigned => 1}
   is_auto_increment: 1
   is_nullable: 0
 
-=head2 attr_name
+=head2 description
 
   data_type: 'varchar'
   is_nullable: 0
-  size: 20
+  size: 30
 
-=head2 description
+=head2 long_description
 
   data_type: 'varchar'
   is_nullable: 0
   size: 256
 
+=head2 temporal_index
+
+  data_type: 'integer'
+  extra: {unsigned => 1}
+  is_nullable: 0
+
+=head2 iscurrent
+
+  data_type: 'tinyint'
+  default_value: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
-  "id_attr",
+  "id_status_dict",
   {
     data_type => "integer",
     extra => { unsigned => 1 },
     is_auto_increment => 1,
     is_nullable => 0,
   },
-  "attr_name",
-  { data_type => "varchar", is_nullable => 0, size => 20 },
   "description",
+  { data_type => "varchar", is_nullable => 0, size => 30 },
+  "long_description",
   { data_type => "varchar", is_nullable => 0, size => 256 },
+  "temporal_index",
+  { data_type => "integer", extra => { unsigned => 1 }, is_nullable => 0 },
+  "iscurrent",
+  { data_type => "tinyint", default_value => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
 
 =over 4
 
-=item * L</id_attr>
+=item * L</id_status_dict>
 
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("id_attr");
+__PACKAGE__->set_primary_key("id_status_dict");
 
 =head1 UNIQUE CONSTRAINTS
 
-=head2 C<unique_subpr_attr>
+=head2 C<unique_status_dict_desc>
 
 =over 4
 
-=item * L</attr_name>
+=item * L</description>
 
 =back
 
 =cut
 
-__PACKAGE__->add_unique_constraint("unique_subpr_attr", ["attr_name"]);
+__PACKAGE__->add_unique_constraint("unique_status_dict_desc", ["description"]);
 
 =head1 RELATIONS
 
-=head2 sub_product_id_attr_ones
+=head2 statuses
 
 Type: has_many
 
-Related object: L<langqc::Schema::Result::SubProduct>
+Related object: L<langqc::Schema::Result::Status>
 
 =cut
 
 __PACKAGE__->has_many(
-  "sub_product_id_attr_ones",
-  "langqc::Schema::Result::SubProduct",
-  { "foreign.id_attr_one" => "self.id_attr" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 sub_product_id_attr_twos
-
-Type: has_many
-
-Related object: L<langqc::Schema::Result::SubProduct>
-
-=cut
-
-__PACKAGE__->has_many(
-  "sub_product_id_attr_twos",
-  "langqc::Schema::Result::SubProduct",
-  { "foreign.id_attr_two" => "self.id_attr" },
+  "statuses",
+  "langqc::Schema::Result::Status",
+  { "foreign.id_status_dict" => "self.id_status_dict" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-06-09 17:57:38
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:kPM9hTspdEd03TOCdixo+A
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-06-08 17:39:30
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2/MYYvhEEf/MMIUYVFvSVQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

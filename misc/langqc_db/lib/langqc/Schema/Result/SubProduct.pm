@@ -83,18 +83,12 @@ __PACKAGE__->table("sub_product");
   is_nullable: 1
   size: 20
 
-=head2 id_seq_platform_dict
-
-  data_type: 'integer'
-  extra: {unsigned => 1}
-  is_nullable: 0
-
-=head2 description
+=head2 properties
 
   data_type: 'json'
   is_nullable: 0
 
-=head2 digest
+=head2 properties_digest
 
   data_type: 'char'
   is_nullable: 0
@@ -132,11 +126,9 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 1, size => 20 },
   "tag_two",
   { data_type => "varchar", is_nullable => 1, size => 20 },
-  "id_seq_platform_dict",
-  { data_type => "integer", extra => { unsigned => 1 }, is_nullable => 0 },
-  "description",
+  "properties",
   { data_type => "json", is_nullable => 0 },
-  "digest",
+  "properties_digest",
   { data_type => "char", is_nullable => 0, size => 64 },
 );
 
@@ -158,13 +150,13 @@ __PACKAGE__->set_primary_key("id_sub_product");
 
 =over 4
 
-=item * L</digest>
+=item * L</properties_digest>
 
 =back
 
 =cut
 
-__PACKAGE__->add_unique_constraint("unique_sub_product_digest", ["digest"]);
+__PACKAGE__->add_unique_constraint("unique_sub_product_digest", ["properties_digest"]);
 
 =head1 RELATIONS
 
@@ -198,24 +190,24 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
-=head2 product_compositions
+=head2 product_layouts
 
 Type: has_many
 
-Related object: L<langqc::Schema::Result::ProductComposition>
+Related object: L<langqc::Schema::Result::ProductLayout>
 
 =cut
 
 __PACKAGE__->has_many(
-  "product_compositions",
-  "langqc::Schema::Result::ProductComposition",
+  "product_layouts",
+  "langqc::Schema::Result::ProductLayout",
   { "foreign.id_sub_product" => "self.id_sub_product" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-06-06 10:18:13
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3RKL2Xko400NlbXolXCpsw
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-06-09 17:46:16
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ZzVyOQSszKVOUG2yMOJTuw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

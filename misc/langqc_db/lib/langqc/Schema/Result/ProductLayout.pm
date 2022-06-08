@@ -1,12 +1,12 @@
 use utf8;
-package langqc::Schema::Result::ProductComposition;
+package langqc::Schema::Result::ProductLayout;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-langqc::Schema::Result::ProductComposition
+langqc::Schema::Result::ProductLayout
 
 =cut
 
@@ -30,15 +30,15 @@ extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
-=head1 TABLE: C<product_composition>
+=head1 TABLE: C<product_layout>
 
 =cut
 
-__PACKAGE__->table("product_composition");
+__PACKAGE__->table("product_layout");
 
 =head1 ACCESSORS
 
-=head2 id_product_composition
+=head2 id_product_layout
 
   data_type: 'bigint'
   extra: {unsigned => 1}
@@ -62,7 +62,7 @@ __PACKAGE__->table("product_composition");
 =cut
 
 __PACKAGE__->add_columns(
-  "id_product_composition",
+  "id_product_layout",
   {
     data_type => "bigint",
     extra => { unsigned => 1 },
@@ -89,17 +89,17 @@ __PACKAGE__->add_columns(
 
 =over 4
 
-=item * L</id_product_composition>
+=item * L</id_product_layout>
 
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("id_product_composition");
+__PACKAGE__->set_primary_key("id_product_layout");
 
 =head1 UNIQUE CONSTRAINTS
 
-=head2 C<unique_product_composition>
+=head2 C<unique_product_layout>
 
 =over 4
 
@@ -111,10 +111,7 @@ __PACKAGE__->set_primary_key("id_product_composition");
 
 =cut
 
-__PACKAGE__->add_unique_constraint(
-  "unique_product_composition",
-  ["id_seq_product", "id_sub_product"],
-);
+__PACKAGE__->add_unique_constraint("unique_product_layout", ["id_seq_product", "id_sub_product"]);
 
 =head1 RELATIONS
 
@@ -149,8 +146,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-06-06 10:18:13
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:AAeJG2fo+pOJBwJenGHAVg
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-06-09 17:38:31
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:6VEqrCWHNaX2D8DTO10ZRQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

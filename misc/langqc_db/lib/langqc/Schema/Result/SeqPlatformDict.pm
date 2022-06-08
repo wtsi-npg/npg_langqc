@@ -61,7 +61,6 @@ __PACKAGE__->table("seq_platform_dict");
 
   data_type: 'tinyint'
   default_value: 1
-  extra: {unsigned => 1}
   is_nullable: 0
 
 =cut
@@ -79,12 +78,7 @@ __PACKAGE__->add_columns(
   "description",
   { data_type => "varchar", is_nullable => 0, size => 256 },
   "iscurrent",
-  {
-    data_type => "tinyint",
-    default_value => 1,
-    extra => { unsigned => 1 },
-    is_nullable => 0,
-  },
+  { data_type => "tinyint", default_value => 1, is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -115,24 +109,24 @@ __PACKAGE__->add_unique_constraint("unique_seq_platform_name", ["name"]);
 
 =head1 RELATIONS
 
-=head2 sub_product_attrs
+=head2 seq_products
 
 Type: has_many
 
-Related object: L<langqc::Schema::Result::SubProductAttr>
+Related object: L<langqc::Schema::Result::SeqProduct>
 
 =cut
 
 __PACKAGE__->has_many(
-  "sub_product_attrs",
-  "langqc::Schema::Result::SubProductAttr",
+  "seq_products",
+  "langqc::Schema::Result::SeqProduct",
   { "foreign.id_seq_platform_dict" => "self.id_seq_platform_dict" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-06-06 10:18:13
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:z6RV+A3S4AWHmzTO89GZiQ
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-06-09 17:51:01
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Pb2s/xehUFhMVUFVB+/qOg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

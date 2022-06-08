@@ -22,7 +22,7 @@ for my $n ((1 .. 6)) {
 my $rs_sub_product = $schema->resultset('SubProduct');
 my @rows =
   map { $_->seq_product }
-  map { $_->product_compositions->next } 
+  map { $_->product_layouts->next } 
   $rs_sub_product->search({value_attr_one => 'TRACTION-RUN-122'})->all();
 foreach my $n (0 .. 3) {
   $rs_prod_annotation->create({id_annotation => $annotations[$n]->id_annotation,
@@ -31,10 +31,10 @@ foreach my $n (0 .. 3) {
 
 @rows =
   map { $_->seq_product }
-  map { $_->product_compositions->next } 
+  map { $_->product_layouts->next } 
   $rs_sub_product->search({value_attr_one => 'TRACTION-RUN-112'})->all();
 foreach my $row (@rows) {
-  my $a_index = $row->product_compositions->next->sub_product->tag_one ? 4 : 5;
+  my $a_index = $row->product_layouts->next->sub_product->tag_one ? 4 : 5;
   $rs_prod_annotation->create({
     id_annotation => $annotations[$a_index]->id_annotation,
     id_seq_product => $row->id_seq_product });
@@ -53,7 +53,7 @@ my %qc_dict = map { $_->outcome, $_->id_qc_outcome_dict}
 my $rs_outcome = $schema->resultset('QcOutcome');
 my @outcomes = ();
 foreach my $row (@rows) {
-  my $qc_type = $row->product_compositions->next->sub_product->tag_one ?
+  my $qc_type = $row->product_layouts->next->sub_product->tag_one ?
     $outcome_type_lib_id : $outcome_type_seq_id;
   my $o = { id_user => 2,
             id_qc_type_dict => $qc_type,
@@ -66,13 +66,13 @@ foreach my $row (@rows) {
 
 ##########  Annotate QC outcomes ############
 
+# Extra flag is needed?
 my $annotation = $rs_annotation->create(
   {id_user => 2, comment => "Passed despite problems"});
 for my $n ((0,1)) {
   $rs_prod_annotation->create({
     id_annotation => $annotation->id_annotation,
     id_seq_product => $rows[$n]->id_seq_product,
-    id_qc_outcome =>$outcomes[$n]->id_qc_outcome
   });
 }
 
