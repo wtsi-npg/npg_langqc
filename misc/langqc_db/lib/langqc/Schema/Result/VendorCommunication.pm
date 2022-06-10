@@ -1,12 +1,12 @@
 use utf8;
-package langqc::Schema::Result::Annotation;
+package langqc::Schema::Result::VendorCommunication;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-langqc::Schema::Result::Annotation
+langqc::Schema::Result::VendorCommunication
 
 =cut
 
@@ -30,15 +30,15 @@ extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
-=head1 TABLE: C<annotation>
+=head1 TABLE: C<vendor_communication>
 
 =cut
 
-__PACKAGE__->table("annotation");
+__PACKAGE__->table("vendor_communication");
 
 =head1 ACCESSORS
 
-=head2 id_annotation
+=head2 id_vendor_communication
 
   data_type: 'bigint'
   extra: {unsigned => 1}
@@ -61,21 +61,48 @@ __PACKAGE__->table("annotation");
 
 Datetime this record was created
 
-=head2 comment
+=head2 date_updated
+
+  data_type: 'datetime'
+  datetime_undef_if_invalid: 1
+  default_value: 'CURRENT_TIMESTAMP'
+  is_nullable: 1
+
+Datetime this record was created or changed
+
+=head2 id_seq_product
+
+  data_type: 'bigint'
+  extra: {unsigned => 1}
+  is_foreign_key: 1
+  is_nullable: 0
+
+=head2 query
 
   data_type: 'text'
   is_nullable: 0
 
-=head2 qc_specific
+=head2 vendor_tracking_id
 
-  data_type: 'tinyint'
-  default_value: 0
+  data_type: 'varchar'
   is_nullable: 1
+  size: 256
+
+=head2 vendor_response
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 vendor_refund
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 256
 
 =cut
 
 __PACKAGE__->add_columns(
-  "id_annotation",
+  "id_vendor_communication",
   {
     data_type => "bigint",
     extra => { unsigned => 1 },
@@ -96,39 +123,57 @@ __PACKAGE__->add_columns(
     default_value => "CURRENT_TIMESTAMP",
     is_nullable => 1,
   },
-  "comment",
+  "date_updated",
+  {
+    data_type => "datetime",
+    datetime_undef_if_invalid => 1,
+    default_value => "CURRENT_TIMESTAMP",
+    is_nullable => 1,
+  },
+  "id_seq_product",
+  {
+    data_type => "bigint",
+    extra => { unsigned => 1 },
+    is_foreign_key => 1,
+    is_nullable => 0,
+  },
+  "query",
   { data_type => "text", is_nullable => 0 },
-  "qc_specific",
-  { data_type => "tinyint", default_value => 0, is_nullable => 1 },
+  "vendor_tracking_id",
+  { data_type => "varchar", is_nullable => 1, size => 256 },
+  "vendor_response",
+  { data_type => "text", is_nullable => 1 },
+  "vendor_refund",
+  { data_type => "varchar", is_nullable => 1, size => 256 },
 );
 
 =head1 PRIMARY KEY
 
 =over 4
 
-=item * L</id_annotation>
+=item * L</id_vendor_communication>
 
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("id_annotation");
+__PACKAGE__->set_primary_key("id_vendor_communication");
 
 =head1 RELATIONS
 
-=head2 product_annotations
+=head2 seq_product
 
-Type: has_many
+Type: belongs_to
 
-Related object: L<langqc::Schema::Result::ProductAnnotation>
+Related object: L<langqc::Schema::Result::SeqProduct>
 
 =cut
 
-__PACKAGE__->has_many(
-  "product_annotations",
-  "langqc::Schema::Result::ProductAnnotation",
-  { "foreign.id_annotation" => "self.id_annotation" },
-  { cascade_copy => 0, cascade_delete => 0 },
+__PACKAGE__->belongs_to(
+  "seq_product",
+  "langqc::Schema::Result::SeqProduct",
+  { id_seq_product => "id_seq_product" },
+  { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 =head2 user
@@ -148,7 +193,7 @@ __PACKAGE__->belongs_to(
 
 
 # Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-06-10 12:17:34
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:tw+EllWS6PFub2Ic5l1OCg
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:fORyYht9MLkpKWshmf3HaQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

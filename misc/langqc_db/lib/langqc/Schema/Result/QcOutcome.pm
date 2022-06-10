@@ -66,6 +66,13 @@ __PACKAGE__->table("qc_outcome");
   is_foreign_key: 1
   is_nullable: 0
 
+=head2 id_qc_classification_dict
+
+  data_type: 'integer'
+  extra: {unsigned => 1}
+  is_foreign_key: 1
+  is_nullable: 1
+
 =head2 id_qc_type_dict
 
   data_type: 'integer'
@@ -128,6 +135,13 @@ __PACKAGE__->add_columns(
     is_foreign_key => 1,
     is_nullable => 0,
   },
+  "id_qc_classification_dict",
+  {
+    data_type => "integer",
+    extra => { unsigned => 1 },
+    is_foreign_key => 1,
+    is_nullable => 1,
+  },
   "id_qc_type_dict",
   {
     data_type => "integer",
@@ -182,6 +196,26 @@ __PACKAGE__->set_primary_key("id_qc_outcome");
 __PACKAGE__->add_unique_constraint("unique_qc_outcome", ["id_seq_product", "id_qc_type_dict"]);
 
 =head1 RELATIONS
+
+=head2 qc_classification_dict
+
+Type: belongs_to
+
+Related object: L<langqc::Schema::Result::QcClassificationDict>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "qc_classification_dict",
+  "langqc::Schema::Result::QcClassificationDict",
+  { id_qc_classification_dict => "id_qc_classification_dict" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
 
 =head2 qc_outcome_dict
 
@@ -244,8 +278,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-06-08 17:39:30
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:9Djmf/bvk0yZysRfHw0E1Q
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-06-10 12:17:34
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:eo+Xu6WIH8/jxaYtvx/6vw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -110,11 +110,19 @@ CREATE TABLE `qc_outcome_dict` (
   UNIQUE KEY `unique_qc_outcome_dict` (`outcome`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+CREATE TABLE `qc_classification_dict` (
+  `id_qc_classification_dict` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `description` varchar(200) NOT NULL,
+  PRIMARY KEY (`id_qc_classification_dict`),
+  UNIQUE KEY `unique_qc_category_dict` (`description`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 CREATE TABLE `qc_outcome` (
   `id_qc_outcome` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `id_seq_product` bigint(20) unsigned NOT NULL,
   `id_user` int(11) unsigned NOT NULL,
   `id_qc_outcome_dict` int(11) unsigned NOT NULL,
+  `id_qc_classification_dict` int(11) unsigned DEFAULT NULL,
   `id_qc_type_dict` int(11) unsigned NOT NULL,
   `created_by` varchar(20) NOT NULL,
   `date_created` datetime DEFAULT CURRENT_TIMESTAMP \
@@ -133,6 +141,9 @@ CREATE TABLE `qc_outcome` (
   CONSTRAINT `fk_qc_outcome_outcome` FOREIGN KEY (`id_qc_outcome_dict`) \
     REFERENCES `qc_outcome_dict` (`id_qc_outcome_dict`) \
     ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_qc_outcome_classification` FOREIGN KEY (`id_qc_classification_dict`) \
+    REFERENCES `qc_classification_dict` (`id_qc_classification_dict`) \
+    ON DELETE NO ACTION ON UPDATE NO ACTION, 
   CONSTRAINT `fk_qc_outcome_type` FOREIGN KEY (`id_qc_type_dict`) \
     REFERENCES `qc_type_dict` (`id_qc_type_dict`) \
     ON DELETE NO ACTION ON UPDATE NO ACTION
@@ -143,6 +154,7 @@ CREATE TABLE `qc_outcome_hist` (
   `id_seq_product` bigint(20) unsigned NOT NULL,
   `id_user` int(11) unsigned NOT NULL,
   `id_qc_outcome_dict` int(11) unsigned NOT NULL,
+  `id_qc_classification_dict` int(11) unsigned DEFAULT NULL,
   `id_qc_type_dict` int(11) unsigned NOT NULL,
   `created_by` varchar(20) NOT NULL,
   `date_created` datetime NOT NULL \
@@ -150,7 +162,7 @@ CREATE TABLE `qc_outcome_hist` (
   `date_updated` datetime NOT NULL \
     COMMENT 'Datetime the original record was created or changed',
   PRIMARY KEY (`id_qc_outcome_hist`),
-  CONSTRAINT `fk_qc_outcomhe_product` FOREIGN KEY (`id_seq_product`) \
+  CONSTRAINT `fk_qc_outcomeh_product` FOREIGN KEY (`id_seq_product`) \
     REFERENCES `seq_product` (`id_seq_product`) \
     ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `fk_qc_outcomeh_user` FOREIGN KEY (`id_user`) \
@@ -158,6 +170,9 @@ CREATE TABLE `qc_outcome_hist` (
     ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `fk_qc_outcomeh_outcome` FOREIGN KEY (`id_qc_outcome_dict`) \
     REFERENCES `qc_outcome_dict` (`id_qc_outcome_dict`) \
+    ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_qc_outcomeh_classification` FOREIGN KEY (`id_qc_classification_dict`) \
+    REFERENCES `qc_classification_dict` (`id_qc_classification_dict`) \
     ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `fk_qc_outcomeh_type` FOREIGN KEY (`id_qc_type_dict`) \
     REFERENCES `qc_type_dict` (`id_qc_type_dict`) \
@@ -172,6 +187,7 @@ CREATE TABLE `annotation` (
   `date_created` datetime DEFAULT CURRENT_TIMESTAMP \
     COMMENT 'Datetime this record was created',
   `comment` text NOT NULL,
+  `qc_specific` boolean DEFAULT 0,
   PRIMARY KEY (`id_annotation`),
   CONSTRAINT `fk_annotation_user` FOREIGN KEY (`id_user`) \
     REFERENCES `user` (`id_user`) \
@@ -220,5 +236,29 @@ CREATE TABLE `status` (
     ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `fk_status_status_dict` FOREIGN KEY (`id_status_dict`) \
     REFERENCES `status_dict` (`id_status_dict`) \
+    ON DELETE NO ACTION ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- Vendor communication
+
+CREATE TABLE `vendor_communication` (
+  `id_vendor_communication` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `id_user` int(11) unsigned NOT NULL, 
+  `date_created` datetime DEFAULT CURRENT_TIMESTAMP \
+    COMMENT 'Datetime this record was created',
+  `date_updated` datetime DEFAULT CURRENT_TIMESTAMP \
+    ON UPDATE CURRENT_TIMESTAMP \
+    COMMENT 'Datetime this record was created or changed',
+  `id_seq_product` bigint(20) unsigned NOT NULL,
+  `query` text NOT NULL,
+  `vendor_tracking_id` varchar(256) DEFAULT NULL,
+  `vendor_response` text DEFAULT NULL,
+  `vendor_refund` varchar(256) DEFAULT NULL,
+  PRIMARY KEY (`id_vendor_communication`),
+  CONSTRAINT `fk_vendor_comm_product` FOREIGN KEY (`id_seq_product`) \
+    REFERENCES `seq_product` (`id_seq_product`) \
+    ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_vendor_comm_user` FOREIGN KEY (`id_user`) \
+    REFERENCES `user` (`id_user`) \
     ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

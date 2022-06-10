@@ -35,12 +35,20 @@ foreach my $n (0 .. 3) {
   $rs_sub_product->search({value_attr_one => 'TRACTION-RUN-112'})->all();
 foreach my $row (@rows) {
   my $a_index = $row->product_layouts->next->sub_product->tag_one ? 4 : 5;
-  $rs_prod_annotation->create({
+  $rs_prod_annotation->update_or_create({
     id_annotation => $annotations[$a_index]->id_annotation,
     id_seq_product => $row->id_seq_product });
 }
 
 ##########  QC outcomes ##############
+
+my $rs_spec = $schema->resultset('QcClassificationDict');
+my @spec_ids = ();
+for my $spec (('good yield', 'low yield, the rest OK',
+              'poor quality', 'flowcell damage')) {
+  my $row = $rs_spec->update_or_create({description => $spec});
+  push @spec_ids, $row->id_qc_classification_dict;
+}
 
 my $outcome_type_lib_id = $schema->resultset('QcTypeDict')->search({
   qc_type => 'library'})->next->id_qc_type_dict;
@@ -60,19 +68,22 @@ foreach my $row (@rows) {
             created_by => 'demo',
             id_qc_outcome_dict => $qc_dict{'Accepted preliminary'},
             id_seq_product => $row->id_seq_product
-           };
-  push @outcomes, $rs_outcome->create($o);
+          };
+  if ($qc_type == $outcome_type_seq_id) {
+    $o->{id_qc_classification_dict} = $spec_ids[3];
+  }
+
+  push @outcomes, $rs_outcome->update_or_create($o);
 }
 
 ##########  Annotate QC outcomes ############
 
-# Extra flag is needed?
 my $annotation = $rs_annotation->create(
-  {id_user => 2, comment => "Passed despite problems"});
+  {id_user => 2, comment => "Passed despite problems", qc_specific => 1});
 for my $n ((0,1)) {
-  $rs_prod_annotation->create({
+  $rs_prod_annotation->update_or_create({
     id_annotation => $annotation->id_annotation,
-    id_seq_product => $rows[$n]->id_seq_product,
+    id_seq_product => $rows[$n]->id_seq_product
   });
 }
 
