@@ -89,7 +89,7 @@ class PacBioRunWellMetrics(BaseModel):
     chip_type: str = Field(default=None, title="Chip type")
 
     sl_hostname: str = Field(default=None, title="SMRT Link server hostname")
-    sl_hostname: str = Field(default=None, title="SMRT Link specific run uuid")
+    sl_run_uuid: str = Field(default=None, title="SMRT Link specific run uuid")
 
     ts_run_name: str = Field(default=None, title="The PacBio run name")
 
