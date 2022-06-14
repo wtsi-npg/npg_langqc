@@ -17,11 +17,29 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
-from fastapi import APIRouter
+import os
 
-from lang_qc.mlwh.endpoints.pacbio_run import router as pacbio_run_router
-from lang_qc.mlwh.endpoints.inbox import router as inbox_router
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, Session
 
-router = APIRouter()
-router.include_router(pacbio_run_router, prefix="/pacbio")
-router.include_router(inbox_router, prefix="/pacbio")
+config = {"DB_URL": os.environ.get("DB_URL"), "TEST": os.environ.get("LRQC_MODE")}
+
+if config["TEST"]:
+    config["DB_URL"] = "sqlite+pysqlite:///:memory:"
+
+if config["DB_URL"] is None or config["DB_URL"] == "":
+    raise Exception(
+        "ENV['DB_URL'] must be set with a database URL, or LRQC_MODE must be set for testing."
+    )
+
+engine = create_engine(config["DB_URL"], future=True, echo=True)
+session_factory: sessionmaker = sessionmaker(engine, expire_on_commit=False)
+
+
+def get_mlwh_db() -> Session:
+    """Get MLWH DB connection"""
+    db = session_factory()
+    try:
+        yield db
+    finally:
+        db.close()

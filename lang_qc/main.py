@@ -19,11 +19,13 @@
 
 from fastapi import FastAPI
 from starlette.responses import RedirectResponse
-from lang_qc.mlwh.router import router as mlwh_router
 
+from lang_qc.endpoints.inbox import router as pacbio_run_router
+from lang_qc.endpoints.pacbio_run import router as inbox_router
 
 app = FastAPI(title="LangQC")
-app.include_router(mlwh_router, prefix="/mlwh")
+app.include_router(pacbio_run_router, prefix="/pacbio")
+app.include_router(inbox_router, prefix="/pacbio")
 
 
 @app.get("/")
