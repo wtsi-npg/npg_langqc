@@ -20,8 +20,8 @@
 from fastapi import FastAPI
 from starlette.responses import RedirectResponse
 
-from .endpoints.inbox import router as pacbio_run_router
-from .endpoints.pacbio_run import router as inbox_router
+from lang_qc.endpoints.inbox import router as pacbio_run_router
+from lang_qc.endpoints.pacbio_run import router as inbox_router
 
 app = FastAPI(title="LangQC")
 app.include_router(pacbio_run_router, prefix="/pacbio")

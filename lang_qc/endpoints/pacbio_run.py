@@ -20,13 +20,12 @@
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
+from ml_warehouse.schema import PacBioRun
 from sqlalchemy.orm import Session
 from sqlalchemy import select, and_
-from ml_warehouse.schema import PacBioRun
 
-
-from ..connection import get_mlwh_db
-from ..models import PacBioRunResponse, Study, Sample
+from lang_qc.connection import get_mlwh_db
+from lang_qc.models import PacBioRunResponse, Study, Sample
 
 
 router = APIRouter()

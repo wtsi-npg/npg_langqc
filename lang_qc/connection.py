@@ -20,7 +20,6 @@
 import os
 
 from sqlalchemy import create_engine
-
 from sqlalchemy.orm import sessionmaker, Session
 
 config = {"DB_URL": os.environ.get("DB_URL"), "TEST": os.environ.get("LRQC_MODE")}

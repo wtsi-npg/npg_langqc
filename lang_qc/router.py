@@ -19,8 +19,8 @@
 
 from fastapi import APIRouter
 
-from .endpoints.pacbio_run import router as pacbio_run_router
-from .endpoints.inbox import router as inbox_router
+from lang_qc.endpoints.pacbio_run import router as pacbio_run_router
+from lang_qc.endpoints.inbox import router as inbox_router
 
 router = APIRouter()
 router.include_router(pacbio_run_router, prefix="/pacbio")
