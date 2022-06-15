@@ -239,26 +239,3 @@ CREATE TABLE `status` (
     ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- Vendor communication
-
-CREATE TABLE `vendor_communication` (
-  `id_vendor_communication` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `id_user` int(11) unsigned NOT NULL, 
-  `date_created` datetime DEFAULT CURRENT_TIMESTAMP \
-    COMMENT 'Datetime this record was created',
-  `date_updated` datetime DEFAULT CURRENT_TIMESTAMP \
-    ON UPDATE CURRENT_TIMESTAMP \
-    COMMENT 'Datetime this record was created or changed',
-  `id_seq_product` bigint(20) unsigned NOT NULL,
-  `query` text NOT NULL,
-  `vendor_tracking_id` varchar(256) DEFAULT NULL,
-  `vendor_response` text DEFAULT NULL,
-  `vendor_refund` varchar(256) DEFAULT NULL,
-  PRIMARY KEY (`id_vendor_communication`),
-  CONSTRAINT `fk_vendor_comm_product` FOREIGN KEY (`id_seq_product`) \
-    REFERENCES `seq_product` (`id_seq_product`) \
-    ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT `fk_vendor_comm_user` FOREIGN KEY (`id_user`) \
-    REFERENCES `user` (`id_user`) \
-    ON DELETE NO ACTION ON UPDATE NO ACTION
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;

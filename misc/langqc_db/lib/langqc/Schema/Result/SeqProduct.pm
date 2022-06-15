@@ -226,24 +226,9 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 vendor_communications
 
-Type: has_many
-
-Related object: L<langqc::Schema::Result::VendorCommunication>
-
-=cut
-
-__PACKAGE__->has_many(
-  "vendor_communications",
-  "langqc::Schema::Result::VendorCommunication",
-  { "foreign.id_seq_product" => "self.id_seq_product" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-06-10 12:17:34
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Yao9I/TuKMvf8tMnu/pCdQ
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-06-15 10:42:39
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:dmZMOOv60etke921n1LWqA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
