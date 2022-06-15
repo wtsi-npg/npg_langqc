@@ -34,21 +34,13 @@ foreach my $n (0 .. 3) {
   map { $_->product_layouts->next } 
   $rs_sub_product->search({value_attr_one => 'TRACTION-RUN-112'})->all();
 foreach my $row (@rows) {
-  my $a_index = $row->product_layouts->next->sub_product->tag_one ? 4 : 5;
+  my $a_index = $row->product_layouts->next->sub_product->tags ? 4 : 5;
   $rs_prod_annotation->update_or_create({
     id_annotation => $annotations[$a_index]->id_annotation,
     id_seq_product => $row->id_seq_product });
 }
 
 ##########  QC outcomes ##############
-
-my $rs_spec = $schema->resultset('QcClassificationDict');
-my @spec_ids = ();
-for my $spec (('good yield', 'low yield, the rest OK',
-              'poor quality', 'flowcell damage')) {
-  my $row = $rs_spec->update_or_create({description => $spec});
-  push @spec_ids, $row->id_qc_classification_dict;
-}
 
 my $outcome_type_lib_id = $schema->resultset('QcTypeDict')->search({
   qc_type => 'library'})->next->id_qc_type_dict;
@@ -61,18 +53,15 @@ my %qc_dict = map { $_->outcome, $_->id_qc_outcome_dict}
 my $rs_outcome = $schema->resultset('QcOutcome');
 my @outcomes = ();
 foreach my $row (@rows) {
-  my $qc_type = $row->product_layouts->next->sub_product->tag_one ?
+  my $qc_type = $row->product_layouts->next->sub_product->tags ?
     $outcome_type_lib_id : $outcome_type_seq_id;
   my $o = { id_user => 2,
             id_qc_type_dict => $qc_type,
             created_by => 'demo',
-            id_qc_outcome_dict => $qc_dict{'Accepted preliminary'},
+            id_qc_outcome_dict => $qc_dict{'Passed'},
+            is_preliminary => 1,
             id_seq_product => $row->id_seq_product
           };
-  if ($qc_type == $outcome_type_seq_id) {
-    $o->{id_qc_classification_dict} = $spec_ids[3];
-  }
-
   push @outcomes, $rs_outcome->update_or_create($o);
 }
 

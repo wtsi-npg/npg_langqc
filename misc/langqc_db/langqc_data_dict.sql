@@ -23,10 +23,8 @@ insert into qc_outcome_dict (`outcome`, `short_outcome`)
   values ('Passed', 1),
          ('Failed, reagent problem', 0),
          ('Failed, flowcell problem', 0),
-         ('Failed', 0);
+         ('Failed', 0),
+         ('Undecided', NULL),
+         ('Claimed', NULL),
+         ('On hold', NULL);
 
-insert into status_dict (`description`, `long_description`, `temporal_index`)
-  values ('qc in progress', 'QC in progress', 100),
-         ('qc on hold', 'QC on hold, resolving problems', 120),
-         ('manual qc complete', 'Manual QC has been completed', 140),
-         ('robo qc complete', 'Robo QC has been completed', 160);

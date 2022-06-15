@@ -11,7 +11,6 @@ my $schema = langqc::Schema->connect();
 my $rs_sub_product = $schema->resultset('SubProduct');
 my $rs_seq_product = $schema->resultset('SeqProduct');
 my $rs_product_layout = $schema->resultset('ProductLayout');
-my $rs_category_dict = $schema->resultset('ProductCategoryDict');
 my $rs_platform = $schema->resultset('SeqPlatformDict');
 my $rs_attrs = $schema->resultset('SubProductAttr');
 
@@ -30,12 +29,6 @@ my @raw_sub_products = (
   ['TRACTION-RUN-114', 'B1', 'CATAGAGAGATAGTATT',
     '{"run_name":"TRACTION-RUN-114","well_label":"B1","tag_one":"CATAGAGAGATAGTATT"}',
     'e91252f1b10a38c523e6b6f572b5db206111af272b96a33b5ee97d9734eb3ea8'],
-  ['TRACTION-RUN-114', 'A1', undef,
-    '{"run_name":"TRACTION-RUN-114","well_label":"A1"}',
-    '5a6f61b4fa2b6ed004947207ef98b98f9bf634f99960f6df5ccd57a078c0a647'],
-  ['TRACTION-RUN-114', 'B1', undef,
-    '{"run_name":"TRACTION-RUN-114","well_label":"B1"}',
-    '1e866670136bd9067635734ea89c13ad43771e604565e3dad6a476c134f7e569'],
   ['TRACTION-RUN-112', 'A1', 'ATAGAGGC',
     '{"run_name":"TRACTION-RUN-112","well_label":"A1","tag_one":"ATAGAGGC"}',
     'fc2750dd5c44398bf5aa0cf14689918bf89d4aa366ebcd6e6b42087164b003d9'],
@@ -62,7 +55,7 @@ foreach my $p (@raw_sub_products) {
     properties_digest => $p->[4]
   };
   if ($p->[2]) {
-    $data->{tag_one} = $p->[2];
+    $data->{tags} = $p->[2];
   }
   $rs_sub_product->update_or_create($data);
 }
@@ -74,15 +67,11 @@ my $sub_products = [
   [qw(TRACTION-RUN-122 D1)],  
 ];
 
-my $id_category_ni = $rs_category_dict->search(
-  {category => 'library_notindexed'})->next->id_product_category_dict;
-
 foreach my $sp (@{$sub_products}) {
   my $row_subp = $rs_sub_product->search(
     {value_attr_one => $sp->[0], value_attr_two => $sp->[1]})->next;
   my $row_seqp = $rs_seq_product->update_or_create(
     {id_product => $row_subp->properties_digest,
-     id_product_category_dict => $id_category_ni,
      id_seq_platform_dict => $platform_id});
   $rs_product_layout->update_or_create(
     {id_seq_product => $row_seqp->id_seq_product,
@@ -94,21 +83,12 @@ $sub_products = [
   [qw(TRACTION-RUN-114 B1)]
 ];
 
-my $id_category_i = $rs_category_dict->search(
-  {category => 'library_indexed'})->next->id_product_category_dict;
-my $id_category_b = $rs_category_dict->search(
-  {category => 'bucket'})->next->id_product_category_dict;
-my $id_category_m = $rs_category_dict->search(
-  {category => 'merged'})->next->id_product_category_dict;
-
 foreach my $sp (@{$sub_products}) {
   my @rows_subp = $rs_sub_product->search(
     {value_attr_one => $sp->[0], value_attr_two => $sp->[1]})->all;
   for my $row_subp (@rows_subp) {
-    my $id_category = $row_subp->tag_one ? $id_category_i : $id_category_b; 
     my $row_seqp = $rs_seq_product->update_or_create(
       {id_product => $row_subp->properties_digest,
-       id_product_category_dict => $id_category,
        id_seq_platform_dict => $platform_id}); 
     $rs_product_layout->update_or_create(
       {id_seq_product => $row_seqp->id_seq_product,
@@ -116,10 +96,9 @@ foreach my $sp (@{$sub_products}) {
   }  
 }
 
-my @rows_subp = grep { $_->tag_one }
+my @rows_subp = grep { $_->tags }
   $rs_sub_product->search({value_attr_one => 'TRACTION-RUN-114'})->all();
 my $row_seqp = $rs_seq_product->update_or_create({
-  id_product_category_dict => $id_category_m,
   id_seq_platform_dict => $platform_id,
   id_product => sha256_hex(
     join q[], (sort map { $_->properties_digest } @rows_subp))});
@@ -132,10 +111,9 @@ foreach my $row (@rows_subp) {
 @rows_subp = $rs_sub_product->search(
   {value_attr_one => 'TRACTION-RUN-112'})->all();
 foreach my $sp (@rows_subp) {
-  my $id_category = $sp->tag_one ? $id_category_i : $id_category_b;
   my $row_seqp = $rs_seq_product->update_or_create(
     {id_product => $sp->properties_digest,
-     id_product_category_dict => $id_category,
+     has_seq_data => $sp->tags ? 1 : 0,
      id_seq_platform_dict => $platform_id});
   $rs_product_layout->update_or_create(
     {id_seq_product => $row_seqp->id_seq_product,

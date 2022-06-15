@@ -178,24 +178,9 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 statuses
 
-Type: has_many
-
-Related object: L<langqc::Schema::Result::Status>
-
-=cut
-
-__PACKAGE__->has_many(
-  "statuses",
-  "langqc::Schema::Result::Status",
-  { "foreign.id_user" => "self.id_user" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-06-15 10:42:39
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:s7taxaoiMKoRiXb6YnhGNg
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-06-15 17:15:16
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Zzm054fTEQQm+wUo5xSLbQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

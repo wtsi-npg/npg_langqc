@@ -185,35 +185,3 @@ CREATE TABLE `product_annotation` (
     ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- Statuses
-
-CREATE TABLE `status_dict` (
-  `id_status_dict` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `description` varchar(30) NOT NULL,
-  `long_description` varchar(255) NOT NULL,
-  `temporal_index` int unsigned NOT NULL,
-  `iscurrent` boolean DEFAULT 1,
-  PRIMARY KEY (`id_status_dict`),
-  UNIQUE KEY `unique_status_dict_desc` (`description`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE `status` (
-  `id_status` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `id_user` int(11) unsigned NOT NULL,
-  `date_created` datetime DEFAULT CURRENT_TIMESTAMP \
-    COMMENT 'Datetime this record was created',
-  `id_status_dict` int(11) unsigned NOT NULL,
-  `id_seq_product` bigint(20) unsigned NOT NULL,
-  `iscurrent` boolean DEFAULT 0,
-  PRIMARY KEY (`id_status`),
-  CONSTRAINT `fk_status_user` FOREIGN KEY (`id_user`) \
-    REFERENCES `user` (`id_user`) \
-    ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT `fk_status_product` FOREIGN KEY (`id_seq_product`) \
-    REFERENCES `seq_product` (`id_seq_product`) \
-    ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT `fk_status_status_dict` FOREIGN KEY (`id_status_dict`) \
-    REFERENCES `status_dict` (`id_status_dict`) \
-    ON DELETE NO ACTION ON UPDATE NO ACTION
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
