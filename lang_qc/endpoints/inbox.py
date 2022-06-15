@@ -18,9 +18,10 @@
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
 from datetime import datetime, timedelta
-from typing import List
+from operator import attrgetter
+from typing import List, Tuple
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from ml_warehouse.schema import PacBioRunWellMetrics
 from sqlalchemy import select, and_, or_
 from sqlalchemy.orm import Session
@@ -31,10 +32,24 @@ from lang_qc.models import InboxResults, InboxResultEntry, WellInfo
 router = APIRouter()
 
 
-@router.get("/inbox", response_model=InboxResults)
-def get_inbox(weeks: int, db_session: Session = Depends(get_mlwh_db)) -> InboxResults:
-    """Get inbox of PacBio runs"""
+@router.get(
+    "/inbox",
+    response_model=InboxResults,
+    responses={400: {"description": "Bad Request. Invalid weeks parameter."}},
+)
+def get_inbox(
+    weeks: int = 2, db_session: Session = Depends(get_mlwh_db)
+) -> InboxResults:
+    """Get inbox of PacBio runs.
 
+    Fetches from the last 2 weeks by default."""
+
+    if weeks < 0:
+        raise HTTPException(
+            status_code=400, detail="Bad Request. Invalid weeks paramter."
+        )
+
+    # Get wells from DB.
     stmt = select(PacBioRunWellMetrics).filter(
         and_(
             PacBioRunWellMetrics.polymerase_num_reads is not None,
@@ -56,44 +71,55 @@ def get_inbox(weeks: int, db_session: Session = Depends(get_mlwh_db)) -> InboxRe
 
     results: List[PacBioRunWellMetrics] = db_session.execute(stmt).scalars().all()
 
-    grouped = {}
+    # Group the wells by run.
+    grouped_wells = {}
 
     for well_metrics in results:
         run_name = well_metrics.pac_bio_run_name
-        if run_name not in grouped:
-            grouped[run_name] = []
-        grouped[run_name].append(well_metrics)
+        if run_name not in grouped_wells:
+            grouped_wells[run_name] = []
+        grouped_wells[run_name].append(well_metrics)
 
-    def map_function(well_metrics: List[PacBioRunWellMetrics]) -> InboxResultEntry:
-        run_name, well_metrics = well_metrics  # unpack the grouped
-        run_name = well_metrics[0].pac_bio_run_name
+    # Next, convert the grouped wells into result entries.
+    def make_inbox_result_entry(
+        well_metrics: Tuple[str, List[PacBioRunWellMetrics]]
+    ) -> InboxResultEntry:
+        """Construct an InboxResultEntry from a list of wells"""
+        run_name, well_metrics = well_metrics  # unpack the grouped entries
         time_start = well_metrics[0].run_start
         time_complete = well_metrics[0].run_complete
 
         wells = sorted(
-            map(
-                lambda well: WellInfo(
+            [
+                WellInfo(
                     label=well.well_label,
                     start=well.well_start,
                     complete=well.well_complete,
-                ),
-                well_metrics,
-            ),
-            key=lambda well: well.label,
+                )
+                for well in well_metrics
+            ],
+            key=attrgetter("label"),
         )
 
         return InboxResultEntry(
             run_name=run_name,
             time_start=time_start,
             time_complete=time_complete,
-            wells=list(wells),
+            wells=wells,
         )
 
-    mapped = map(map_function, grouped.items())
+    unsorted_results = map(make_inbox_result_entry, grouped_wells.items())
+
+    # Finally, sort the wells by most recently completed well.
+    def get_max_date(entry):
+        """Get the most recent well completion date for wells in an entry."""
+
+        return max(entry.wells, key=attrgetter("complete")).complete
 
     output = sorted(
-        mapped,
-        key=lambda x: max(x.wells, key=lambda y: y.complete).complete,
+        unsorted_results,
+        key=get_max_date,
         reverse=True,
     )
+
     return output
