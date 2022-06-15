@@ -49,13 +49,13 @@ __PACKAGE__->table("qc_outcome_dict");
 
   data_type: 'varchar'
   is_nullable: 0
-  size: 30
+  size: 255
 
-=head2 description
+=head2 short_outcome
 
-  data_type: 'varchar'
-  is_nullable: 0
-  size: 256
+  data_type: 'tinyint'
+  extra: {unsigned => 1}
+  is_nullable: 1
 
 =cut
 
@@ -68,9 +68,9 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
   },
   "outcome",
-  { data_type => "varchar", is_nullable => 0, size => 30 },
-  "description",
-  { data_type => "varchar", is_nullable => 0, size => 256 },
+  { data_type => "varchar", is_nullable => 0, size => 255 },
+  "short_outcome",
+  { data_type => "tinyint", extra => { unsigned => 1 }, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -132,8 +132,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-06-08 10:35:08
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:PKVpFjeFPYl4O5zaq7hFQg
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-06-15 13:36:56
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:cutrqy8sI/cu1IWOCw+knA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

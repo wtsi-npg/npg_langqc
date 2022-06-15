@@ -55,7 +55,7 @@ __PACKAGE__->table("seq_platform_dict");
 
   data_type: 'varchar'
   is_nullable: 0
-  size: 256
+  size: 255
 
 =head2 iscurrent
 
@@ -76,7 +76,7 @@ __PACKAGE__->add_columns(
   "name",
   { data_type => "varchar", is_nullable => 0, size => 10 },
   "description",
-  { data_type => "varchar", is_nullable => 0, size => 256 },
+  { data_type => "varchar", is_nullable => 0, size => 255 },
   "iscurrent",
   { data_type => "tinyint", default_value => 1, is_nullable => 0 },
 );
@@ -125,8 +125,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-06-09 17:51:01
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Pb2s/xehUFhMVUFVB+/qOg
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-06-15 13:36:56
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wNYoGIA2oUlrs0SHnMsfqA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

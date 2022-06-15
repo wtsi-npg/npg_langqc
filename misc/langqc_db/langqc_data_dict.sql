@@ -13,25 +13,17 @@ insert into sub_product_attr (`attr_name`, `description`)
   ('id_run', 'Run id in the NPG run tracking system'),
   ('position', 'Illumina flowcell position (lane)');
 
-insert into product_category_dict (`category`, `description`) values
-  ('library_indexed', 'A deplexed indexed libary'),
-  ('library_notindexed', 'Not indexed library'),
-  ('merged', 'Data composed from multiple sub products'),
-  ('bucket', 'Instrument assessment level, QC data only');
-
 insert into user (`username`) values ('user1'), ('user2');
 
 insert into qc_type_dict (`qc_type`, `description`) values
   ('library', 'Sample/library evaluation'),
   ('sequencing', 'Sequencing/instrument evaliation');
 
-insert into qc_outcome_dict (`outcome`, `description`)
-  values ('Accepted preliminary', 'Accepted preliminary'),
-         ('Accepted final', 'Accepted final'),
-         ('Rejected preliminary', 'Rejected preliminary'),
-         ('Rejected final', 'Rejected final'),
-         ('Undecided preliminary', 'Undecided preliminary'),
-         ('Undecided final', 'Undecided final');
+insert into qc_outcome_dict (`outcome`, `short_outcome`)
+  values ('Passed', 1),
+         ('Failed, reagent problem', 0),
+         ('Failed, flowcell problem', 0),
+         ('Failed', 0);
 
 insert into status_dict (`description`, `long_description`, `temporal_index`)
   values ('qc in progress', 'QC in progress', 100),

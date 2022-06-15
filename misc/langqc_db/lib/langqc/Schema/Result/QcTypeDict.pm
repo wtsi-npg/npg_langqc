@@ -55,7 +55,7 @@ __PACKAGE__->table("qc_type_dict");
 
   data_type: 'varchar'
   is_nullable: 0
-  size: 256
+  size: 255
 
 =cut
 
@@ -70,7 +70,7 @@ __PACKAGE__->add_columns(
   "qc_type",
   { data_type => "varchar", is_nullable => 0, size => 10 },
   "description",
-  { data_type => "varchar", is_nullable => 0, size => 256 },
+  { data_type => "varchar", is_nullable => 0, size => 255 },
 );
 
 =head1 PRIMARY KEY
@@ -132,8 +132,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-06-06 10:18:13
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:DFrJTVjatRyyXyklNAAeUA
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-06-15 13:36:56
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:PRN6LuM2yquYIvmAb191qw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

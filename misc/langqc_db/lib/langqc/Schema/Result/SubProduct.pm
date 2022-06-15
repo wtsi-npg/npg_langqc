@@ -71,17 +71,11 @@ __PACKAGE__->table("sub_product");
   is_nullable: 0
   size: 20
 
-=head2 tag_one
+=head2 tags
 
   data_type: 'varchar'
   is_nullable: 1
-  size: 20
-
-=head2 tag_two
-
-  data_type: 'varchar'
-  is_nullable: 1
-  size: 20
+  size: 255
 
 =head2 properties
 
@@ -122,10 +116,8 @@ __PACKAGE__->add_columns(
   },
   "value_attr_two",
   { data_type => "varchar", is_nullable => 0, size => 20 },
-  "tag_one",
-  { data_type => "varchar", is_nullable => 1, size => 20 },
-  "tag_two",
-  { data_type => "varchar", is_nullable => 1, size => 20 },
+  "tags",
+  { data_type => "varchar", is_nullable => 1, size => 255 },
   "properties",
   { data_type => "json", is_nullable => 0 },
   "properties_digest",
@@ -206,8 +198,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-06-09 17:46:16
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ZzVyOQSszKVOUG2yMOJTuw
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-06-15 13:36:56
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:l/2QkrLZHWpxV3QzHbp5KA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

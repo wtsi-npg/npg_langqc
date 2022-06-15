@@ -6,24 +6,16 @@
 CREATE TABLE `seq_platform_dict` (
   `id_seq_platform_dict` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(10) NOT NULL,
-  `description` varchar(256) NOT NULL,
+  `description` varchar(255) NOT NULL,
   `iscurrent` boolean NOT NULL DEFAULT '1',
   PRIMARY KEY (`id_seq_platform_dict`),
   UNIQUE KEY `unique_seq_platform_name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `product_category_dict` (
-  `id_product_category_dict` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `category` varchar(20) NOT NULL,
-  `description` varchar(256) NOT NULL,
-  PRIMARY KEY (`id_product_category_dict`),
-  UNIQUE KEY `unique_product_cat_dict` (`category`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
 CREATE TABLE `sub_product_attr` (
   `id_attr` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `attr_name` varchar(20) NOT NULL,
-  `description` varchar(256) NOT NULL,
+  `description` varchar(255) NOT NULL,
   PRIMARY KEY (`id_attr`),
   UNIQUE KEY `unique_subpr_attr` (`attr_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -34,12 +26,14 @@ CREATE TABLE `sub_product` (
   `value_attr_one` varchar(20) NOT NULL,
   `id_attr_two` int(11) unsigned NOT NULL,
   `value_attr_two` varchar(20) NOT NULL,
-  `tag_one` varchar(20) DEFAULT NULL,
-  `tag_two` varchar(20) DEFAULT NULL,
+  `tags` varchar(255) DEFAULT NULL,
   `properties` JSON NOT NULL,
   `properties_digest` char(64) NOT NULL,
   PRIMARY KEY (`id_sub_product`),
   UNIQUE KEY `unique_sub_product_digest` (`properties_digest`),
+  KEY `sub_product_value_attr_one` (`value_attr_one`),
+  KEY `sub_product_value_attr_two` (`value_attr_two`),
+  KEY `sub_product_tags` (`tags`),
   CONSTRAINT `fk_subproduct_attr1` FOREIGN KEY (`id_attr_one`) \
     REFERENCES `sub_product_attr` (`id_attr`) \
     ON DELETE NO ACTION ON UPDATE NO ACTION,
@@ -51,13 +45,10 @@ CREATE TABLE `sub_product` (
 CREATE TABLE `seq_product` (
   `id_seq_product` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `id_product` char(64) NOT NULL,
-  `id_product_category_dict` int(11) unsigned NOT NULL,
   `id_seq_platform_dict` int(11) unsigned NOT NULL,
+  `has_seq_data` boolean DEFAULT 1,
   PRIMARY KEY (`id_seq_product`),
   UNIQUE KEY `unique_product` (`id_product`),
-  CONSTRAINT `fk_product_category` FOREIGN KEY (`id_product_category_dict`) \
-    REFERENCES `product_category_dict` (`id_product_category_dict`) \
-    ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `fk_subproduct_seq_pl` FOREIGN KEY (`id_seq_platform_dict`) \
     REFERENCES `seq_platform_dict` (`id_seq_platform_dict`) \
     ON DELETE NO ACTION ON UPDATE NO ACTION
@@ -97,24 +88,17 @@ CREATE TABLE `user` (
 CREATE TABLE `qc_type_dict` (
   `id_qc_type_dict` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `qc_type` varchar(10) NOT NULL,
-  `description` varchar(256) NOT NULL,
+  `description` varchar(255) NOT NULL,
   PRIMARY KEY (`id_qc_type_dict`),
   UNIQUE KEY `unique_qc_type_dict` (`qc_type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `qc_outcome_dict` (
   `id_qc_outcome_dict` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `outcome` varchar(30) NOT NULL,
-  `description` varchar(256) NOT NULL,
+  `outcome` varchar(255) NOT NULL,
+  `short_outcome` tinyint(1) unsigned DEFAULT NULL,
   PRIMARY KEY (`id_qc_outcome_dict`),
   UNIQUE KEY `unique_qc_outcome_dict` (`outcome`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE `qc_classification_dict` (
-  `id_qc_classification_dict` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `description` varchar(200) NOT NULL,
-  PRIMARY KEY (`id_qc_classification_dict`),
-  UNIQUE KEY `unique_qc_category_dict` (`description`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `qc_outcome` (
@@ -122,8 +106,8 @@ CREATE TABLE `qc_outcome` (
   `id_seq_product` bigint(20) unsigned NOT NULL,
   `id_user` int(11) unsigned NOT NULL,
   `id_qc_outcome_dict` int(11) unsigned NOT NULL,
-  `id_qc_classification_dict` int(11) unsigned DEFAULT NULL,
   `id_qc_type_dict` int(11) unsigned NOT NULL,
+  `is_preliminary` boolean DEFAULT 1,
   `created_by` varchar(20) NOT NULL,
   `date_created` datetime DEFAULT CURRENT_TIMESTAMP \
     COMMENT 'Datetime this record was created',
@@ -141,9 +125,6 @@ CREATE TABLE `qc_outcome` (
   CONSTRAINT `fk_qc_outcome_outcome` FOREIGN KEY (`id_qc_outcome_dict`) \
     REFERENCES `qc_outcome_dict` (`id_qc_outcome_dict`) \
     ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT `fk_qc_outcome_classification` FOREIGN KEY (`id_qc_classification_dict`) \
-    REFERENCES `qc_classification_dict` (`id_qc_classification_dict`) \
-    ON DELETE NO ACTION ON UPDATE NO ACTION, 
   CONSTRAINT `fk_qc_outcome_type` FOREIGN KEY (`id_qc_type_dict`) \
     REFERENCES `qc_type_dict` (`id_qc_type_dict`) \
     ON DELETE NO ACTION ON UPDATE NO ACTION
@@ -154,8 +135,8 @@ CREATE TABLE `qc_outcome_hist` (
   `id_seq_product` bigint(20) unsigned NOT NULL,
   `id_user` int(11) unsigned NOT NULL,
   `id_qc_outcome_dict` int(11) unsigned NOT NULL,
-  `id_qc_classification_dict` int(11) unsigned DEFAULT NULL,
   `id_qc_type_dict` int(11) unsigned NOT NULL,
+  `is_preliminary` boolean DEFAULT 1,
   `created_by` varchar(20) NOT NULL,
   `date_created` datetime NOT NULL \
     COMMENT 'Datetime the original record was created',
@@ -170,9 +151,6 @@ CREATE TABLE `qc_outcome_hist` (
     ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `fk_qc_outcomeh_outcome` FOREIGN KEY (`id_qc_outcome_dict`) \
     REFERENCES `qc_outcome_dict` (`id_qc_outcome_dict`) \
-    ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT `fk_qc_outcomeh_classification` FOREIGN KEY (`id_qc_classification_dict`) \
-    REFERENCES `qc_classification_dict` (`id_qc_classification_dict`) \
     ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `fk_qc_outcomeh_type` FOREIGN KEY (`id_qc_type_dict`) \
     REFERENCES `qc_type_dict` (`id_qc_type_dict`) \
@@ -212,7 +190,7 @@ CREATE TABLE `product_annotation` (
 CREATE TABLE `status_dict` (
   `id_status_dict` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `description` varchar(30) NOT NULL,
-  `long_description` varchar(256) NOT NULL,
+  `long_description` varchar(255) NOT NULL,
   `temporal_index` int unsigned NOT NULL,
   `iscurrent` boolean DEFAULT 1,
   PRIMARY KEY (`id_status_dict`),

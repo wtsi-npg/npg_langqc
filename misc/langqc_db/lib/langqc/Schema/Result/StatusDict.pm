@@ -55,7 +55,7 @@ __PACKAGE__->table("status_dict");
 
   data_type: 'varchar'
   is_nullable: 0
-  size: 256
+  size: 255
 
 =head2 temporal_index
 
@@ -82,7 +82,7 @@ __PACKAGE__->add_columns(
   "description",
   { data_type => "varchar", is_nullable => 0, size => 30 },
   "long_description",
-  { data_type => "varchar", is_nullable => 0, size => 256 },
+  { data_type => "varchar", is_nullable => 0, size => 255 },
   "temporal_index",
   { data_type => "integer", extra => { unsigned => 1 }, is_nullable => 0 },
   "iscurrent",
@@ -133,8 +133,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-06-08 17:39:30
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2/MYYvhEEf/MMIUYVFvSVQ
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-06-15 13:36:56
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:t1tyK6JMq+u2rB8LyRvWGw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
