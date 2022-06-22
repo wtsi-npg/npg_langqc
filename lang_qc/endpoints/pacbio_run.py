@@ -31,8 +31,8 @@ from lang_qc.models import PacBioRunResponse, Study, Sample
 router = APIRouter()
 
 
-@router.get("/run", response_model=PacBioRunResponse)
-def get_pacbio_run(
+@router.get("/run/{run_name}/well/{well_label}", response_model=PacBioRunResponse)
+def get_pacbio_well(
     run_name: str, well_label: str, db_session: Session = Depends(get_mlwh_db)
 ) -> PacBioRunResponse:
 
@@ -43,7 +43,7 @@ def get_pacbio_run(
     results: List = db_session.execute(stmt).scalars().all()
 
     if len(results) == 0:
-        raise HTTPException(404, detail="Not PacBio run found matching criteria.")
+        raise HTTPException(404, detail="No PacBio well found matching criteria.")
     if len(results) > 1:
         print("WARNING! THERE IS MORE THAN ONE RESULT! RETURING THE FIRST ONE")
 
