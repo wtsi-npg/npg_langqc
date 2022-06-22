@@ -17,8 +17,8 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
-from datetime import date
-from typing import Any, Dict, List
+from datetime import datetime
+from typing import Any, List
 
 from pydantic import BaseModel, Field
 
@@ -34,7 +34,7 @@ class PacBioRun(BaseModel):
         title="Well Label",
         description="The well identifier for the plate, A1-H12",
     )
-    well_complete: date = Field(
+    well_complete: datetime = Field(
         default=None, title="Well Complete", description="Timestamp of well complete"
     )
 
@@ -46,17 +46,29 @@ RunName = str
 WellLabel = str
 
 
+class WellInfo(BaseModel):
+
+    label: str = Field(
+        default=None, title="Well label", description="The well identifier."
+    )
+    start: datetime = Field(default=None, title="Timestamp of well started")
+    complete: datetime = Field(default=None, title="Timestamp of well complete")
+
+
+class InboxResultEntry(BaseModel):
+
+    run_name: str = Field(
+        default=None,
+        title="Run Name",
+    )
+    time_start: datetime = Field(default=None, title="Run start time")
+    time_complete: datetime = Field(default=None, title="Run complete time")
+    wells: List[WellInfo]
+
+
 class InboxResults(BaseModel):
 
-    __root__: Dict[RunName, List[WellLabel]]
-
-    class Config:
-        schema_extra = {
-            "example": {
-                "MY-RUN-100": ["A1", "B1", "C1"],
-                "MY-RUN-101": ["A1", "B1", "D1"],
-            }
-        }
+    __root__: List[InboxResultEntry]
 
 
 class Study(BaseModel):
@@ -71,10 +83,10 @@ class Sample(BaseModel):
 
 class PacBioRunWellMetrics(BaseModel):
 
-    well_start: date = Field(
+    well_start: datetime = Field(
         default=None, title="Well start", description="Timestamp of well start"
     )
-    well_complete: date = Field(
+    well_complete: datetime = Field(
         default=None, title="Well complete", description="Timestamp of well complete"
     )
     well_status: str = Field(
@@ -121,8 +133,8 @@ class PacBioRunWellMetrics(BaseModel):
         default=None, title="SMRT Cell loading concentration (pM)"
     )
 
-    run_start: date = Field(default=None, title="Timestamp of run started")
-    run_complete: date = Field(default=None, title="Timestamp of run complete")
+    run_start: datetime = Field(default=None, title="Timestamp of run started")
+    run_complete: datetime = Field(default=None, title="Timestamp of run complete")
     run_status: str = Field(
         default=None,
         title="Last recorded status",
@@ -272,8 +284,8 @@ class PacBioLibraryTube(BaseModel):
 
 class PacBioRunInfo(BaseModel):
 
-    last_updated: date = Field(default=None)
-    recorded_at: date = Field(default=None)
+    last_updated: datetime = Field(default=None)
+    recorded_at: datetime = Field(default=None)
     id_pac_bio_run_lims: str = Field(default=None)
     pac_bio_run_name: str = Field(default=None)
     pipeline_id_lims: str = Field(default=None)
