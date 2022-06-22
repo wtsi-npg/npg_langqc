@@ -18,9 +18,18 @@
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
 from datetime import datetime
-from typing import Any, List
 
 from pydantic import BaseModel, Field
+
+
+class Study(BaseModel):
+
+    id: str = Field(default=None, title="Study ID.")
+
+
+class Sample(BaseModel):
+
+    id: str = Field(default=None, title="Sample ID")
 
 
 class PacBioRun(BaseModel):
@@ -40,45 +49,6 @@ class PacBioRun(BaseModel):
 
     class Config:
         orm_mode = True
-
-
-RunName = str
-WellLabel = str
-
-
-class WellInfo(BaseModel):
-
-    label: str = Field(
-        default=None, title="Well label", description="The well identifier."
-    )
-    start: datetime = Field(default=None, title="Timestamp of well started")
-    complete: datetime = Field(default=None, title="Timestamp of well complete")
-
-
-class InboxResultEntry(BaseModel):
-
-    run_name: str = Field(
-        default=None,
-        title="Run Name",
-    )
-    time_start: datetime = Field(default=None, title="Run start time")
-    time_complete: datetime = Field(default=None, title="Run complete time")
-    wells: List[WellInfo]
-
-
-class InboxResults(BaseModel):
-
-    __root__: List[InboxResultEntry]
-
-
-class Study(BaseModel):
-
-    id: str = Field(default=None, title="Study ID.")
-
-
-class Sample(BaseModel):
-
-    id: str = Field(default=None, title="Sample ID")
 
 
 class PacBioRunWellMetrics(BaseModel):
@@ -261,59 +231,3 @@ class PacBioRunWellMetrics(BaseModel):
     class Config:
 
         orm_mode = True
-
-
-class Well(BaseModel):
-
-    label: str = Field(default=None, title="Well Label")
-    uuid_lims: str = Field(default=None, title="LIMS label uuid")
-
-    class Config:
-        orm_mode = False
-
-
-class PacBioLibraryTube(BaseModel):
-
-    id_lims: str = Field(default=None, title="library tube LIMS id")
-    uuid: str = Field(default=None, title="library tube uuid")
-    name: str = Field(default=None, title="library tube name")
-
-    class Config:
-        orm_mode = False
-
-
-class PacBioRunInfo(BaseModel):
-
-    last_updated: datetime = Field(default=None)
-    recorded_at: datetime = Field(default=None)
-    id_pac_bio_run_lims: str = Field(default=None)
-    pac_bio_run_name: str = Field(default=None)
-    pipeline_id_lims: str = Field(default=None)
-    cost_code: str = Field(default=None)
-    well: Well
-    pac_bio_library_tube: PacBioLibraryTube
-
-    class Config:
-        orm_mode = True
-
-    @classmethod
-    def from_orm(cls, obj: Any) -> "PacBioRunInfo":
-        obj.well = Well(
-            label=getattr(obj, "well_label", None),
-            uuid_lims=getattr(obj, "well_uuid_lims", None),
-        )
-
-        obj.pac_bio_library_tube = PacBioLibraryTube(
-            id_lims=getattr(obj, "pac_bio_library_tube_id_lims", None),
-            uuid=getattr(obj, "pac_bio_library_tube_uuid", None),
-            name=getattr(obj, "pac_bio_library_tube_name", None),
-        )
-
-        return super().from_orm(obj)
-
-
-class PacBioRunResponse(BaseModel):
-    run_info: PacBioRunInfo
-    study: Study
-    sample: Sample
-    metrics: PacBioRunWellMetrics

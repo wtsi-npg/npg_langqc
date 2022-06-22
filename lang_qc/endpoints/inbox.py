@@ -26,8 +26,8 @@ from ml_warehouse.schema import PacBioRunWellMetrics
 from sqlalchemy import select, and_, or_
 from sqlalchemy.orm import Session
 
-from lang_qc.connection import get_mlwh_db
-from lang_qc.models import InboxResults, InboxResultEntry, WellInfo
+from lang_qc.db.mlwh_connection import get_mlwh_db
+from lang_qc.models.inbox_models import InboxResults, InboxResultEntry, WellInfo
 
 router = APIRouter()
 
