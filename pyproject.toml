@@ -1,5 +1,8 @@
 [tool.poetry]
 name = "npg_langqc"
+packages = [
+  { include = "lang_qc" },
+]
 version = "0.1.0"
 description = "FastAPI application for Long Read QC"
 authors = ["Adam Blanchet <ab59@sanger.ac.uk>"]
@@ -7,8 +10,8 @@ license = "GPL-3.0-or-later"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-fastapi = {version = "^0.78", extras = ["standard"]}
-uvicorn = { version = "^0.17", extras = ["standard"]}
+fastapi = { version = "^0.78", extras = ["standard"] }
+uvicorn = { version = "^0.17", extras = ["standard"] }
 ml-warehouse = { git = "https://github.com/wtsi-npg/ml-warehouse-python.git", branch="devel" }
 SQLAlchemy = "^1.4.35"
 pydantic = "^1.9.0"
@@ -17,7 +20,7 @@ pydantic = "^1.9.0"
 black = "^22.3.0"
 flake8 = "^4.0.1"
 pytest = "^7.1.1"
-fastapi = {extras = ["all"], version = "^0.78.0"}
+fastapi = { extras = ["all"], version = "^0.78.0" }
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
