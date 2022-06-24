@@ -148,39 +148,39 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 qc_outcome_hists
+=head2 qc_state_hists
 
 Type: has_many
 
-Related object: L<langqc::Schema::Result::QcOutcomeHist>
+Related object: L<langqc::Schema::Result::QcStateHist>
 
 =cut
 
 __PACKAGE__->has_many(
-  "qc_outcome_hists",
-  "langqc::Schema::Result::QcOutcomeHist",
+  "qc_state_hists",
+  "langqc::Schema::Result::QcStateHist",
   { "foreign.id_user" => "self.id_user" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 qc_outcomes
+=head2 qc_states
 
 Type: has_many
 
-Related object: L<langqc::Schema::Result::QcOutcome>
+Related object: L<langqc::Schema::Result::QcState>
 
 =cut
 
 __PACKAGE__->has_many(
-  "qc_outcomes",
-  "langqc::Schema::Result::QcOutcome",
+  "qc_states",
+  "langqc::Schema::Result::QcState",
   { "foreign.id_user" => "self.id_user" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-06-15 17:15:16
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Zzm054fTEQQm+wUo5xSLbQ
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-06-24 11:32:13
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:YqjND8tj/ZlpZXY9BtFULQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

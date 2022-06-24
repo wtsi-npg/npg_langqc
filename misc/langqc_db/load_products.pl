@@ -11,7 +11,7 @@ my $schema = langqc::Schema->connect();
 my $rs_sub_product = $schema->resultset('SubProduct');
 my $rs_seq_product = $schema->resultset('SeqProduct');
 my $rs_product_layout = $schema->resultset('ProductLayout');
-my $rs_platform = $schema->resultset('SeqPlatformDict');
+my $rs_platform = $schema->resultset('SeqPlatform');
 my $rs_attrs = $schema->resultset('SubProductAttr');
 
 my @raw_sub_products = (
@@ -41,7 +41,7 @@ my @raw_sub_products = (
 );
 
 my $platform_id = $rs_platform->search({name => 'PacBio'})
-                  ->next->id_seq_platform_dict;
+                  ->next->id_seq_platform;
 my $name_attr_id = $rs_attrs->search({attr_name => 'run_name'})->next->id_attr;
 my $well_attr_id = $rs_attrs->search({attr_name => 'well_label'})->next->id_attr; 
 
@@ -72,7 +72,7 @@ foreach my $sp (@{$sub_products}) {
     {value_attr_one => $sp->[0], value_attr_two => $sp->[1]})->next;
   my $row_seqp = $rs_seq_product->update_or_create(
     {id_product => $row_subp->properties_digest,
-     id_seq_platform_dict => $platform_id});
+     id_seq_platform => $platform_id});
   $rs_product_layout->update_or_create(
     {id_seq_product => $row_seqp->id_seq_product,
      id_sub_product => $row_subp->id_sub_product});
@@ -89,7 +89,7 @@ foreach my $sp (@{$sub_products}) {
   for my $row_subp (@rows_subp) {
     my $row_seqp = $rs_seq_product->update_or_create(
       {id_product => $row_subp->properties_digest,
-       id_seq_platform_dict => $platform_id}); 
+       id_seq_platform => $platform_id}); 
     $rs_product_layout->update_or_create(
       {id_seq_product => $row_seqp->id_seq_product,
        id_sub_product => $row_subp->id_sub_product});
@@ -99,7 +99,7 @@ foreach my $sp (@{$sub_products}) {
 my @rows_subp = grep { $_->tags }
   $rs_sub_product->search({value_attr_one => 'TRACTION-RUN-114'})->all();
 my $row_seqp = $rs_seq_product->update_or_create({
-  id_seq_platform_dict => $platform_id,
+  id_seq_platform => $platform_id,
   id_product => sha256_hex(
     join q[], (sort map { $_->properties_digest } @rows_subp))});
 foreach my $row (@rows_subp) {
@@ -114,7 +114,7 @@ foreach my $sp (@rows_subp) {
   my $row_seqp = $rs_seq_product->update_or_create(
     {id_product => $sp->properties_digest,
      has_seq_data => $sp->tags ? 1 : 0,
-     id_seq_platform_dict => $platform_id});
+     id_seq_platform => $platform_id});
   $rs_product_layout->update_or_create(
     {id_seq_product => $row_seqp->id_seq_product,
      id_sub_product => $sp->id_sub_product});

@@ -42,23 +42,23 @@ foreach my $row (@rows) {
 
 ##########  QC outcomes ##############
 
-my $outcome_type_lib_id = $schema->resultset('QcTypeDict')->search({
-  qc_type => 'library'})->next->id_qc_type_dict;
-my $outcome_type_seq_id = $schema->resultset('QcTypeDict')->search({
-  qc_type => 'sequencing'})->next->id_qc_type_dict;
+my $outcome_type_lib_id = $schema->resultset('QcType')->search({
+  qc_type => 'library'})->next->id_qc_type;
+my $outcome_type_seq_id = $schema->resultset('QcType')->search({
+  qc_type => 'sequencing'})->next->id_qc_type;
 
-my %qc_dict = map { $_->outcome, $_->id_qc_outcome_dict}
-  $schema->resultset('QcOutcomeDict')->search({})->all();
+my %qc_dict = map { $_->state, $_->id_qc_state_dict}
+  $schema->resultset('QcStateDict')->search({})->all();
 
-my $rs_outcome = $schema->resultset('QcOutcome');
+my $rs_outcome = $schema->resultset('QcState');
 my @outcomes = ();
 foreach my $row (@rows) {
   my $qc_type = $row->product_layouts->next->sub_product->tags ?
     $outcome_type_lib_id : $outcome_type_seq_id;
   my $o = { id_user => 2,
-            id_qc_type_dict => $qc_type,
+            id_qc_type => $qc_type,
             created_by => 'demo',
-            id_qc_outcome_dict => $qc_dict{'Passed'},
+            id_qc_state_dict => $qc_dict{'Passed'},
             is_preliminary => 1,
             id_seq_product => $row->id_seq_product
           };

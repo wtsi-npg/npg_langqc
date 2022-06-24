@@ -1,12 +1,12 @@
 use utf8;
-package langqc::Schema::Result::QcOutcome;
+package langqc::Schema::Result::QcState;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-langqc::Schema::Result::QcOutcome
+langqc::Schema::Result::QcState
 
 =cut
 
@@ -30,15 +30,15 @@ extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
-=head1 TABLE: C<qc_outcome>
+=head1 TABLE: C<qc_state>
 
 =cut
 
-__PACKAGE__->table("qc_outcome");
+__PACKAGE__->table("qc_state");
 
 =head1 ACCESSORS
 
-=head2 id_qc_outcome
+=head2 id_qc_state
 
   data_type: 'bigint'
   extra: {unsigned => 1}
@@ -59,14 +59,14 @@ __PACKAGE__->table("qc_outcome");
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 id_qc_outcome_dict
+=head2 id_qc_state_dict
 
   data_type: 'integer'
   extra: {unsigned => 1}
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 id_qc_type_dict
+=head2 id_qc_type
 
   data_type: 'integer'
   extra: {unsigned => 1}
@@ -106,7 +106,7 @@ Datetime this record was created or changed
 =cut
 
 __PACKAGE__->add_columns(
-  "id_qc_outcome",
+  "id_qc_state",
   {
     data_type => "bigint",
     extra => { unsigned => 1 },
@@ -127,14 +127,14 @@ __PACKAGE__->add_columns(
     is_foreign_key => 1,
     is_nullable => 0,
   },
-  "id_qc_outcome_dict",
+  "id_qc_state_dict",
   {
     data_type => "integer",
     extra => { unsigned => 1 },
     is_foreign_key => 1,
     is_nullable => 0,
   },
-  "id_qc_type_dict",
+  "id_qc_type",
   {
     data_type => "integer",
     extra => { unsigned => 1 },
@@ -165,59 +165,59 @@ __PACKAGE__->add_columns(
 
 =over 4
 
-=item * L</id_qc_outcome>
+=item * L</id_qc_state>
 
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("id_qc_outcome");
+__PACKAGE__->set_primary_key("id_qc_state");
 
 =head1 UNIQUE CONSTRAINTS
 
-=head2 C<unique_qc_outcome>
+=head2 C<unique_qc_state>
 
 =over 4
 
 =item * L</id_seq_product>
 
-=item * L</id_qc_type_dict>
+=item * L</id_qc_type>
 
 =back
 
 =cut
 
-__PACKAGE__->add_unique_constraint("unique_qc_outcome", ["id_seq_product", "id_qc_type_dict"]);
+__PACKAGE__->add_unique_constraint("unique_qc_state", ["id_seq_product", "id_qc_type"]);
 
 =head1 RELATIONS
 
-=head2 qc_outcome_dict
+=head2 qc_state_dict
 
 Type: belongs_to
 
-Related object: L<langqc::Schema::Result::QcOutcomeDict>
+Related object: L<langqc::Schema::Result::QcStateDict>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "qc_outcome_dict",
-  "langqc::Schema::Result::QcOutcomeDict",
-  { id_qc_outcome_dict => "id_qc_outcome_dict" },
+  "qc_state_dict",
+  "langqc::Schema::Result::QcStateDict",
+  { id_qc_state_dict => "id_qc_state_dict" },
   { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
-=head2 qc_type_dict
+=head2 qc_type
 
 Type: belongs_to
 
-Related object: L<langqc::Schema::Result::QcTypeDict>
+Related object: L<langqc::Schema::Result::QcType>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "qc_type_dict",
-  "langqc::Schema::Result::QcTypeDict",
-  { id_qc_type_dict => "id_qc_type_dict" },
+  "qc_type",
+  "langqc::Schema::Result::QcType",
+  { id_qc_type => "id_qc_type" },
   { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
@@ -252,8 +252,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-06-15 13:36:56
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:fzkJpgRlMrYLjKBrPAGxSA
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-06-24 11:32:13
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:T4FSs3jGqF6WWRv0ezwAKA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

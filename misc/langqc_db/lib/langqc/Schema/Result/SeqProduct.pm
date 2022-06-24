@@ -51,7 +51,7 @@ __PACKAGE__->table("seq_product");
   is_nullable: 0
   size: 64
 
-=head2 id_seq_platform_dict
+=head2 id_seq_platform
 
   data_type: 'integer'
   extra: {unsigned => 1}
@@ -76,7 +76,7 @@ __PACKAGE__->add_columns(
   },
   "id_product",
   { data_type => "char", is_nullable => 0, size => 64 },
-  "id_seq_platform_dict",
+  "id_seq_platform",
   {
     data_type => "integer",
     extra => { unsigned => 1 },
@@ -145,54 +145,54 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 qc_outcome_hists
+=head2 qc_state_hists
 
 Type: has_many
 
-Related object: L<langqc::Schema::Result::QcOutcomeHist>
+Related object: L<langqc::Schema::Result::QcStateHist>
 
 =cut
 
 __PACKAGE__->has_many(
-  "qc_outcome_hists",
-  "langqc::Schema::Result::QcOutcomeHist",
+  "qc_state_hists",
+  "langqc::Schema::Result::QcStateHist",
   { "foreign.id_seq_product" => "self.id_seq_product" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 qc_outcomes
+=head2 qc_states
 
 Type: has_many
 
-Related object: L<langqc::Schema::Result::QcOutcome>
+Related object: L<langqc::Schema::Result::QcState>
 
 =cut
 
 __PACKAGE__->has_many(
-  "qc_outcomes",
-  "langqc::Schema::Result::QcOutcome",
+  "qc_states",
+  "langqc::Schema::Result::QcState",
   { "foreign.id_seq_product" => "self.id_seq_product" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 seq_platform_dict
+=head2 seq_platform
 
 Type: belongs_to
 
-Related object: L<langqc::Schema::Result::SeqPlatformDict>
+Related object: L<langqc::Schema::Result::SeqPlatform>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "seq_platform_dict",
-  "langqc::Schema::Result::SeqPlatformDict",
-  { id_seq_platform_dict => "id_seq_platform_dict" },
+  "seq_platform",
+  "langqc::Schema::Result::SeqPlatform",
+  { id_seq_platform => "id_seq_platform" },
   { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-06-15 17:15:16
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:v1m4/46+UaKvFL8XO/AOjQ
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-06-24 11:32:13
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:V9km5wc44t4kxr6Vn0HoHg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

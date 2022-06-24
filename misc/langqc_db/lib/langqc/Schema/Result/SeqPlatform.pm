@@ -1,12 +1,12 @@
 use utf8;
-package langqc::Schema::Result::SeqPlatformDict;
+package langqc::Schema::Result::SeqPlatform;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-langqc::Schema::Result::SeqPlatformDict
+langqc::Schema::Result::SeqPlatform
 
 =cut
 
@@ -30,15 +30,15 @@ extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
-=head1 TABLE: C<seq_platform_dict>
+=head1 TABLE: C<seq_platform>
 
 =cut
 
-__PACKAGE__->table("seq_platform_dict");
+__PACKAGE__->table("seq_platform");
 
 =head1 ACCESSORS
 
-=head2 id_seq_platform_dict
+=head2 id_seq_platform
 
   data_type: 'integer'
   extra: {unsigned => 1}
@@ -66,7 +66,7 @@ __PACKAGE__->table("seq_platform_dict");
 =cut
 
 __PACKAGE__->add_columns(
-  "id_seq_platform_dict",
+  "id_seq_platform",
   {
     data_type => "integer",
     extra => { unsigned => 1 },
@@ -85,13 +85,13 @@ __PACKAGE__->add_columns(
 
 =over 4
 
-=item * L</id_seq_platform_dict>
+=item * L</id_seq_platform>
 
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("id_seq_platform_dict");
+__PACKAGE__->set_primary_key("id_seq_platform");
 
 =head1 UNIQUE CONSTRAINTS
 
@@ -120,13 +120,13 @@ Related object: L<langqc::Schema::Result::SeqProduct>
 __PACKAGE__->has_many(
   "seq_products",
   "langqc::Schema::Result::SeqProduct",
-  { "foreign.id_seq_platform_dict" => "self.id_seq_platform_dict" },
+  { "foreign.id_seq_platform" => "self.id_seq_platform" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-06-15 13:36:56
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wNYoGIA2oUlrs0SHnMsfqA
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-06-24 11:28:39
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:m+PCNIDMGQyREFrrjsZTQw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

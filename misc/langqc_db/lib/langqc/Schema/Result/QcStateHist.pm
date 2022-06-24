@@ -1,12 +1,12 @@
 use utf8;
-package langqc::Schema::Result::QcOutcomeHist;
+package langqc::Schema::Result::QcStateHist;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-langqc::Schema::Result::QcOutcomeHist
+langqc::Schema::Result::QcStateHist
 
 =cut
 
@@ -30,15 +30,15 @@ extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
-=head1 TABLE: C<qc_outcome_hist>
+=head1 TABLE: C<qc_state_hist>
 
 =cut
 
-__PACKAGE__->table("qc_outcome_hist");
+__PACKAGE__->table("qc_state_hist");
 
 =head1 ACCESSORS
 
-=head2 id_qc_outcome_hist
+=head2 id_qc_state_hist
 
   data_type: 'bigint'
   extra: {unsigned => 1}
@@ -59,14 +59,14 @@ __PACKAGE__->table("qc_outcome_hist");
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 id_qc_outcome_dict
+=head2 id_qc_state_dict
 
   data_type: 'integer'
   extra: {unsigned => 1}
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 id_qc_type_dict
+=head2 id_qc_type
 
   data_type: 'integer'
   extra: {unsigned => 1}
@@ -104,7 +104,7 @@ Datetime the original record was created or changed
 =cut
 
 __PACKAGE__->add_columns(
-  "id_qc_outcome_hist",
+  "id_qc_state_hist",
   {
     data_type => "bigint",
     extra => { unsigned => 1 },
@@ -125,14 +125,14 @@ __PACKAGE__->add_columns(
     is_foreign_key => 1,
     is_nullable => 0,
   },
-  "id_qc_outcome_dict",
+  "id_qc_state_dict",
   {
     data_type => "integer",
     extra => { unsigned => 1 },
     is_foreign_key => 1,
     is_nullable => 0,
   },
-  "id_qc_type_dict",
+  "id_qc_type",
   {
     data_type => "integer",
     extra => { unsigned => 1 },
@@ -161,43 +161,43 @@ __PACKAGE__->add_columns(
 
 =over 4
 
-=item * L</id_qc_outcome_hist>
+=item * L</id_qc_state_hist>
 
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("id_qc_outcome_hist");
+__PACKAGE__->set_primary_key("id_qc_state_hist");
 
 =head1 RELATIONS
 
-=head2 qc_outcome_dict
+=head2 qc_state_dict
 
 Type: belongs_to
 
-Related object: L<langqc::Schema::Result::QcOutcomeDict>
+Related object: L<langqc::Schema::Result::QcStateDict>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "qc_outcome_dict",
-  "langqc::Schema::Result::QcOutcomeDict",
-  { id_qc_outcome_dict => "id_qc_outcome_dict" },
+  "qc_state_dict",
+  "langqc::Schema::Result::QcStateDict",
+  { id_qc_state_dict => "id_qc_state_dict" },
   { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
-=head2 qc_type_dict
+=head2 qc_type
 
 Type: belongs_to
 
-Related object: L<langqc::Schema::Result::QcTypeDict>
+Related object: L<langqc::Schema::Result::QcType>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "qc_type_dict",
-  "langqc::Schema::Result::QcTypeDict",
-  { id_qc_type_dict => "id_qc_type_dict" },
+  "qc_type",
+  "langqc::Schema::Result::QcType",
+  { id_qc_type => "id_qc_type" },
   { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
@@ -232,8 +232,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-06-15 13:36:56
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:8VWPHHSSZWVnLLEV7P1Wfw
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-06-24 11:28:39
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:QG1rssSnGpV4BgAWLoP/SQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

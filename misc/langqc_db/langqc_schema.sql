@@ -3,12 +3,12 @@
 -- in mind, but, in principle, should be usable for the Illumina
 -- and any other platform.
 
-CREATE TABLE `seq_platform_dict` (
-  `id_seq_platform_dict` int(11) unsigned NOT NULL AUTO_INCREMENT,
+CREATE TABLE `seq_platform` (
+  `id_seq_platform` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(10) NOT NULL,
   `description` varchar(255) NOT NULL,
   `iscurrent` boolean NOT NULL DEFAULT '1',
-  PRIMARY KEY (`id_seq_platform_dict`),
+  PRIMARY KEY (`id_seq_platform`),
   UNIQUE KEY `unique_seq_platform_name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -45,12 +45,12 @@ CREATE TABLE `sub_product` (
 CREATE TABLE `seq_product` (
   `id_seq_product` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `id_product` char(64) NOT NULL,
-  `id_seq_platform_dict` int(11) unsigned NOT NULL,
+  `id_seq_platform` int(11) unsigned NOT NULL,
   `has_seq_data` boolean DEFAULT 1,
   PRIMARY KEY (`id_seq_product`),
   UNIQUE KEY `unique_product` (`id_product`),
-  CONSTRAINT `fk_subproduct_seq_pl` FOREIGN KEY (`id_seq_platform_dict`) \
-    REFERENCES `seq_platform_dict` (`id_seq_platform_dict`) \
+  CONSTRAINT `fk_subproduct_seq_pl` FOREIGN KEY (`id_seq_platform`) \
+    REFERENCES `seq_platform` (`id_seq_platform`) \
     ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -83,30 +83,30 @@ CREATE TABLE `user` (
   UNIQUE KEY `unique_user` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- Tables defining QC outcomes (pass, fail, etc.) for the products.
+-- Tables defining QC states (pass, fail, etc.) for the products.
 
-CREATE TABLE `qc_type_dict` (
-  `id_qc_type_dict` int(11) unsigned NOT NULL AUTO_INCREMENT,
+CREATE TABLE `qc_type` (
+  `id_qc_type` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `qc_type` varchar(10) NOT NULL,
   `description` varchar(255) NOT NULL,
-  PRIMARY KEY (`id_qc_type_dict`),
-  UNIQUE KEY `unique_qc_type_dict` (`qc_type`)
+  PRIMARY KEY (`id_qc_type`),
+  UNIQUE KEY `unique_qc_type` (`qc_type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `qc_outcome_dict` (
-  `id_qc_outcome_dict` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `outcome` varchar(255) NOT NULL,
-  `short_outcome` tinyint(1) unsigned DEFAULT NULL,
-  PRIMARY KEY (`id_qc_outcome_dict`),
-  UNIQUE KEY `unique_qc_outcome_dict` (`outcome`)
+CREATE TABLE `qc_state_dict` (
+  `id_qc_state_dict` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `state` varchar(255) NOT NULL,
+  `outcome` tinyint(1) unsigned DEFAULT NULL,
+  PRIMARY KEY (`id_qc_state_dict`),
+  UNIQUE KEY `unique_qc_state_dict` (`state`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `qc_outcome` (
-  `id_qc_outcome` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+CREATE TABLE `qc_state` (
+  `id_qc_state` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `id_seq_product` bigint(20) unsigned NOT NULL,
   `id_user` int(11) unsigned NOT NULL,
-  `id_qc_outcome_dict` int(11) unsigned NOT NULL,
-  `id_qc_type_dict` int(11) unsigned NOT NULL,
+  `id_qc_state_dict` int(11) unsigned NOT NULL,
+  `id_qc_type` int(11) unsigned NOT NULL,
   `is_preliminary` boolean DEFAULT 1,
   `created_by` varchar(20) NOT NULL,
   `date_created` datetime DEFAULT CURRENT_TIMESTAMP \
@@ -114,46 +114,46 @@ CREATE TABLE `qc_outcome` (
   `date_updated` datetime DEFAULT CURRENT_TIMESTAMP \
     ON UPDATE CURRENT_TIMESTAMP \
     COMMENT 'Datetime this record was created or changed',
-  PRIMARY KEY (`id_qc_outcome`),
-  UNIQUE KEY `unique_qc_outcome` (`id_seq_product`, `id_qc_type_dict`),
-  CONSTRAINT `fk_qc_outcome_product` FOREIGN KEY (`id_seq_product`) \
+  PRIMARY KEY (`id_qc_state`),
+  UNIQUE KEY `unique_qc_state` (`id_seq_product`, `id_qc_type`),
+  CONSTRAINT `fk_qc_state_product` FOREIGN KEY (`id_seq_product`) \
     REFERENCES `seq_product` (`id_seq_product`) \
     ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT `fk_qc_outcome_user` FOREIGN KEY (`id_user`) \
+  CONSTRAINT `fk_qc_state_user` FOREIGN KEY (`id_user`) \
     REFERENCES `user` (`id_user`) \
     ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT `fk_qc_outcome_outcome` FOREIGN KEY (`id_qc_outcome_dict`) \
-    REFERENCES `qc_outcome_dict` (`id_qc_outcome_dict`) \
+  CONSTRAINT `fk_qc_state_state` FOREIGN KEY (`id_qc_state_dict`) \
+    REFERENCES `qc_state_dict` (`id_qc_state_dict`) \
     ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT `fk_qc_outcome_type` FOREIGN KEY (`id_qc_type_dict`) \
-    REFERENCES `qc_type_dict` (`id_qc_type_dict`) \
+  CONSTRAINT `fk_qc_type` FOREIGN KEY (`id_qc_type`) \
+    REFERENCES `qc_type` (`id_qc_type`) \
     ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `qc_outcome_hist` (
-  `id_qc_outcome_hist` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+CREATE TABLE `qc_state_hist` (
+  `id_qc_state_hist` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `id_seq_product` bigint(20) unsigned NOT NULL,
   `id_user` int(11) unsigned NOT NULL,
-  `id_qc_outcome_dict` int(11) unsigned NOT NULL,
-  `id_qc_type_dict` int(11) unsigned NOT NULL,
+  `id_qc_state_dict` int(11) unsigned NOT NULL,
+  `id_qc_type` int(11) unsigned NOT NULL,
   `is_preliminary` boolean DEFAULT 1,
   `created_by` varchar(20) NOT NULL,
   `date_created` datetime NOT NULL \
     COMMENT 'Datetime the original record was created',
   `date_updated` datetime NOT NULL \
     COMMENT 'Datetime the original record was created or changed',
-  PRIMARY KEY (`id_qc_outcome_hist`),
-  CONSTRAINT `fk_qc_outcomeh_product` FOREIGN KEY (`id_seq_product`) \
+  PRIMARY KEY (`id_qc_state_hist`),
+  CONSTRAINT `fk_qc_stateh_product` FOREIGN KEY (`id_seq_product`) \
     REFERENCES `seq_product` (`id_seq_product`) \
     ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT `fk_qc_outcomeh_user` FOREIGN KEY (`id_user`) \
+  CONSTRAINT `fk_qc_stateh_user` FOREIGN KEY (`id_user`) \
     REFERENCES `user` (`id_user`) \
     ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT `fk_qc_outcomeh_outcome` FOREIGN KEY (`id_qc_outcome_dict`) \
-    REFERENCES `qc_outcome_dict` (`id_qc_outcome_dict`) \
+  CONSTRAINT `fk_qc_stateh_state` FOREIGN KEY (`id_qc_state_dict`) \
+    REFERENCES `qc_state_dict` (`id_qc_state_dict`) \
     ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT `fk_qc_outcomeh_type` FOREIGN KEY (`id_qc_type_dict`) \
-    REFERENCES `qc_type_dict` (`id_qc_type_dict`) \
+  CONSTRAINT `fk_qc_stateh_type` FOREIGN KEY (`id_qc_type`) \
+    REFERENCES `qc_type` (`id_qc_type`) \
     ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 

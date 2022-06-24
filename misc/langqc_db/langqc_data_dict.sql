@@ -1,6 +1,6 @@
 -- Dictionaries
 
-insert into seq_platform_dict (`name`, `description`) values
+insert into seq_platform (`name`, `description`) values
   ('PacBio', 'Pacific Biosciences'),
   ('ONT', 'Oxford Nanopore Technologies'),
   ('Illumina', 'Illumina');
@@ -15,11 +15,11 @@ insert into sub_product_attr (`attr_name`, `description`)
 
 insert into user (`username`) values ('user1'), ('user2');
 
-insert into qc_type_dict (`qc_type`, `description`) values
+insert into qc_type (`qc_type`, `description`) values
   ('library', 'Sample/library evaluation'),
   ('sequencing', 'Sequencing/instrument evaliation');
 
-insert into qc_outcome_dict (`outcome`, `short_outcome`)
+insert into qc_state_dict (`state`, `outcome`)
   values ('Passed', 1),
          ('Failed, reagent problem', 0),
          ('Failed, flowcell problem', 0),
