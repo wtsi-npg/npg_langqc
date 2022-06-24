@@ -24,8 +24,8 @@ and your desired ports open.
 
 ### Step 1
 
-Copy over SSL certificates, put them in a folder and name or symlink them to `ca.pem`,
-`key.pem` and `cert.pem`.
+Copy over SSL certificates, put them in a folder and name them `ca.pem`, `key.pem`
+and`cert.pem` or create symlinks to them using these names.
 
 ### Step 2
 
