@@ -32,24 +32,9 @@ from lang_qc.models.inbox_models import InboxResults, InboxResultEntry, WellInfo
 router = APIRouter()
 
 
-@router.get(
-    "/inbox",
-    response_model=InboxResults,
-    responses={400: {"description": "Bad Request. Invalid weeks parameter."}},
-)
-def get_inbox(
-    weeks: int = 2, db_session: Session = Depends(get_mlwh_db)
-) -> InboxResults:
-    """Get inbox of PacBio runs.
+def grab_wells_from_db(weeks: int, db_session: Session):
+    """Get wells from the past few weeks from the database."""
 
-    Fetches from the last 2 weeks by default."""
-
-    if weeks < 0:
-        raise HTTPException(
-            status_code=400, detail="Bad Request. Invalid weeks paramter."
-        )
-
-    # Get wells from DB.
     stmt = select(PacBioRunWellMetrics).filter(
         and_(
             PacBioRunWellMetrics.polymerase_num_reads is not None,
@@ -70,6 +55,27 @@ def get_inbox(
     )
 
     results: List[PacBioRunWellMetrics] = db_session.execute(stmt).scalars().all()
+    return results
+
+
+@router.get(
+    "/inbox",
+    response_model=InboxResults,
+    responses={400: {"description": "Bad Request. Invalid weeks parameter."}},
+)
+def get_inbox(
+    weeks: int = 2, db_session: Session = Depends(get_mlwh_db)
+) -> InboxResults:
+    """Get inbox of PacBio runs.
+
+    Fetches from the last 2 weeks by default."""
+
+    if weeks < 0:
+        raise HTTPException(
+            status_code=400, detail="Bad Request. Invalid weeks paramter."
+        )
+
+    results: List[PacBioRunWellMetrics] = grab_wells_from_db(weeks, db_session)
 
     # Group the wells by run.
     grouped_wells = {}
