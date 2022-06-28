@@ -21,7 +21,11 @@ black = "^22.3.0"
 flake8 = "^4.0.1"
 pytest = "^7.1.1"
 fastapi = { extras = ["all"], version = "^0.78.0" }
+sqlacodegen = { git = "http://github.com/agronholm/sqlacodegen.git", tag="3.0.0rc1" }
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+extend-exclude = "lang_qc/db/qc_schema.py"
