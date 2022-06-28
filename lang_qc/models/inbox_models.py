@@ -18,9 +18,17 @@
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
 from datetime import datetime
+from enum import Enum
 from typing import List
 
 from pydantic import BaseModel, Field
+
+
+class QcStatusEnum(Enum):
+    INBOX = "inbox"
+    IN_PROGRESS = "in_progress"
+    ON_HOLD = "on_hold"
+    QC_COMPLETE = "qc_complete"
 
 
 RunName = str

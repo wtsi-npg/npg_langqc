@@ -19,7 +19,7 @@
 
 from datetime import datetime, timedelta
 from operator import attrgetter
-from typing import List, Tuple
+from typing import Any, List, Tuple
 
 from fastapi import APIRouter, Depends, HTTPException
 from ml_warehouse.schema import PacBioRunWellMetrics
@@ -27,7 +27,14 @@ from sqlalchemy import select, and_, or_
 from sqlalchemy.orm import Session
 
 from lang_qc.db.mlwh_connection import get_mlwh_db
-from lang_qc.models.inbox_models import InboxResults, InboxResultEntry, WellInfo
+from lang_qc.db.qc_connection import get_qc_db
+from lang_qc.db.qc_schema import QcState
+from lang_qc.models.inbox_models import (
+    InboxResults,
+    InboxResultEntry,
+    WellInfo,
+    QcStatusEnum,
+)
 
 router = APIRouter()
 
@@ -56,6 +63,30 @@ def grab_wells_from_db(weeks: int, db_session: Session):
 
     results: List[PacBioRunWellMetrics] = db_session.execute(stmt).scalars().all()
     return results
+
+
+def grab_wells_with_status(status: QcStatusEnum, qcdb_session: Session) -> List[Any]:
+    """Get wells from the QC DB filtered by QC status."""
+    where_clause = None
+
+    match status:
+        case QcStatusEnum.INBOX:
+            pass
+        case QcStatusEnum.IN_PROGRESS:
+            where_clause = (
+                QcState.qc_state_dict.state != "On hold" and QcState.is_preliminary
+            )
+        case QcStatusEnum.ON_HOLD:
+            where_clause = QcState.qc_state_dict.state == "On hold"
+        case QcStatusEnum.QC_COMPLETE:
+            where_clause = (
+                QcState.is_preliminary
+                and QcState.id_qc_state_dict.state not in ["On hold", "Claimed"]
+            )
+
+    stmt = select(QcState).filter(where_clause)
+
+    return qcdb_session.execute(stmt).scalars().all()
 
 
 @router.get(
@@ -129,3 +160,8 @@ def get_inbox(
     )
 
     return output
+
+
+@router.get("/wells", response_model=InboxResults, tags=["Well inbox"])
+def get_wells_filtered_by_status(qc_status: QcStatusEnum = None):
+    pass
