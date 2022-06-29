@@ -19,7 +19,7 @@
 
 from datetime import datetime, timedelta
 from operator import attrgetter
-from typing import Any, List, Tuple
+from typing import List, Tuple
 
 from fastapi import APIRouter, Depends, HTTPException
 from ml_warehouse.schema import PacBioRunWellMetrics
@@ -28,7 +28,13 @@ from sqlalchemy.orm import Session
 
 from lang_qc.db.mlwh_connection import get_mlwh_db
 from lang_qc.db.qc_connection import get_qc_db
-from lang_qc.db.qc_schema import QcState
+from lang_qc.db.qc_schema import (
+    QcState,
+    SeqProduct,
+    SubProduct,
+    ProductLayout,
+    QcStateDict,
+)
 from lang_qc.models.inbox_models import (
     InboxResults,
     InboxResultEntry,
@@ -39,7 +45,9 @@ from lang_qc.models.inbox_models import (
 router = APIRouter()
 
 
-def grab_wells_from_db(weeks: int, db_session: Session):
+def grab_recent_wells_from_db(
+    weeks: int, db_session: Session
+) -> List[PacBioRunWellMetrics]:
     """Get wells from the past few weeks from the database."""
 
     stmt = select(PacBioRunWellMetrics).filter(
@@ -65,53 +73,125 @@ def grab_wells_from_db(weeks: int, db_session: Session):
     return results
 
 
-def grab_wells_with_status(status: QcStatusEnum, qcdb_session: Session) -> List[Any]:
-    """Get wells from the QC DB filtered by QC status."""
-    where_clause = None
+def extract_well_label_and_run_name_from_state(state: QcState):
+    return (
+        state.seq_product.product_layout[0].sub_product.value_attr_one,
+        state.seq_product.product_layout[0].sub_product.value_attr_two,
+    )
 
+
+def get_well_metrics_from_qc_states(
+    qc_states: List[QcState], mlwh_db_session: Session
+) -> List[PacBioRunWellMetrics]:
+    stmt = select(PacBioRunWellMetrics).where(
+        (PacBioRunWellMetrics.pac_bio_run_name, PacBioRunWellMetrics.well_label)
+        in [extract_well_label_and_run_name_from_state(state) for state in qc_states]
+    )
+    return mlwh_db_session.execute(stmt).scalars()
+
+
+def grab_wells_with_status(
+    status: QcStatusEnum, qcdb_session: Session, mlwh_session: Session, weeks: int = 1
+) -> List[PacBioRunWellMetrics]:
+    """Get wells from the QC DB filtered by QC status."""
+
+    # This is a bit weird for now. This also assumes there is a 1-1 SeqProduct-SubProduct mapping.
+    # From there we have two cases:
+    # - these are QC statuses for the wells we want. In this case we get the wells
+    #   and display them.
+    # - we want the inbox. In this case we have the list of wells which already have
+    #   a QC status. Meaning we want to prune these from the results.
     match status:
         case QcStatusEnum.INBOX:
-            pass
+            recent_wells = grab_recent_wells_from_db(weeks, mlwh_session)
+
+            stmt = (
+                select(QcState)
+                .join(SeqProduct)
+                .join(ProductLayout)
+                .join(SubProduct)
+                .where(
+                    # extract_well_label_and_run_name_from_state(QcState)
+                    (
+                        SubProduct.value_attr_one,
+                        SubProduct.value_attr_two,
+                    )
+                    in [
+                        (well.pac_bio_run_name, well.well_label)
+                        for well in recent_wells
+                    ]
+                )
+            )
+
+            already_there = [
+                extract_well_label_and_run_name_from_state(state)
+                for state in qcdb_session.execute(stmt).scalars().all()
+            ]
+
+            return [
+                record
+                for record in recent_wells
+                if (record.pac_bio_run_name, record.well_label) not in already_there
+            ]
+
         case QcStatusEnum.IN_PROGRESS:
-            where_clause = (
-                QcState.qc_state_dict.state != "On hold" and QcState.is_preliminary
+            states = (
+                qcdb_session.execute(
+                    select(QcState)
+                    .join(QcStateDict)
+                    .join(SeqProduct)
+                    .join(ProductLayout)
+                    .join(SubProduct)
+                    .where(QcStateDict.state != "On hold" and QcState.is_preliminary)
+                )
+                .scalars()
+                .all()
             )
+            return get_well_metrics_from_qc_states(states, mlwh_session)
+
         case QcStatusEnum.ON_HOLD:
-            where_clause = QcState.qc_state_dict.state == "On hold"
-        case QcStatusEnum.QC_COMPLETE:
-            where_clause = (
-                QcState.is_preliminary
-                and QcState.id_qc_state_dict.state not in ["On hold", "Claimed"]
+            states = (
+                qcdb_session.execute(
+                    select(QcState)
+                    .join(QcStateDict)
+                    .join(SeqProduct)
+                    .join(ProductLayout)
+                    .join(SubProduct)
+                    .where(QcStateDict.state == "On hold")
+                )
+                .scalars()
+                .all()
             )
+            return get_well_metrics_from_qc_states(states, mlwh_session)
 
-    stmt = select(QcState).filter(where_clause)
+        case QcStatusEnum.QC_COMPLETE:
+            states = (
+                qcdb_session.execute(
+                    select(QcState)
+                    .join(QcStateDict)
+                    .join(SeqProduct)
+                    .join(ProductLayout)
+                    .join(SubProduct)
+                    .where(
+                        QcState.is_preliminary
+                        and QcStateDict.state not in ["On hold", "Claimed"]
+                    )
+                )
+                .scalars()
+                .all()
+            )
+            return get_well_metrics_from_qc_states(states, mlwh_session)
 
-    return qcdb_session.execute(stmt).scalars().all()
+        case _:
+            raise Exception("An unknown filter was passed.")
 
 
-@router.get(
-    "/inbox",
-    response_model=InboxResults,
-    responses={400: {"description": "Bad Request. Invalid weeks parameter."}},
-)
-def get_inbox(
-    weeks: int = 2, db_session: Session = Depends(get_mlwh_db)
-) -> InboxResults:
-    """Get inbox of PacBio runs.
-
-    Fetches from the last 2 weeks by default."""
-
-    if weeks < 0:
-        raise HTTPException(
-            status_code=400, detail="Bad Request. Invalid weeks paramter."
-        )
-
-    results: List[PacBioRunWellMetrics] = grab_wells_from_db(weeks, db_session)
+def group_wells_into_inbox_results(well_db_records: List[PacBioRunWellMetrics]):
 
     # Group the wells by run.
     grouped_wells = {}
 
-    for well_metrics in results:
+    for well_metrics in well_db_records:
         run_name = well_metrics.pac_bio_run_name
         if run_name not in grouped_wells:
             grouped_wells[run_name] = []
@@ -162,6 +242,34 @@ def get_inbox(
     return output
 
 
+@router.get(
+    "/inbox",
+    response_model=InboxResults,
+    responses={400: {"description": "Bad Request. Invalid weeks parameter."}},
+)
+def get_inbox(
+    weeks: int = 2, db_session: Session = Depends(get_mlwh_db)
+) -> InboxResults:
+    """Get inbox of PacBio runs.
+
+    Fetches from the last 2 weeks by default."""
+
+    if weeks < 0:
+        raise HTTPException(
+            status_code=400, detail="Bad Request. Invalid weeks paramter."
+        )
+
+    results: List[PacBioRunWellMetrics] = grab_recent_wells_from_db(weeks, db_session)
+
+    return group_wells_into_inbox_results(results)
+
+
 @router.get("/wells", response_model=InboxResults, tags=["Well inbox"])
-def get_wells_filtered_by_status(qc_status: QcStatusEnum = None):
-    pass
+def get_wells_filtered_by_status(
+    qc_status: QcStatusEnum = None,
+    qcdb_session: Session = Depends(get_qc_db),
+    mlwh_session: Session = Depends(get_mlwh_db),
+):
+
+    wells = grab_wells_with_status(qc_status, qcdb_session, mlwh_session)
+    return group_wells_into_inbox_results(wells)
