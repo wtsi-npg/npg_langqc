@@ -121,7 +121,7 @@ def client(config) -> TestClient:
     engine = create_engine(mysql_url(config), future=True)
 
     TestingSessionLocal = sessionmaker(bind=engine)
-    print(engine.url)
+
     with engine.connect() as conn:
         # Workaround for invalid default values for dates.
         conn.execute(text("SET sql_mode = '';"))
