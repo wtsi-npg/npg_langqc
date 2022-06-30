@@ -22,22 +22,24 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 
-config = {"QCDB_URL": os.environ.get("QCDB_URL"), "TEST": os.environ.get("LANGQC_MODE")}
-
-if config["TEST"]:
-    config["QCDB_URL"] = "sqlite+pysqlite:///:memory:"
-
-if config["QCDB_URL"] is None or config["QCDB_URL"] == "":
-    raise Exception(
-        "ENV['QCDB_URL'] must be set with a database URL, or LANGQC_MODE must be set for testing."
-    )
-
-engine = create_engine(config["QCDB_URL"], future=True, echo=True)
-session_factory: sessionmaker = sessionmaker(engine, expire_on_commit=False)
+engine = None
+session_factory = None
 
 
 def get_qc_db() -> Session:
     """Get QC DB connection"""
+
+    global engine, session_factory
+
+    if engine is None:
+        url = os.environ.get("QCDB_URL")
+        if url is None or url == "":
+            raise Exception("ENV['QCDB_URL'] must be set with a database URL")
+        engine = create_engine(url, future=True)
+
+    if session_factory is None:
+        session_factory = sessionmaker(engine, expire_on_commit=False)
+
     db = session_factory()
     try:
         yield db
