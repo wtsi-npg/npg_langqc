@@ -2,6 +2,8 @@ from fastapi.testclient import TestClient
 
 from lang_qc import __version__
 
+from tests.fixtures.inbox_data import inbox_data
+
 
 def test_version():
     assert __version__ == "0.1.0"
@@ -13,7 +15,7 @@ def test_not_found(client: TestClient):
     assert response.status_code == 404
 
 
-def test_inbox(client: TestClient):
+def test_inbox(client: TestClient, inbox_data):
     """Test the inbox endpoint."""
     response = client.get("/pacbio/inbox?weeks=1")
 
@@ -47,8 +49,9 @@ def test_inbox(client: TestClient):
     )
 
 
-def test_get_well(client: TestClient):
+def test_get_well(client: TestClient, inbox_data):
     """Test retrieving a well."""
+
     response = client.get("/pacbio/run/MARATHON/well/A0")
     assert response.status_code == 200
     result = response.json()
