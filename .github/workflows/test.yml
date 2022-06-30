@@ -67,5 +67,3 @@ jobs:
       - name: Run pytest
         run: |
           poetry run pytest
-        env:
-          LANGQC_MODE: test
