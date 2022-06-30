@@ -26,7 +26,7 @@ def config() -> configparser.ConfigParser:
     # should be an instance in a container, discarded after each test run.
     test_config = configparser.ConfigParser()
     test_config.read(test_ini)
-    yield test_config
+    return test_config
 
 
 def mysql_url(config: configparser.ConfigParser):
@@ -146,4 +146,4 @@ def client(config) -> TestClient:
 
     client = TestClient(app)
 
-    yield client
+    return client
