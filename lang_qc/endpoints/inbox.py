@@ -83,10 +83,18 @@ def extract_well_label_and_run_name_from_state(state: QcState):
 def get_well_metrics_from_qc_states(
     qc_states: List[QcState], mlwh_db_session: Session
 ) -> List[PacBioRunWellMetrics]:
+    state_info = [
+        extract_well_label_and_run_name_from_state(state) for state in qc_states
+    ]
+    run_names = [info[0] for info in state_info]
+    well_labels = [info[1] for info in state_info]
     stmt = select(PacBioRunWellMetrics).where(
-        (PacBioRunWellMetrics.pac_bio_run_name, PacBioRunWellMetrics.well_label)
-        in [extract_well_label_and_run_name_from_state(state) for state in qc_states]
+        and_(
+            PacBioRunWellMetrics.pac_bio_run_name.in_(run_names),
+            PacBioRunWellMetrics.well_label.in_(well_labels),
+        )
     )
+
     return mlwh_db_session.execute(stmt).scalars()
 
 
@@ -112,14 +120,14 @@ def grab_wells_with_status(
                 .join(SubProduct)
                 .where(
                     # extract_well_label_and_run_name_from_state(QcState)
-                    (
-                        SubProduct.value_attr_one,
-                        SubProduct.value_attr_two,
+                    and_(
+                        SubProduct.value_attr_one.in_(
+                            [well.pac_bio_run_name for well in recent_wells]
+                        ),
+                        SubProduct.value_attr_two.in_(
+                            [well.well_label for well in recent_wells]
+                        ),
                     )
-                    in [
-                        (well.pac_bio_run_name, well.well_label)
-                        for well in recent_wells
-                    ]
                 )
             )
 
@@ -180,6 +188,7 @@ def grab_wells_with_status(
                 .scalars()
                 .all()
             )
+
             return get_well_metrics_from_qc_states(states, mlwh_session)
 
         case _:
