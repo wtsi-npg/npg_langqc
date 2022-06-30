@@ -55,8 +55,8 @@ def mysql_url(config: configparser.ConfigParser):
     )
 
 
-@pytest.fixture(scope="function")
-def mlwhdb_sessionfactory(config):
+@pytest.fixture(scope="function", name="mlwhdb_test_sessionfactory")
+def create_mlwhdb_test_sessionfactory(config):
     engine = create_engine(mysql_url(config), future=True)
 
     TestingSessionLocal = sessionmaker(bind=engine)
@@ -75,11 +75,11 @@ def mlwhdb_sessionfactory(config):
     return TestingSessionLocal
 
 
-@pytest.fixture(scope="function")
-def client(config, mlwhdb_sessionfactory) -> TestClient:
+@pytest.fixture(scope="function", name="test_client")
+def create_test_client(config, mlwhdb_test_sessionfactory) -> TestClient:
     def override_get_mlwh_db():
         try:
-            db: Session = mlwhdb_sessionfactory()
+            db: Session = mlwhdb_test_sessionfactory()
             yield db
         finally:
             db.close()

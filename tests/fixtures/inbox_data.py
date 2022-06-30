@@ -12,9 +12,9 @@ from sqlalchemy.orm import Session
 
 
 @pytest.fixture(scope="function")
-def inbox_data(mlwhdb_sessionfactory):
+def inbox_data(mlwhdb_test_sessionfactory):
 
-    session: Session = mlwhdb_sessionfactory()
+    session: Session = mlwhdb_test_sessionfactory()
 
     timedeltas_labels = [(timedelta(days=i, minutes=2), f"A{i}") for i in range(9)]
 
