@@ -13,7 +13,7 @@ python = "^3.10"
 fastapi = { version = "^0.78", extras = ["standard"] }
 uvicorn = { version = "^0.17", extras = ["standard"] }
 ml-warehouse = { git = "https://github.com/wtsi-npg/ml-warehouse-python.git", branch="devel" }
-SQLAlchemy = "^1.4.35"
+SQLAlchemy = { version = "^1.4.35", extras = ["pymysql"] }
 pydantic = "^1.9.0"
 
 [tool.poetry.dev-dependencies]
