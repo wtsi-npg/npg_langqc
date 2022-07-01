@@ -58,3 +58,28 @@ class InboxResultEntry(BaseModel):
 class InboxResults(BaseModel):
 
     __root__: List[InboxResultEntry]
+
+
+class QcStatus(BaseModel):
+
+    user: str = Field(default=None, title="User owning the QC stte.")
+    date_created: datetime = Field(default=None, title="Date created")
+    date_updated: datetime = Field(default=None, title="Date updated")
+    qc_type: str = Field(default=None, title="QC type")
+    qc_type_description: str = Field(default=None, title="QC type description")
+    is_preliminary: bool = Field(default=None, title="Preliminarity of outcome")
+    created_by: str = Field(default=None, title="QC State creator")
+
+
+class FilteredWellInfo(WellInfo):
+    qc_status: QcStatus = Field(default=None, title="Well QC status")
+
+
+class FilteredInboxResultEntry(InboxResultEntry):
+
+    wells: List[FilteredWellInfo]
+
+
+class FilteredInboxResults(BaseModel):
+
+    __root__: List[FilteredInboxResultEntry]
