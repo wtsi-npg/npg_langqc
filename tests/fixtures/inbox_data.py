@@ -10,8 +10,20 @@ from ml_warehouse.schema import (
 import pytest
 from sqlalchemy.orm import Session
 
+from lang_qc.db.qc_schema import (
+    ProductLayout,
+    QcState,
+    QcStateDict,
+    QcType,
+    SeqPlatform,
+    SeqProduct,
+    SubProduct,
+    SubProductAttr,
+    User,
+)
 
-@pytest.fixture(scope="function")
+
+@pytest.fixture
 def inbox_data(mlwhdb_test_sessionfactory):
 
     session: Session = mlwhdb_test_sessionfactory()
@@ -66,3 +78,81 @@ def inbox_data(mlwhdb_test_sessionfactory):
         )
 
     session.commit()
+
+
+@pytest.fixture
+def filtered_inbox_data(qcdb_test_sessionfactory, inbox_data):
+
+    qc_session: Session = qcdb_test_sessionfactory()
+
+    passed = QcStateDict(
+        state="Passed",
+        outcome=1,
+    )
+    failed = QcStateDict(
+        state="Failed",
+        outcome=2,
+    )
+    claimed = QcStateDict(
+        state="Claimed",
+        outcome=6,
+    )
+    on_hold = QcStateDict(state="On hold", outcome=7)
+
+    library_type = QcType(qc_type="library", description="Sample/library evaluation")
+
+    pacbio_platform = SeqPlatform(name="PacBio", description="Pacific Biosciences")
+
+    well_label_attr = SubProductAttr(
+        attr_name="well_label", description="PacBio well (or cell) label"
+    )
+
+    run_name_attr = SubProductAttr(
+        attr_name="run_name", description="The name of the PacBio run according to LIMS"
+    )
+
+    test_user = User(username="test_user")
+
+    qc_session.add_all(
+        [
+            passed,
+            failed,
+            claimed,
+            on_hold,
+            library_type,
+            pacbio_platform,
+            run_name_attr,
+            well_label_attr,
+            test_user,
+        ]
+    )
+    qc_session.commit()
+
+    qc_session.add(
+        QcState(
+            created_by="test_framework",
+            is_preliminary=False,
+            date_created=datetime.now(),
+            date_updated=datetime.now(),
+            qc_state_dict=passed,
+            qc_type=library_type,
+            seq_product=SeqProduct(
+                id_product="TESTPRODUCT",
+                seq_platform=pacbio_platform,
+                product_layout=[
+                    ProductLayout(
+                        sub_product=SubProduct(
+                            id_attr_one=run_name_attr.id_attr,
+                            id_attr_two=well_label_attr.id_attr,
+                            value_attr_one="MARATHON",
+                            value_attr_two="A2",
+                            properties={},
+                            properties_digest="chatperche",
+                        )
+                    )
+                ],
+            ),
+            user=test_user,
+        )
+    )
+    qc_session.commit()
