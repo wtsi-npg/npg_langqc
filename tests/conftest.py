@@ -24,65 +24,40 @@ def config() -> configparser.ConfigParser:
     return test_config
 
 
-def mlwh_mysql_url(config: configparser.ConfigParser):
+def mysql_url(
+    config: configparser.ConfigParser,
+    section: str,
+    default_user: str,
+    default_password: str,
+    default_ip: str,
+    default_port: str,
+    default_schema: str,
+):
     """Returns a MySQL URL configured through an ini file.
 
     The keys and values are:
 
-    [MySQL MLWH]
-    user       = <database user, defaults to "test">
-    password   = <database password, defaults to empty i.e. "">
-    ip_address = <database IP address, defaults to "127.0.0.1">
-    port       = <database port, defaults to 3306>
-    schema     = <database schema, defaults to "mlwarehouse">
+    [<section>]
+    user = <database user, defaults to default_user>
+    password = <database password, defaults to default_password>
+    ip_address = <database IP address, defaults to default_ip>
+    port = <database port, defaults to default_port>
+    schema = <database schema, defaults to default_schema>
     """
-    section = "MySQL MLWH"
 
     if section not in config.sections():
         raise configparser.Error(
-            "The {} configuration section is missing. "
+            f"The {section} configuration section is missing. "
             "You need to fill this in before running "
-            "tests on a {} database".format(section, section)
+            f"tests on a {section} database"
         )
+
     connection_conf = config[section]
-    user = connection_conf.get("user", "test")
-    password = connection_conf.get("password", "")
-    ip_address = connection_conf.get("ip_address", "127.0.0.1")
-    port = connection_conf.get("port", "3306")
-    schema = connection_conf.get("schema", "mlwarehouse")
-
-    return (
-        f"mysql+pymysql://{user}:{password}@"
-        f"{ip_address}:{port}/{schema}?charset=utf8mb4"
-    )
-
-
-def qcdb_mysql_url(config: configparser.ConfigParser):
-    """Returns a MySQL URL configured through an ini file.
-
-    The keys and values are:
-
-    [MySQL QCDB]
-    user       = <database user, defaults to "test">
-    password   = <database password, defaults to empty i.e. "">
-    ip_address = <database IP address, defaults to "127.0.0.1">
-    port       = <database port, defaults to 3307>
-    schema     = <database schema, defaults to "langqc">
-    """
-    section = "MySQL QCDB"
-
-    if section not in config.sections():
-        raise configparser.Error(
-            "The {} configuration section is missing. "
-            "You need to fill this in before running "
-            "tests on a {} database".format(section, section)
-        )
-    connection_conf = config[section]
-    user = connection_conf.get("user", "test")
-    password = connection_conf.get("password", "")
-    ip_address = connection_conf.get("ip_address", "127.0.0.1")
-    port = connection_conf.get("port", "3307")
-    schema = connection_conf.get("schema", "langqc")
+    user = connection_conf.get("user", default_user)
+    password = connection_conf.get("password", default_password)
+    ip_address = connection_conf.get("ip_address", default_ip)
+    port = connection_conf.get("port", default_port)
+    schema = connection_conf.get("schema", default_schema)
 
     return (
         f"mysql+pymysql://{user}:{password}@"
@@ -92,8 +67,20 @@ def qcdb_mysql_url(config: configparser.ConfigParser):
 
 @pytest.fixture(scope="function", name="mlwhdb_test_sessionfactory")
 def create_mlwhdb_test_sessionfactory(config):
-    engine = create_engine(mlwh_mysql_url(config), future=True)
+    """Create a MLWH SQLAlchemy session factory, using credentials from config.
 
+    If the config is missing certain values, they will default to:
+        - user: test
+        - password: test
+        - host: 127.0.0.1
+        - port: 3307
+        - schema_name: mlwarehouse
+    """
+
+    url = mysql_url(
+        config, "MySQL MLWH", "test", "test", "127.0.0.1", "3306", "mlwarehouse"
+    )
+    engine = create_engine(url, future=True)
     TestingSessionLocal = sessionmaker(bind=engine)
 
     with engine.connect() as conn:
@@ -112,8 +99,18 @@ def create_mlwhdb_test_sessionfactory(config):
 
 @pytest.fixture(scope="function", name="qcdb_test_sessionfactory")
 def create_qcdb_test_sessionfactory(config):
-    engine = create_engine(qcdb_mysql_url(config), future=True)
+    """Create a QC DB SQLAlchemy session factory, using credentials from config.
 
+    If the config is missing certain valuse, they will default to:
+        - user: test
+        - password: test
+        - host: 127.0.0.1
+        - port: 3307
+        - schema_name: langqc
+    """
+
+    url = mysql_url(config, "MySQL QCDB", "test", "test", "127.0.0.1", "3307", "langqc")
+    engine = create_engine(url, future=True)
     TestingSessionLocal = sessionmaker(bind=engine)
 
     # Drop all tables and then create then to make it easier to test locally too.
