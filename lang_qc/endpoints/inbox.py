@@ -17,13 +17,14 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from operator import attrgetter
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 from fastapi import APIRouter, Depends, HTTPException
 from ml_warehouse.schema import PacBioRunWellMetrics
-from sqlalchemy import select, and_, or_
+from sqlalchemy import select, and_, not_, or_
 from sqlalchemy.orm import Session
 
 from lang_qc.db.mlwh_connection import get_mlwh_db
@@ -36,10 +37,16 @@ from lang_qc.db.qc_schema import (
     QcStateDict,
 )
 from lang_qc.models.inbox_models import (
+    FilteredWellInfo,
+    FilteredInboxResultEntry,
+    FilteredInboxResults,
     InboxResults,
     InboxResultEntry,
     WellInfo,
+    WellLabel,
+    QcStatus,
     QcStatusEnum,
+    RunName,
 )
 
 router = APIRouter()
@@ -69,8 +76,7 @@ def grab_recent_wells_from_db(
         )
     )
 
-    results: List[PacBioRunWellMetrics] = db_session.execute(stmt).scalars().all()
-    return results
+    return db_session.execute(stmt).scalars().all()
 
 
 def extract_well_label_and_run_name_from_state(state: QcState):
@@ -83,6 +89,8 @@ def extract_well_label_and_run_name_from_state(state: QcState):
 def get_well_metrics_from_qc_states(
     qc_states: List[QcState], mlwh_db_session: Session
 ) -> List[PacBioRunWellMetrics]:
+    """Get a list of PacBioRunWellMetrics corresponding to QC states."""
+
     state_info = [
         extract_well_label_and_run_name_from_state(state) for state in qc_states
     ]
@@ -95,22 +103,111 @@ def get_well_metrics_from_qc_states(
         )
     )
 
-    return mlwh_db_session.execute(stmt).scalars()
+    wells: List[PacBioRunWellMetrics] = mlwh_db_session.execute(stmt).scalars()
+    return wells
+
+
+def pack_wells_and_states(wells, qc_states) -> FilteredInboxResults:
+    """Pack wells and states together into FilteredInboxResults.
+
+    If a well does not have a corresponding QC state, it will be
+    set to `None`.
+    """
+
+    @dataclass
+    class RawWellWithState:
+        """A convenience class to wrap wells and qc state into one."""
+
+        metrics: PacBioRunWellMetrics
+        qc_status: QcStatus
+
+    # Start sorting the wells into runs.
+    packed_wells: Dict[RunName, Dict[WellLabel, RawWellWithState]] = {}
+
+    for well in wells:
+
+        run_name = well.pac_bio_run_name
+        well_label = well.well_label
+
+        if run_name not in packed_wells.keys():
+            packed_wells[run_name] = {}
+
+        if well_label not in packed_wells[run_name].keys():
+            packed_wells[run_name][well_label] = RawWellWithState(
+                metrics=well, qc_status=None
+            )
+        else:
+            raise Exception(
+                "Conflicting PacBioRunWellMetrics: \n"
+                f"\tleft: {packed_wells[run_name][well_label]}\n"
+                f"\tright: {well}"
+            )
+
+    # Add the QC states to their corresponding wells.
+    for state in qc_states:
+
+        run_name, well_label = extract_well_label_and_run_name_from_state(state)
+
+        if run_name not in packed_wells.keys():
+            raise Exception(
+                f"A state has been found which does not correspond to a run: {state}"
+            )
+        if well_label not in packed_wells[run_name].keys():
+            raise Exception(
+                f"A state has been found which does not correspond to a well: {state}"
+            )
+
+        packed_wells[run_name][well_label].qc_status = QcStatus(
+            user=state.user.username,
+            date_created=state.date_created,
+            date_updated=state.date_updated,
+            qc_type=state.qc_type.qc_type,
+            qc_type_description=state.qc_type.description,
+            is_preliminary=state.is_preliminary,
+            created_by=state.created_by,
+        )
+
+    # Construct the results
+    results: FilteredInboxResults = []
+
+    for run_name, raw_wells_dict in packed_wells.items():
+        raw_wells = list(raw_wells_dict.values())
+        results.append(
+            FilteredInboxResultEntry(
+                run_name=run_name,
+                # There will always be at least on well in a run.
+                time_start=raw_wells[0].metrics.run_start,
+                time_complete=raw_wells[0].metrics.run_complete,
+                wells=[
+                    FilteredWellInfo(
+                        label=raw_well.metrics.well_label,
+                        start=raw_well.metrics.well_start,
+                        complete=raw_well.metrics.well_complete,
+                        qc_status=raw_well.qc_status,
+                    )
+                    for raw_well in raw_wells
+                ],
+            )
+        )
+
+    return results
 
 
 def grab_wells_with_status(
     status: QcStatusEnum, qcdb_session: Session, mlwh_session: Session, weeks: int = 1
-) -> List[PacBioRunWellMetrics]:
+) -> Tuple[List[PacBioRunWellMetrics], List[QcState]]:
     """Get wells from the QC DB filtered by QC status."""
 
-    # This is a bit weird for now. This also assumes there is a 1-1 SeqProduct-SubProduct mapping.
-    # From there we have two cases:
-    # - these are QC statuses for the wells we want. In this case we get the wells
-    #   and display them.
-    # - we want the inbox. In this case we have the list of wells which already have
-    #   a QC status. Meaning we want to prune these from the results.
+    # This code assumes there is a 1-1 SeqProduct-SubProduct mapping.
+
+    states = []
+    wells = []
+
     match status:
         case QcStatusEnum.INBOX:
+            # Get recent wells, then filter out all those that already have a
+            # QcStatus in the DB.
+
             recent_wells = grab_recent_wells_from_db(weeks, mlwh_session)
 
             stmt = (
@@ -119,7 +216,6 @@ def grab_wells_with_status(
                 .join(ProductLayout)
                 .join(SubProduct)
                 .where(
-                    # extract_well_label_and_run_name_from_state(QcState)
                     and_(
                         SubProduct.value_attr_one.in_(
                             [well.pac_bio_run_name for well in recent_wells]
@@ -136,63 +232,62 @@ def grab_wells_with_status(
                 for state in qcdb_session.execute(stmt).scalars().all()
             ]
 
-            return [
+            wells = [
                 record
                 for record in recent_wells
                 if (record.pac_bio_run_name, record.well_label) not in already_there
             ]
 
         case QcStatusEnum.IN_PROGRESS:
+            # Get wells which have a state that is not "On hold" or preliminary.
             states = (
                 qcdb_session.execute(
                     select(QcState)
                     .join(QcStateDict)
-                    .join(SeqProduct)
-                    .join(ProductLayout)
-                    .join(SubProduct)
                     .where(QcStateDict.state != "On hold" and QcState.is_preliminary)
                 )
                 .scalars()
                 .all()
             )
-            return get_well_metrics_from_qc_states(states, mlwh_session)
+            wells = get_well_metrics_from_qc_states(states, mlwh_session)
 
         case QcStatusEnum.ON_HOLD:
+            # Get wells which have a state that is "On hold".
             states = (
                 qcdb_session.execute(
                     select(QcState)
                     .join(QcStateDict)
-                    .join(SeqProduct)
-                    .join(ProductLayout)
-                    .join(SubProduct)
                     .where(QcStateDict.state == "On hold")
                 )
                 .scalars()
                 .all()
             )
-            return get_well_metrics_from_qc_states(states, mlwh_session)
+            wells = get_well_metrics_from_qc_states(states, mlwh_session)
 
         case QcStatusEnum.QC_COMPLETE:
+            # Get wells which have a state that is not "On hold" or "Claimed" and that
+            # is not preliminary.
             states = (
                 qcdb_session.execute(
                     select(QcState)
                     .join(QcStateDict)
-                    .join(SeqProduct)
-                    .join(ProductLayout)
-                    .join(SubProduct)
                     .where(
-                        QcState.is_preliminary
-                        and QcStateDict.state not in ["On hold", "Claimed"]
+                        and_(
+                            not_(QcState.is_preliminary),
+                            not_(QcStateDict.state.in_(["On hold", "Claimed"])),
+                        )
                     )
                 )
                 .scalars()
                 .all()
             )
 
-            return get_well_metrics_from_qc_states(states, mlwh_session)
+            wells = get_well_metrics_from_qc_states(states, mlwh_session)
 
         case _:
             raise Exception("An unknown filter was passed.")
+
+    return (wells, states)
 
 
 def group_wells_into_inbox_results(well_db_records: List[PacBioRunWellMetrics]):
@@ -273,12 +368,12 @@ def get_inbox(
     return group_wells_into_inbox_results(results)
 
 
-@router.get("/wells", response_model=InboxResults, tags=["Well inbox"])
+@router.get("/wells", response_model=FilteredInboxResults, tags=["Well inbox"])
 def get_wells_filtered_by_status(
-    qc_status: QcStatusEnum = None,
+    qc_status: QcStatusEnum = QcStatusEnum.INBOX,
     qcdb_session: Session = Depends(get_qc_db),
     mlwh_session: Session = Depends(get_mlwh_db),
 ):
 
-    wells = grab_wells_with_status(qc_status, qcdb_session, mlwh_session)
-    return group_wells_into_inbox_results(wells)
+    wells, states = grab_wells_with_status(qc_status, qcdb_session, mlwh_session)
+    return pack_wells_and_states(wells, states)
