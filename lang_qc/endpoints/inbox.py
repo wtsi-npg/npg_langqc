@@ -163,6 +163,7 @@ def pack_wells_and_states(wells, qc_states) -> FilteredInboxResults:
             date_updated=state.date_updated,
             qc_type=state.qc_type.qc_type,
             qc_type_description=state.qc_type.description,
+            qc_state=state.qc_state_dict.state,
             is_preliminary=state.is_preliminary,
             created_by=state.created_by,
         )

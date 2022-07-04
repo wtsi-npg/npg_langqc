@@ -67,6 +67,7 @@ class QcStatus(BaseModel):
     date_updated: datetime = Field(default=None, title="Date updated")
     qc_type: str = Field(default=None, title="QC type")
     qc_type_description: str = Field(default=None, title="QC type description")
+    qc_state: str = Field(default=None, title="QC state")
     is_preliminary: bool = Field(default=None, title="Preliminarity of outcome")
     created_by: str = Field(default=None, title="QC State creator")
 
