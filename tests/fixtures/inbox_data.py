@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from typing import List, Tuple
 
 from ml_warehouse.schema import (
     PacBioRun,
@@ -156,3 +157,49 @@ def filtered_inbox_data(qcdb_test_sessionfactory, inbox_data):
         )
     )
     qc_session.commit()
+
+
+@pytest.fixture()
+def wells_and_states() -> Tuple[List[PacBioRunWellMetrics], List[QcState]]:
+
+    wells = {"MARATHON": ["A1", "A2", "A3", "A4"], "SEMI-MARATHON": ["A1", "A2", "A3"]}
+
+    run_metrics = []
+    states = []
+
+    for run_name in wells:
+        for well_label in wells[run_name]:
+            run_metrics.append(
+                PacBioRunWellMetrics(
+                    pac_bio_run_name=run_name,
+                    well_label=well_label,
+                    instrument_type="PacBio",
+                )
+            )
+            states.append(
+                QcState(
+                    id_qc_state_dict=1,
+                    created_by="me",
+                    seq_product=SeqProduct(
+                        id_seq_platform="PacBio",
+                        product_layout=[
+                            ProductLayout(
+                                sub_product=SubProduct(
+                                    id_attr_one=1,
+                                    value_attr_one=run_name,
+                                    id_attr_two=2,
+                                    value_attr_two=well_label,
+                                )
+                            )
+                        ],
+                    ),
+                    user=User(username="zx80"),
+                    qc_type=QcType(qc_type="library", description="library QC."),
+                    qc_state_dict=QcStateDict(
+                        state="Passed",
+                        outcome=1,
+                    ),
+                )
+            )
+
+        return (run_metrics, states)
