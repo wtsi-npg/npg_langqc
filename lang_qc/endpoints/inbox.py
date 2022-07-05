@@ -94,14 +94,14 @@ def get_well_metrics_from_qc_states(
     state_info = [
         extract_well_label_and_run_name_from_state(state) for state in qc_states
     ]
-    run_names = [info[0] for info in state_info]
-    well_labels = [info[1] for info in state_info]
-    stmt = select(PacBioRunWellMetrics).where(
+    filters = [
         and_(
-            PacBioRunWellMetrics.pac_bio_run_name.in_(run_names),
-            PacBioRunWellMetrics.well_label.in_(well_labels),
+            PacBioRunWellMetrics.pac_bio_run_name == run_name,
+            PacBioRunWellMetrics.well_label == well_label,
         )
-    )
+        for run_name, well_label in state_info
+    ]
+    stmt = select(PacBioRunWellMetrics).where(or_(*filters))
 
     wells: List[PacBioRunWellMetrics] = mlwh_db_session.execute(stmt).scalars()
     return wells
@@ -145,7 +145,6 @@ def pack_wells_and_states(wells, qc_states) -> FilteredInboxResults:
 
     # Add the QC states to their corresponding wells.
     for state in qc_states:
-
         run_name, well_label = extract_well_label_and_run_name_from_state(state)
 
         if run_name not in packed_wells.keys():
@@ -245,7 +244,7 @@ def grab_wells_with_status(
                 qcdb_session.execute(
                     select(QcState)
                     .join(QcStateDict)
-                    .where(QcStateDict.state != "On hold" and QcState.is_preliminary)
+                    .where(and_(QcStateDict.state != "On hold", QcState.is_preliminary))
                 )
                 .scalars()
                 .all()
@@ -284,6 +283,9 @@ def grab_wells_with_status(
             )
 
             wells = get_well_metrics_from_qc_states(states, mlwh_session)
+            wells = list(wells)
+            for well in wells:
+                print(well.pac_bio_run_name, well.well_label)
 
         case _:
             raise Exception("An unknown filter was passed.")
