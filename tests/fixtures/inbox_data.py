@@ -88,9 +88,9 @@ def filtered_inbox_data(mlwhdb_test_sessionfactory, qcdb_test_sessionfactory):
     mlwh_db_session: Session = mlwhdb_test_sessionfactory()
 
     desired_wells = {
-        "MARATHON": {"A1": "Passed", "A2": "Passed", "A3": "On hold"},
-        "SEMI-MARATHON": {"A1": "Failed", "A2": "Claimed", "A3": "Claimed"},
-        "QUARTER-MILE": {"A2": "On hold", "A3": "On hold"},
+        "MARATHON": {"A1": "Passed", "A2": "Passed", "A3": "On hold", "A4": None},
+        "SEMI-MARATHON": {"A1": "Failed", "A2": "Claimed", "A3": "Claimed", "A4": None},
+        "QUARTER-MILE": {"A1": None, "A2": "On hold", "A3": "On hold", "A4": None},
     }
 
     # Setup dicts and "filler" data
@@ -125,34 +125,39 @@ def filtered_inbox_data(mlwhdb_test_sessionfactory, qcdb_test_sessionfactory):
                     pac_bio_run_name=run_name,
                     well_label=well_label,
                     instrument_type="PacBio",
+                    polymerase_num_reads=1337,
+                    ccs_execution_mode="None",
+                    well_status="Complete",
+                    well_complete=datetime.now() - timedelta(days=1),
                 )
             )
-            states.append(
-                QcState(
-                    created_by="me",
-                    is_preliminary=state in ["On hold", "Claimed"],
-                    qc_state_dict=state_dicts[state],
-                    qc_type=library_qc_type,
-                    seq_product=SeqProduct(
-                        id_product=run_name + well_label,
-                        seq_platform=seq_platform,
-                        product_layout=[
-                            ProductLayout(
-                                sub_product=SubProduct(
-                                    sub_product_attr=run_name_attr,
-                                    sub_product_attr_=well_label_attr,
-                                    value_attr_one=run_name,
-                                    value_attr_two=well_label,
-                                    properties={run_name: well_label},
-                                    properties_digest=run_name
-                                    + well_label,  # dummy digest
-                                ),
-                            )
-                        ],
-                    ),
-                    user=user,
+            if state is not None:
+                states.append(
+                    QcState(
+                        created_by="me",
+                        is_preliminary=state in ["On hold", "Claimed"],
+                        qc_state_dict=state_dicts[state],
+                        qc_type=library_qc_type,
+                        seq_product=SeqProduct(
+                            id_product=run_name + well_label,
+                            seq_platform=seq_platform,
+                            product_layout=[
+                                ProductLayout(
+                                    sub_product=SubProduct(
+                                        sub_product_attr=run_name_attr,
+                                        sub_product_attr_=well_label_attr,
+                                        value_attr_one=run_name,
+                                        value_attr_two=well_label,
+                                        properties={run_name: well_label},
+                                        properties_digest=run_name
+                                        + well_label,  # dummy digest
+                                    ),
+                                )
+                            ],
+                        ),
+                        user=user,
+                    )
                 )
-            )
 
     for state in states:
         qc_db_session.add(state)

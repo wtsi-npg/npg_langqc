@@ -60,7 +60,11 @@ def assert_filtered_inbox_equals_expected(response, expected_data):
     for result in content.__root__:
         wells = {}
         for well_info in result.wells:
-            wells[well_info.label] = well_info.qc_status.qc_state
+            wells[well_info.label] = (
+                well_info.qc_status.qc_state
+                if well_info.qc_status is not None
+                else None
+            )
         actual_data[result.run_name] = wells
 
     assert actual_data == expected_data
@@ -96,6 +100,19 @@ def test_in_progress_filter(test_client: TestClient, filtered_inbox_data):
     response = test_client.get("/pacbio/wells?qc_status=in_progress")
     expected_data = {
         "SEMI-MARATHON": {"A3": "Claimed", "A2": "Claimed"},
+    }
+
+    assert_filtered_inbox_equals_expected(response, expected_data)
+
+
+def test_inbox_filter(test_client: TestClient, filtered_inbox_data):
+    """Test passing `inbox` filter."""
+
+    response = test_client.get("/pacbio/wells?qc_status=inbox")
+    expected_data = {
+        "MARATHON": {"A4": None},
+        "SEMI-MARATHON": {"A4": None},
+        "QUARTER-MILE": {"A1": None, "A4": None},
     }
 
     assert_filtered_inbox_equals_expected(response, expected_data)
