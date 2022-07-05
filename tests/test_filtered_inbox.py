@@ -28,7 +28,11 @@ from lang_qc.endpoints.inbox import (
 )
 from lang_qc.models.inbox_models import FilteredInboxResults
 
-from tests.fixtures.inbox_data import filtered_inbox_data, inbox_data, wells_and_states
+from tests.fixtures.inbox_data import (
+    filtered_inbox_data,
+    inbox_data,
+    wells_and_states,
+)
 
 
 def test_incorrect_filter(test_client: TestClient):
@@ -38,18 +42,63 @@ def test_incorrect_filter(test_client: TestClient):
     assert response.status_code == 422
 
 
+def assert_filtered_inbox_equals_expected(response, expected_data):
+    """Convenience function to test the result of filtered well endpoint.
+
+    Args:
+        response: the response from the TestClient
+        expected_data: dict mapping from run name to a dict mapping from well_label to QC state
+    """
+
+    assert response.status_code == 200
+    content = FilteredInboxResults.parse_obj(response.json())
+
+    # We try to unpack the data to make expected data again
+
+    actual_data = {}
+
+    for result in content.__root__:
+        wells = {}
+        for well_info in result.wells:
+            wells[well_info.label] = well_info.qc_status.qc_state
+        actual_data[result.run_name] = wells
+
+    assert actual_data == expected_data
+
+
 def test_qc_complete_filter(test_client: TestClient, filtered_inbox_data):
     """Test passing `qc_complete` filter."""
 
     response = test_client.get("/pacbio/wells?qc_status=qc_complete")
-    assert response.status_code == 200
-    assert len(response.json()) == 1
-    run = response.json()[0]
-    assert run["run_name"] == "MARATHON"
-    assert len(run["wells"]) == 1
-    assert run["wells"][0]["label"] == "A2"
-    assert not run["wells"][0]["qc_status"]["is_preliminary"]
-    assert run["wells"][0]["qc_status"]["qc_state"] == "Passed"
+
+    expected_data = {
+        "MARATHON": {"A1": "Passed", "A2": "Passed"},
+        "SEMI-MARATHON": {"A1": "Failed"},
+    }
+    assert_filtered_inbox_equals_expected(response, expected_data)
+
+
+def test_on_hold_filter(test_client: TestClient, filtered_inbox_data):
+    """Test passing `on_hold` filter."""
+
+    response = test_client.get("/pacbio/wells?qc_status=on_hold")
+    expected_data = {
+        "MARATHON": {"A3": "On hold"},
+        "QUARTER-MILE": {"A2": "On hold", "A3": "On hold"},
+    }
+
+    assert_filtered_inbox_equals_expected(response, expected_data)
+
+
+def test_in_progress_filter(test_client: TestClient, filtered_inbox_data):
+    """Test passing `in_progress` filter."""
+
+    response = test_client.get("/pacbio/wells?qc_status=in_progress")
+    expected_data = {
+        "SEMI-MARATHON": {"A3": "Claimed", "A2": "Claimed"},
+    }
+
+    assert_filtered_inbox_equals_expected(response, expected_data)
 
 
 def test_pack_well_and_states(wells_and_states):
