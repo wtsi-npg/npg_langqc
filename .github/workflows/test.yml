@@ -31,7 +31,7 @@ jobs:
         mysql-version: ["5.7", "8.0"]
     
     services:
-      mysql:
+      mysql-mlwh:
         image: mysql:${{ matrix.mysql-version }}
         ports:
           - 3306:3306
@@ -46,7 +46,22 @@ jobs:
           MYSQL_USER: "test"
           MYSQL_PASSWORD: "test"
           MYSQL_DATABASE: "mlwarehouse"
-    
+      mysql-qcdb:
+        image: mysql:${{ matrix.mysql-version }}
+        ports:
+          - 3307:3307
+        options: >-
+          --health-cmd "mysqladmin ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+        env:
+          MYSQL_RANDOM_ROOT_PASSWORD: yes
+          MYSQL_TCP_PORT: 3307
+          MYSQL_USER: "test"
+          MYSQL_PASSWORD: "test"
+          MYSQL_DATABASE: "langqc"
+
     steps:
       - uses: actions/checkout@v3
       
