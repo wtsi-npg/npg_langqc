@@ -20,11 +20,20 @@ from typing import List, Tuple
 
 from fastapi.testclient import TestClient
 from ml_warehouse.schema import PacBioRunWellMetrics
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
-from lang_qc.db.qc_schema import QcState, SubProduct, ProductLayout, SeqProduct
+from lang_qc.db.qc_schema import (
+    QcState,
+    QcStateDict,
+    SubProduct,
+    ProductLayout,
+    SeqProduct,
+)
 from lang_qc.endpoints.inbox import (
     pack_wells_and_states,
     extract_well_label_and_run_name_from_state,
+    get_well_metrics_from_qc_states,
 )
 from lang_qc.models.inbox_models import FilteredInboxResults
 
@@ -165,3 +174,32 @@ def test_extract_well_label_and_run_name_from_state(
             well.pac_bio_run_name,
             well.well_label,
         ) == extract_well_label_and_run_name_from_state(state)
+
+
+def test_get_well_metrics_from_qc_states(
+    qcdb_test_sessionfactory, mlwhdb_test_sessionfactory, filtered_inbox_data
+):
+    """Test lang_qc.endpoints.get_well_metrics_from_qc_states function."""
+
+    qcdb_session: Session = qcdb_test_sessionfactory()
+    mlwhdb_session: Session = mlwhdb_test_sessionfactory()
+
+    # Passing an empty list should return an empty list
+    assert get_well_metrics_from_qc_states([], mlwhdb_session) == []
+
+    states = (
+        qcdb_session.execute(
+            select(QcState).join(QcStateDict).where(QcStateDict.state == "On hold")
+        )
+        .scalars()
+        .all()
+    )
+
+    corresponding_metrics = get_well_metrics_from_qc_states(states, mlwhdb_session)
+
+    expected = set([("MARATHON", "A3"), ("QUARTER-MILE", "A2"), ("QUARTER-MILE", "A3")])
+    actual = set(
+        [(well.pac_bio_run_name, well.well_label) for well in corresponding_metrics]
+    )
+
+    assert expected == actual
