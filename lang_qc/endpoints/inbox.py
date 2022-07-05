@@ -91,6 +91,10 @@ def get_well_metrics_from_qc_states(
 ) -> List[PacBioRunWellMetrics]:
     """Get a list of PacBioRunWellMetrics corresponding to QC states."""
 
+    # if qc_states is empty then there are no corresponding states.
+    if len(qc_states) == 0:
+        return []
+
     state_info = [
         extract_well_label_and_run_name_from_state(state) for state in qc_states
     ]
@@ -101,6 +105,7 @@ def get_well_metrics_from_qc_states(
         )
         for run_name, well_label in state_info
     ]
+
     stmt = select(PacBioRunWellMetrics).where(or_(*filters))
 
     wells: List[PacBioRunWellMetrics] = mlwh_db_session.execute(stmt).scalars()
