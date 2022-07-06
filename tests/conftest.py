@@ -97,6 +97,12 @@ def create_mlwhdb_test_sessionfactory(config):
     return TestingSessionLocal
 
 
+@pytest.fixture
+def mlwhdb_test_session(mlwhdb_test_sessionfactory):
+    with mlwhdb_test_sessionfactory() as session:
+        yield session
+
+
 @pytest.fixture(scope="function", name="qcdb_test_sessionfactory")
 def create_qcdb_test_sessionfactory(config):
     """Create a QC DB SQLAlchemy session factory, using credentials from config.
@@ -118,6 +124,12 @@ def create_qcdb_test_sessionfactory(config):
     QcBase.metadata.create_all(bind=engine)
 
     return TestingSessionLocal
+
+
+@pytest.fixture
+def qcdb_test_session(qcdb_test_sessionfactory):
+    with qcdb_test_sessionfactory() as session:
+        yield session
 
 
 @pytest.fixture(scope="function", name="test_client")

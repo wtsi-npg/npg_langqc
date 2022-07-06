@@ -25,9 +25,7 @@ from lang_qc.db.qc_schema import (
 
 
 @pytest.fixture
-def inbox_data(mlwhdb_test_sessionfactory):
-
-    session: Session = mlwhdb_test_sessionfactory()
+def inbox_data(mlwhdb_test_session):
 
     timedeltas_labels = [(timedelta(days=i, minutes=2), f"A{i}") for i in range(9)]
 
@@ -41,9 +39,9 @@ def inbox_data(mlwhdb_test_sessionfactory):
         metrics.instrument_type = "pacbio"
         metrics.ccs_execution_mode = "None"
         metrics.well_status = "Complete"
-        session.add(metrics)
+        mlwhdb_test_session.add(metrics)
 
-        session.add(
+        mlwhdb_test_session.add(
             PacBioRun(
                 well_label=label,
                 pac_bio_run_name="MARATHON",
@@ -78,16 +76,11 @@ def inbox_data(mlwhdb_test_sessionfactory):
             )
         )
 
-    session.commit()
-    # Don't forget to close the session.
-    session.close()
+    mlwhdb_test_session.commit()
 
 
 @pytest.fixture()
-def filtered_inbox_data(mlwhdb_test_sessionfactory, qcdb_test_sessionfactory):
-
-    qc_db_session: Session = qcdb_test_sessionfactory()
-    mlwh_db_session: Session = mlwhdb_test_sessionfactory()
+def filtered_inbox_data(mlwhdb_test_session, qcdb_test_session):
 
     desired_wells = {
         "MARATHON": {"A1": "Passed", "A2": "Passed", "A3": "On hold", "A4": None},
@@ -110,11 +103,11 @@ def filtered_inbox_data(mlwhdb_test_sessionfactory, qcdb_test_sessionfactory):
     for state in states:
         state_dicts[state] = QcStateDict(state=state, outcome=states.index(state))
 
-    qc_db_session.add_all(state_dicts.values())
-    qc_db_session.add_all(
+    qcdb_test_session.add_all(state_dicts.values())
+    qcdb_test_session.add_all(
         [library_qc_type, run_name_attr, well_label_attr, seq_platform, user]
     )
-    qc_db_session.commit()
+    qcdb_test_session.commit()
 
     # Start adding the PacBioRunWellMetrics and QcState rows.
     run_metrics = []
@@ -162,16 +155,12 @@ def filtered_inbox_data(mlwhdb_test_sessionfactory, qcdb_test_sessionfactory):
                 )
 
     for state in states:
-        qc_db_session.add(state)
-    qc_db_session.commit()
+        qcdb_test_session.add(state)
+    qcdb_test_session.commit()
 
     for well in run_metrics:
-        mlwh_db_session.add(well)
-    mlwh_db_session.commit()
-
-    # Don't forget to close the sessions
-    qc_db_session.close()
-    mlwh_db_session.close()
+        mlwhdb_test_session.add(well)
+    mlwhdb_test_session.commit()
 
     return desired_wells
 

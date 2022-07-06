@@ -177,25 +177,21 @@ def test_extract_well_label_and_run_name_from_state(
 
 
 def test_get_well_metrics_from_qc_states(
-    qcdb_test_sessionfactory, mlwhdb_test_sessionfactory, filtered_inbox_data
+    qcdb_test_session, mlwhdb_test_session, filtered_inbox_data
 ):
     """Test lang_qc.endpoints.get_well_metrics_from_qc_states function."""
-
-    qcdb_session: Session = qcdb_test_sessionfactory()
-    mlwhdb_session: Session = mlwhdb_test_sessionfactory()
-
     # Passing an empty list should return an empty list
-    assert get_well_metrics_from_qc_states([], mlwhdb_session) == []
+    assert get_well_metrics_from_qc_states([], mlwhdb_test_session) == []
 
     states = (
-        qcdb_session.execute(
+        qcdb_test_session.execute(
             select(QcState).join(QcStateDict).where(QcStateDict.state == "On hold")
         )
         .scalars()
         .all()
     )
 
-    corresponding_metrics = get_well_metrics_from_qc_states(states, mlwhdb_session)
+    corresponding_metrics = get_well_metrics_from_qc_states(states, mlwhdb_test_session)
 
     expected = set([("MARATHON", "A3"), ("QUARTER-MILE", "A2"), ("QUARTER-MILE", "A3")])
     actual = set(
@@ -203,7 +199,3 @@ def test_get_well_metrics_from_qc_states(
     )
 
     assert expected == actual
-
-    # Don't forget to close the sessions
-    qcdb_session.close()
-    mlwhdb_session.close()
