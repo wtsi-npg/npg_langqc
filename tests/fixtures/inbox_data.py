@@ -79,6 +79,8 @@ def inbox_data(mlwhdb_test_sessionfactory):
         )
 
     session.commit()
+    # Don't forget to close the session.
+    session.close()
 
 
 @pytest.fixture()
@@ -166,6 +168,10 @@ def filtered_inbox_data(mlwhdb_test_sessionfactory, qcdb_test_sessionfactory):
     for well in run_metrics:
         mlwh_db_session.add(well)
     mlwh_db_session.commit()
+
+    # Don't forget to close the sessions
+    qc_db_session.close()
+    mlwh_db_session.close()
 
     return desired_wells
 

@@ -203,3 +203,7 @@ def test_get_well_metrics_from_qc_states(
     )
 
     assert expected == actual
+
+    # Don't forget to close the sessions
+    qcdb_session.close()
+    mlwhdb_session.close()
