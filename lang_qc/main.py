@@ -23,7 +23,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from lang_qc.endpoints.inbox import router as pacbio_run_router
 from lang_qc.endpoints.pacbio_run import router as inbox_router
-
+from lang_qc.endpoints.qc_state import router as qc_state_router
 
 # Get origins from environment, must be a comma-separated list of origins
 # for example, set CORS_ORIGINS=http://localhost:300,https://example.com:443
@@ -35,6 +35,7 @@ if origins_env is not None:
 app = FastAPI(title="LangQC")
 app.include_router(pacbio_run_router, prefix="/pacbio")
 app.include_router(inbox_router, prefix="/pacbio")
+app.include_router(qc_state_router, prefix="/pacbio")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
