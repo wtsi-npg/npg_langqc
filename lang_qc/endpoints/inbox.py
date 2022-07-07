@@ -221,13 +221,14 @@ def grab_wells_with_status(
                 .join(ProductLayout)
                 .join(SubProduct)
                 .where(
-                    and_(
-                        SubProduct.value_attr_one.in_(
-                            [well.pac_bio_run_name for well in recent_wells]
-                        ),
-                        SubProduct.value_attr_two.in_(
-                            [well.well_label for well in recent_wells]
-                        ),
+                    or_(
+                        *[
+                            and_(
+                                SubProduct.value_attr_one == well.pac_bio_run_name,
+                                SubProduct.value_attr_two == well.well_label,
+                            )
+                            for well in recent_wells
+                        ]
                     )
                 )
             )
