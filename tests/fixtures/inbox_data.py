@@ -83,7 +83,9 @@ def inbox_data(mlwhdb_test_session):
 def test_data_factory(mlwhdb_test_session, qcdb_test_session):
     def setup_data(desired_wells):
         # Setup dicts and "filler" data
-        library_qc_type = QcType(qc_type="Library", description="Library QC")
+        library_qc_type = QcType(
+            qc_type="library", description="Sample/library evaluation"
+        )
 
         run_name_attr = SubProductAttr(
             attr_name="run_name", description="PacBio run name."
