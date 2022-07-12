@@ -80,89 +80,87 @@ def inbox_data(mlwhdb_test_session):
 
 
 @pytest.fixture()
-def filtered_inbox_data(mlwhdb_test_session, qcdb_test_session):
+def test_data_factory(mlwhdb_test_session, qcdb_test_session):
+    def setup_data(desired_wells):
+        # Setup dicts and "filler" data
+        library_qc_type = QcType(qc_type="Library", description="Library QC")
 
-    desired_wells = {
-        "MARATHON": {"A1": "Passed", "A2": "Passed", "A3": "On hold", "A4": None},
-        "SEMI-MARATHON": {"A1": "Failed", "A2": "Claimed", "A3": "Claimed", "A4": None},
-        "QUARTER-MILE": {"A1": None, "A2": "On hold", "A3": "On hold", "A4": None},
-    }
+        run_name_attr = SubProductAttr(
+            attr_name="run_name", description="PacBio run name."
+        )
+        well_label_attr = SubProductAttr(
+            attr_name="well_label", description="PacBio well label"
+        )
+        seq_platform = SeqPlatform(name="PacBio", description="Pacific Biosciences.")
+        user = User(username="zx80")
+        states = ["Passed", "Failed", "Claimed", "On hold"]
+        state_dicts = {}
 
-    # Setup dicts and "filler" data
-    library_qc_type = QcType(qc_type="Library", description="Library QC")
+        for state in states:
+            state_dicts[state] = QcStateDict(state=state, outcome=states.index(state))
 
-    run_name_attr = SubProductAttr(attr_name="run_name", description="PacBio run name.")
-    well_label_attr = SubProductAttr(
-        attr_name="well_label", description="PacBio well label"
-    )
-    seq_platform = SeqPlatform(name="PacBio", description="Pacific Biosciences.")
-    user = User(username="zx80")
-    states = ["Passed", "Failed", "Claimed", "On hold"]
-    state_dicts = {}
+        qcdb_test_session.add_all(state_dicts.values())
+        qcdb_test_session.add_all(
+            [library_qc_type, run_name_attr, well_label_attr, seq_platform, user]
+        )
+        qcdb_test_session.commit()
 
-    for state in states:
-        state_dicts[state] = QcStateDict(state=state, outcome=states.index(state))
+        # Start adding the PacBioRunWellMetrics and QcState rows.
+        run_metrics = []
+        states = []
 
-    qcdb_test_session.add_all(state_dicts.values())
-    qcdb_test_session.add_all(
-        [library_qc_type, run_name_attr, well_label_attr, seq_platform, user]
-    )
-    qcdb_test_session.commit()
-
-    # Start adding the PacBioRunWellMetrics and QcState rows.
-    run_metrics = []
-    states = []
-
-    for run_name, wells in desired_wells.items():
-        for well_label, state in wells.items():
-            run_metrics.append(
-                PacBioRunWellMetrics(
-                    pac_bio_run_name=run_name,
-                    well_label=well_label,
-                    instrument_type="PacBio",
-                    polymerase_num_reads=1337,
-                    ccs_execution_mode="None",
-                    well_status="Complete",
-                    well_complete=datetime.now() - timedelta(days=1),
-                )
-            )
-            if state is not None:
-                states.append(
-                    QcState(
-                        created_by="me",
-                        is_preliminary=state in ["On hold", "Claimed"],
-                        qc_state_dict=state_dicts[state],
-                        qc_type=library_qc_type,
-                        seq_product=SeqProduct(
-                            id_product=run_name + well_label,
-                            seq_platform=seq_platform,
-                            product_layout=[
-                                ProductLayout(
-                                    sub_product=SubProduct(
-                                        sub_product_attr=run_name_attr,
-                                        sub_product_attr_=well_label_attr,
-                                        value_attr_one=run_name,
-                                        value_attr_two=well_label,
-                                        properties={run_name: well_label},
-                                        properties_digest=run_name
-                                        + well_label,  # dummy digest
-                                    ),
-                                )
-                            ],
-                        ),
-                        user=user,
+        for run_name, wells in desired_wells.items():
+            for well_label, state in wells.items():
+                run_metrics.append(
+                    PacBioRunWellMetrics(
+                        pac_bio_run_name=run_name,
+                        well_label=well_label,
+                        instrument_type="PacBio",
+                        polymerase_num_reads=1337,
+                        ccs_execution_mode="None",
+                        well_status="Complete",
+                        well_complete=datetime.now() - timedelta(days=1),
                     )
                 )
+                if state is not None:
+                    states.append(
+                        QcState(
+                            created_by="me",
+                            is_preliminary=state in ["On hold", "Claimed"],
+                            qc_state_dict=state_dicts[state],
+                            qc_type=library_qc_type,
+                            seq_product=SeqProduct(
+                                id_product=run_name + well_label,
+                                seq_platform=seq_platform,
+                                product_layout=[
+                                    ProductLayout(
+                                        sub_product=SubProduct(
+                                            sub_product_attr=run_name_attr,
+                                            sub_product_attr_=well_label_attr,
+                                            value_attr_one=run_name,
+                                            value_attr_two=well_label,
+                                            properties={run_name: well_label},
+                                            properties_digest=run_name
+                                            + well_label,  # dummy digest
+                                        ),
+                                    )
+                                ],
+                            ),
+                            user=user,
+                        )
+                    )
 
-    for state in states:
-        qcdb_test_session.add(state)
-    qcdb_test_session.commit()
+        for state in states:
+            qcdb_test_session.add(state)
+        qcdb_test_session.commit()
 
-    for well in run_metrics:
-        mlwhdb_test_session.add(well)
-    mlwhdb_test_session.commit()
+        for well in run_metrics:
+            mlwhdb_test_session.add(well)
+        mlwhdb_test_session.commit()
 
-    return desired_wells
+        return desired_wells
+
+    return setup_data
 
 
 @pytest.fixture()
