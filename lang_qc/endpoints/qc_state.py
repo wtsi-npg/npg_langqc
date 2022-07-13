@@ -17,11 +17,8 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
-import json
-
 from fastapi import APIRouter, Depends, HTTPException
 from ml_warehouse.schema import PacBioRunWellMetrics
-from npg_id_generation import PacBioEntity
 from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
 
@@ -45,23 +42,8 @@ from lang_qc.util.qc_state_helpers import (
 )
 from lang_qc.models.qc_state_models import QcStatusAssignmentPostBody, QcClaimPostBody
 
+
 router = APIRouter()
-
-
-def create_id_product(run_name, well_label):
-    return PacBioEntity(run_name=run_name, well_label=well_label)
-
-
-def create_well_properties(run_name, well_label):
-    return json.dumps({"run_name": run_name, "well_label": well_label})
-
-
-def create_well_properties_digest(run_name, well_label):
-    return hash(frozenset(create_well_properties(run_name, well_label)))
-
-
-def create_qc_state_for_well(run_name, well_label, qcdb_session):
-    """Create and insert a QcState for a well into the DB."""
 
 
 @router.post(
@@ -159,7 +141,7 @@ def assign_qc_status(
     request_body: QcStatusAssignmentPostBody,
     qcdb_session: Session = Depends(get_qc_db),
     mlwhdb_session: Session = Depends(get_mlwh_db),
-):
+) -> QcStatus:
 
     qc_state = get_qc_state_for_well(run_name, well_label, qcdb_session)
 

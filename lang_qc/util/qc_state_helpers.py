@@ -66,7 +66,6 @@ def get_seq_product_for_well(run_name: str, well_label: str, qcdb_session: Sessi
     Returns:
         The SeqProduct corresponding to the well.
     """
-
     return (
         qcdb_session.execute(
             select(SeqProduct)
@@ -97,7 +96,6 @@ def get_qc_state_for_well(
     Returns:
         Either a QcState object if one is found, or None if not.
     """
-
     return qcdb_session.execute(
         select(QcState)
         .join(SeqProduct)
@@ -166,7 +164,6 @@ def construct_seq_product_for_well(
     )
 
     qcdb_session.add(seq_product)
-
     return seq_product
 
 
@@ -183,7 +180,6 @@ def update_qc_state(
     Returns:
         None
     """
-
     # Check that values are in the DB.
     desired_qc_state_dict = qcdb_session.execute(
         select(QcStateDict.id_qc_state_dict).where(
@@ -226,6 +222,7 @@ def qc_status_json(db_qc_state: QcState) -> QcStatus:
     Returns:
         A QcStatus object with the properties from the DB QCState record.
     """
+
     return QcStatus(
         user=db_qc_state.user.username,
         date_created=db_qc_state.date_created,
