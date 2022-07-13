@@ -17,14 +17,10 @@ def test_change_non_existent_well(test_client: TestClient, test_data_factory):
 
     post_data = """
         {
-          "user": "user2",
-          "date_created": "2022-07-11T13:04:34",
-          "date_updated": "2022-07-11T13:04:34",
+          "user": "zx80",
           "qc_type": "library",
-          "qc_type_description": "Sample/library evaluation",
           "qc_state": "Passed",
-          "is_preliminary": true,
-          "created_by": "LangQC"
+          "is_preliminary": true
         }
     """
 
@@ -45,13 +41,9 @@ def test_change_from_passed_to_fail(test_client: TestClient, test_data_factory):
     post_data = """
         {
           "user": "zx80",
-          "date_created": "2022-07-11T13:04:34",
-          "date_updated": "2022-07-11T13:04:34",
           "qc_type": "library",
-          "qc_type_description": "Sample/library evaluation",
           "qc_state": "Failed",
-          "is_preliminary": false,
-          "created_by": "LangQC"
+          "is_preliminary": false
         }
     """
 
@@ -98,13 +90,9 @@ def test_error_on_invalid_values(
 
     post_data = {
         "user": "zx80",
-        "date_created": "2022-07-11T13:04:34",
-        "date_updated": "2022-07-11T13:04:34",
         "qc_type": "library",
-        "qc_type_description": "Sample/library evaluation",
         "qc_state": "Failed",
         "is_preliminary": False,
-        "created_by": "LangQC",
     }
 
     post_data[invalid_argument] = "thisdefinitelyisnotavalidvalue"
