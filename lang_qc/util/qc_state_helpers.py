@@ -51,7 +51,17 @@ def create_well_properties_digest(run_name, well_label):
 
 
 def get_seq_product_for_well(run_name: str, well_label: str, qcdb_session: Session):
-    """Get a SeqProduct from a well."""
+    """Get a SeqProduct for a well from the QC database.
+
+    This assumes that there is a 1-1 mapping between SubProduct and SeqProduct.
+    Args:
+        run_name: The run name.
+        well_label: The well label.
+        qcdb_session: A SQLAlchemy Session connected to the QC database.
+
+    Returns:
+        The SeqProduct corresponding to the well.
+    """
 
     return (
         qcdb_session.execute(
@@ -73,7 +83,16 @@ def get_seq_product_for_well(run_name: str, well_label: str, qcdb_session: Sessi
 def get_qc_state_for_well(
     run_name: str, well_label: str, qcdb_session: Session
 ) -> Optional[QcState]:
-    """Get a QcState from a well."""
+    """Get a QcState from a well.
+
+    Args:
+        run_name: The run name.
+        well_label: The well label.
+        qcdb_session: A SQLAlchemy Session connected to the QC database.
+
+    Returns:
+        Either a QcState object if one is found, or None if not.
+    """
 
     return qcdb_session.execute(
         select(QcState)
@@ -92,6 +111,18 @@ def get_qc_state_for_well(
 def construct_seq_product_for_well(
     run_name: str, well_label: str, qcdb_session: Session
 ):
+    """Construct a SeqProduct for a well and push it to the database.
+
+    This assumes a 1-1 mapping between SeqProduct and SubProduct.
+
+    Args:
+        run_name: The run name.
+        well_label: The well label.
+        qcdb_session: A SQLAlchemy Session connected to the QC database.
+
+    Returns:
+        The SeqProduct which has been pushed to the QC database.
+    """
 
     seq_platform = qcdb_session.execute(
         select(SeqPlatform).where(SeqPlatform.name == "PacBio")
@@ -139,6 +170,16 @@ def construct_seq_product_for_well(
 def update_qc_state(
     qc_status_post: QcStatus, qc_state_db: QcState, qcdb_session: Session
 ):
+    """Update the properties of the QcState, without pushing the changes.
+
+    Args:
+        qc_status_post: The object containing the new properties to update.
+        qc_state_db: The object on which to apply the updates.
+        qcdb_session: A SQLAlchemy Session connected to the QC database.
+
+    Returns:
+        None
+    """
 
     # Check that values are in the DB.
     desired_qc_state_dict = qcdb_session.execute(
@@ -174,7 +215,14 @@ def update_qc_state(
 
 
 def qc_status_json(db_qc_state: QcState) -> QcStatus:
+    """Convenience function to convert a DB QcState to a Pydantic QcStatus.
 
+    Args:
+        db_qc_state: the DB QcState object
+
+    Returns:
+        A QcStatus object with the properties from the DB QCState record.
+    """
     return QcStatus(
         user=db_qc_state.user.username,
         date_created=db_qc_state.date_created,
