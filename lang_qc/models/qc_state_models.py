@@ -16,3 +16,20 @@
 #
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
+
+from pydantic import BaseModel
+
+
+class QcStatusAssignmentPostBody(BaseModel):
+
+    user: str
+    qc_type: str
+    qc_state: str
+    is_preliminary: bool
+
+
+class QcClaimPostBody(BaseModel):
+    """Body for the qc_claim endpoint."""
+
+    user: str
+    qc_type: str

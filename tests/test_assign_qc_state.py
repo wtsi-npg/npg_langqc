@@ -114,3 +114,27 @@ def test_error_on_invalid_values(
 
     assert response.status_code == 400
     assert response.json()["detail"] == expected_message
+
+
+def test_error_on_unclaimed_well(test_client: TestClient, test_data_factory):
+    """Test error on assigning a new state to an unclaimed well."""
+
+    test_data = {"MARATHON": {"A1": None, "B1": None}}
+    test_data_factory(test_data)
+
+    post_data = {
+        "user": "zx80",
+        "qc_type": "library",
+        "qc_state": "Passed",
+        "is_preliminary": True,
+    }
+
+    response = test_client.post(
+        "/pacbio/run/MARATHON/well/A1/qc_assign", json.dumps(post_data)
+    )
+
+    assert response.status_code == 400
+    assert (
+        response.json()["detail"]
+        == "Cannot assign a state to a well which has not yet been claimed."
+    )

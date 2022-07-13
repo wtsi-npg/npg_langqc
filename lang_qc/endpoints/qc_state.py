@@ -42,6 +42,7 @@ from lang_qc.db.qc_schema import (
     User,
 )
 from lang_qc.models.inbox_models import QcStatus
+from lang_qc.models.qc_state_models import QcStatusAssignmentPostBody, QcClaimPostBody
 
 
 router = APIRouter()
@@ -196,15 +197,19 @@ def qc_status_json(db_qc_state: QcState) -> QcStatus:
     )
 
 
+def create_qc_state_for_well(run_name, well_label, qcdb_session):
+    """Create and insert a QcState for a well into the DB."""
+
+
 @router.post(
-    "/run/{run_name}/well/{well_label}/qc_assign",
+    "/run/{run_name}/well/{well_label}/qc_claim",
     tags=["Well level QC operations"],
     response_model=QcStatus,
 )
-def assign_qc_status(
+def claim_well(
     run_name: str,
     well_label: str,
-    qc_status: QcStatus,
+    body: QcClaimPostBody,
     qcdb_session: Session = Depends(get_qc_db),
     mlwhdb_session: Session = Depends(get_mlwh_db),
 ):
@@ -236,10 +241,10 @@ def assign_qc_status(
             )
 
         user = qcdb_session.execute(
-            select(User).where(User.username == qc_status.user)
+            select(User).where(User.username == body.user)
         ).scalar_one_or_none()
         if user is None:
-            user = User(username=qc_status.user, iscurrent=True)
+            user = User(username=body.user, iscurrent=True)
 
         qc_type = qcdb_session.execute(
             select(QcType).where(QcType.qc_type == "library")
@@ -250,7 +255,7 @@ def assign_qc_status(
             )
 
         qc_state_dict = qcdb_session.execute(
-            select(QcStateDict).where(QcStateDict.state == qc_status.qc_state)
+            select(QcStateDict).where(QcStateDict.state == body.qc_state)
         ).scalar_one_or_none()
         if qc_state_dict is None:
             raise HTTPException(
@@ -259,7 +264,7 @@ def assign_qc_status(
 
         qc_state = QcState(
             created_by="LangQC",
-            is_preliminary=qc_status.is_preliminary,
+            is_preliminary=body.is_preliminary,
             qc_state_dict=qc_state_dict,
             qc_type=qc_type,
             seq_product=seq_product,
@@ -268,6 +273,28 @@ def assign_qc_status(
 
         qcdb_session.add(qc_state)
         qcdb_session.commit()
+
+
+@router.post(
+    "/run/{run_name}/well/{well_label}/qc_assign",
+    tags=["Well level QC operations"],
+    response_model=QcStatus,
+)
+def assign_qc_status(
+    run_name: str,
+    well_label: str,
+    qc_status: QcStatusAssignmentPostBody,
+    qcdb_session: Session = Depends(get_qc_db),
+    mlwhdb_session: Session = Depends(get_mlwh_db),
+):
+
+    qc_state = get_qc_state_for_well(run_name, well_label, qcdb_session)
+
+    if qc_state is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot assign a state to a well which has not yet been claimed.",
+        )
 
     else:
         # Create a historical record
