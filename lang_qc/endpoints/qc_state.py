@@ -216,63 +216,70 @@ def claim_well(
 
     qc_state = get_qc_state_for_well(run_name, well_label, qcdb_session)
 
-    if qc_state is None:
-
-        seq_product = get_seq_product_for_well(run_name, well_label, qcdb_session)
-
-        if seq_product is None:
-            # Check that well exists in mlwh
-            mlwh_well = mlwhdb_session.execute(
-                select(PacBioRunWellMetrics).where(
-                    and_(
-                        PacBioRunWellMetrics.pac_bio_run_name == run_name,
-                        PacBioRunWellMetrics.well_label == well_label,
-                    )
-                )
-            ).scalar()
-            if mlwh_well is None:
-                raise HTTPException(
-                    status_code=400, detail="Well is not in the MLWH database."
-                )
-
-            # Create a SeqProduct and related things for the well.
-            seq_product = construct_seq_product_for_well(
-                run_name, well_label, qcdb_session
-            )
-
-        user = qcdb_session.execute(
-            select(User).where(User.username == body.user)
-        ).scalar_one_or_none()
-        if user is None:
-            user = User(username=body.user, iscurrent=True)
-
-        qc_type = qcdb_session.execute(
-            select(QcType).where(QcType.qc_type == "library")
-        ).scalar_one_or_none()
-        if qc_type is None:
-            raise HTTPException(
-                status_code=400, detail="QC type is not in the QC database."
-            )
-
-        qc_state_dict = qcdb_session.execute(
-            select(QcStateDict).where(QcStateDict.state == body.qc_state)
-        ).scalar_one_or_none()
-        if qc_state_dict is None:
-            raise HTTPException(
-                status_code=400, detail="QC state dict is not in the QC database."
-            )
-
-        qc_state = QcState(
-            created_by="LangQC",
-            is_preliminary=body.is_preliminary,
-            qc_state_dict=qc_state_dict,
-            qc_type=qc_type,
-            seq_product=seq_product,
-            user=user,
+    if qc_state is not None:
+        raise HTTPException(
+            status_code=400, detail="The well has already been claimed."
         )
 
-        qcdb_session.add(qc_state)
-        qcdb_session.commit()
+    seq_product = get_seq_product_for_well(run_name, well_label, qcdb_session)
+
+    if seq_product is None:
+        # Check that well exists in mlwh
+        mlwh_well = mlwhdb_session.execute(
+            select(PacBioRunWellMetrics).where(
+                and_(
+                    PacBioRunWellMetrics.pac_bio_run_name == run_name,
+                    PacBioRunWellMetrics.well_label == well_label,
+                )
+            )
+        ).scalar()
+        if mlwh_well is None:
+            raise HTTPException(
+                status_code=400, detail="Well is not in the MLWH database."
+            )
+
+        # Create a SeqProduct and related things for the well.
+        seq_product = construct_seq_product_for_well(run_name, well_label, qcdb_session)
+
+    user = qcdb_session.execute(
+        select(User).where(User.username == body.user)
+    ).scalar_one_or_none()
+
+    if user is None:
+        raise HTTPException(
+            status_code=400,
+            detail="User has not been found in the QC database. Has it been registered?",
+        )
+
+    qc_type = qcdb_session.execute(
+        select(QcType).where(QcType.qc_type == "library")
+    ).scalar_one_or_none()
+    if qc_type is None:
+        raise HTTPException(
+            status_code=400, detail="QC type is not in the QC database."
+        )
+
+    qc_state_dict = qcdb_session.execute(
+        select(QcStateDict).where(QcStateDict.state == "Claimed")
+    ).scalar_one_or_none()
+    if qc_state_dict is None:
+        raise HTTPException(
+            status_code=400, detail="QC state dict is not in the QC database."
+        )
+
+    qc_state = QcState(
+        created_by="LangQC",
+        is_preliminary=True,
+        qc_state_dict=qc_state_dict,
+        qc_type=qc_type,
+        seq_product=seq_product,
+        user=user,
+    )
+
+    qcdb_session.add(qc_state)
+    qcdb_session.commit()
+
+    return qc_status_json(qc_state)
 
 
 @router.post(
