@@ -30,7 +30,7 @@ def test_change_non_existent_well(test_client: TestClient, test_data_factory):
 
 
 def test_change_from_passed_to_fail(test_client: TestClient, test_data_factory):
-    """Successfully change a state from passed to faield"""
+    """Successfully change a state from passed to failed"""
 
     test_data = {
         "MARATHON": {"A1": "Passed", "B1": None},
@@ -95,7 +95,7 @@ def test_error_on_invalid_values(
         "is_preliminary": False,
     }
 
-    post_data[invalid_argument] = "thisdefinitelyisnotavalidvalue"
+    post_data[invalid_argument] = "invalidvalue"
     response = test_client.post(
         "/pacbio/run/MARATHON/well/A1/qc_assign", json.dumps(post_data)
     )
