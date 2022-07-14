@@ -180,7 +180,7 @@ def pack_wells_and_states(wells, qc_states) -> FilteredInboxResults:
         results.append(
             FilteredInboxResultEntry(
                 run_name=run_name,
-                # There will always be at least on well in a run.
+                # There will always be at least one well in a run.
                 time_start=raw_wells[0].metrics.run_start,
                 time_complete=raw_wells[0].metrics.run_complete,
                 wells=[
@@ -369,7 +369,7 @@ def get_inbox(
 
     if weeks < 0:
         raise HTTPException(
-            status_code=400, detail="Bad Request. Invalid weeks paramter."
+            status_code=400, detail="Bad Request. Invalid weeks parameter."
         )
 
     results: List[PacBioRunWellMetrics] = grab_recent_wells_from_db(weeks, db_session)
