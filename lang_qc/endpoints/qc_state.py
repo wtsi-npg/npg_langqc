@@ -146,28 +146,27 @@ def assign_qc_status(
             detail="Cannot assign a state to a well which has not yet been claimed.",
         )
 
-    else:
-        # Create a historical record
-        historical_record = QcStateHist(
-            id_seq_product=qc_state.id_seq_product,
-            id_qc_type=qc_state.id_qc_type,
-            id_user=qc_state.id_user,
-            id_qc_state_dict=qc_state.id_qc_state_dict,
-            created_by=qc_state.created_by,
-            date_created=qc_state.date_created,
-            date_updated=qc_state.date_updated,
-            is_preliminary=qc_state.is_preliminary,
-        )
+    # Create a historical record
+    historical_record = QcStateHist(
+        id_seq_product=qc_state.id_seq_product,
+        id_qc_type=qc_state.id_qc_type,
+        id_user=qc_state.id_user,
+        id_qc_state_dict=qc_state.id_qc_state_dict,
+        created_by=qc_state.created_by,
+        date_created=qc_state.date_created,
+        date_updated=qc_state.date_updated,
+        is_preliminary=qc_state.is_preliminary,
+    )
 
-        qcdb_session.add(historical_record)
-        qcdb_session.commit()
+    qcdb_session.add(historical_record)
+    qcdb_session.commit()
 
-        # Update the current record
-        try:
-            update_qc_state(qc_status, qc_state, qcdb_session)
-        except Exception as e:
-            raise HTTPException(status_code=400, detail=str(e))
-        qcdb_session.merge(qc_state)
-        qcdb_session.commit()
+    # Update the current record
+    try:
+        update_qc_state(qc_status, qc_state, qcdb_session)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    qcdb_session.merge(qc_state)
+    qcdb_session.commit()
 
     return qc_status_json(qc_state)
