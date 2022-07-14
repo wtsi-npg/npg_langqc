@@ -39,7 +39,7 @@ from lang_qc.models.inbox_models import QcStatus
 
 
 def create_id_product(run_name, well_label):
-    return PacBioWell(run_name=run_name, well_label=well_label)
+    return PacBioWell(run_name=run_name, well_label=well_label).hash_product_id()
 
 
 def create_well_properties(run_name, well_label):
@@ -47,7 +47,7 @@ def create_well_properties(run_name, well_label):
 
 
 def create_well_properties_digest(run_name, well_label):
-    return hash(frozenset(create_well_properties(run_name, well_label)))
+    return PacBioWell(run_name=run_name, well_label=well_label).hash_product_id()
 
 
 def get_seq_product_for_well(run_name: str, well_label: str, qcdb_session: Session):
