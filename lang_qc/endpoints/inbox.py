@@ -176,13 +176,16 @@ def pack_wells_and_states(wells, qc_states) -> FilteredInboxResults:
     results: FilteredInboxResults = []
 
     for run_name, raw_wells_dict in packed_wells.items():
-        raw_wells = list(raw_wells_dict.values())
+        raw_wells = raw_wells_dict.values()
+        first_well = next(iter(raw_wells))
+        time_start = first_well.metrics.run_start
+        time_complete = first_well.metrics.run_complete
         results.append(
             FilteredInboxResultEntry(
                 run_name=run_name,
                 # There will always be at least one well in a run.
-                time_start=raw_wells[0].metrics.run_start,
-                time_complete=raw_wells[0].metrics.run_complete,
+                time_start=time_start,
+                time_complete=time_complete,
                 wells=[
                     FilteredWellInfo(
                         label=raw_well.metrics.well_label,
