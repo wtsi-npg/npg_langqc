@@ -134,10 +134,10 @@ def pack_wells_and_states(wells, qc_states) -> FilteredInboxResults:
         run_name = well.pac_bio_run_name
         well_label = well.well_label
 
-        if run_name not in packed_wells.keys():
+        if run_name not in packed_wells:
             packed_wells[run_name] = {}
 
-        if well_label not in packed_wells[run_name].keys():
+        if well_label not in packed_wells[run_name]:
             packed_wells[run_name][well_label] = RawWellWithState(
                 metrics=well, qc_status=None
             )
