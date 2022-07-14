@@ -168,20 +168,19 @@ def assign_qc_status(
                 detail="Cannot assign a state to a well which has not yet been claimed.",
             )
 
-    else:
-        # time to add a historical entry
-        qcdb_session.add(
-            QcStateHist(
-                id_seq_product=qc_state.id_seq_product,
-                id_user=qc_state.id_user,
-                id_qc_state_dict=qc_state.id_qc_state_dict,
-                id_qc_type=qc_state.id_qc_type,
-                created_by=qc_state.created_by,
-                date_created=qc_state.date_created,
-                date_updated=qc_state.date_updated,
-                is_preliminary=qc_state.is_preliminary,
-            )
+    # time to add a historical entry
+    qcdb_session.add(
+        QcStateHist(
+            id_seq_product=qc_state.id_seq_product,
+            id_user=qc_state.id_user,
+            id_qc_state_dict=qc_state.id_qc_state_dict,
+            id_qc_type=qc_state.id_qc_type,
+            created_by=qc_state.created_by,
+            date_created=qc_state.date_created,
+            date_updated=qc_state.date_updated,
+            is_preliminary=qc_state.is_preliminary,
         )
+    )
 
     try:
         update_qc_state(request_body, qc_state, qcdb_session)
