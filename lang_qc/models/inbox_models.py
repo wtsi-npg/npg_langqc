@@ -61,6 +61,10 @@ class InboxResults(BaseModel):
 
 
 class QcStatus(BaseModel):
+    """Represents QC metadata associated with a QC-able entity (usually a well).
+
+    It stores dates, owning user, and QC status for the relevant entity.
+    """
 
     user: str = Field(default=None, title="User owning the QC stte.")
     date_created: datetime = Field(default=None, title="Date created")
