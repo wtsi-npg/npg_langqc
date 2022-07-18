@@ -127,6 +127,19 @@ def test_inbox_filter(test_client: TestClient, filtered_inbox_data):
     assert_filtered_inbox_equals_expected(response, expected_data)
 
 
+def test_default_filter(test_client: TestClient, filtered_inbox_data):
+    """Test passing no filter, equivalent to `inbox` filter."""
+
+    response = test_client.get("/pacbio/wells?qc_status=inbox")
+    expected_data = {
+        "MARATHON": {"A4": None},
+        "SEMI-MARATHON": {"A4": None},
+        "QUARTER-MILE": {"A1": None, "A4": None},
+    }
+
+    assert_filtered_inbox_equals_expected(response, expected_data)
+
+
 def test_pack_well_and_states(wells_and_states):
     """Test lang_qc.endpoints.inbox.pack_well_and_states function."""
 
