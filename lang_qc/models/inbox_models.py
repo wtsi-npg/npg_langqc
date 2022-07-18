@@ -18,9 +18,17 @@
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
 from datetime import datetime
+from enum import Enum
 from typing import List
 
 from pydantic import BaseModel, Field
+
+
+class QcStatusEnum(Enum):
+    INBOX = "inbox"
+    IN_PROGRESS = "in_progress"
+    ON_HOLD = "on_hold"
+    QC_COMPLETE = "qc_complete"
 
 
 RunName = str
@@ -50,3 +58,33 @@ class InboxResultEntry(BaseModel):
 class InboxResults(BaseModel):
 
     __root__: List[InboxResultEntry]
+
+
+class QcStatus(BaseModel):
+    """Represents QC metadata associated with a QC-able entity (usually a well).
+
+    It stores dates, owning user, and QC status for the relevant entity.
+    """
+
+    user: str = Field(default=None, title="User owning the QC stte.")
+    date_created: datetime = Field(default=None, title="Date created")
+    date_updated: datetime = Field(default=None, title="Date updated")
+    qc_type: str = Field(default=None, title="QC type")
+    qc_type_description: str = Field(default=None, title="QC type description")
+    qc_state: str = Field(default=None, title="QC state")
+    is_preliminary: bool = Field(default=None, title="Preliminarity of outcome")
+    created_by: str = Field(default=None, title="QC State creator")
+
+
+class FilteredWellInfo(WellInfo):
+    qc_status: QcStatus = Field(default=None, title="Well QC status")
+
+
+class FilteredInboxResultEntry(InboxResultEntry):
+
+    wells: List[FilteredWellInfo]
+
+
+class FilteredInboxResults(BaseModel):
+
+    __root__: List[FilteredInboxResultEntry]
