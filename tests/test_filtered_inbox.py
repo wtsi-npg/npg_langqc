@@ -23,6 +23,7 @@ from ml_warehouse.schema import PacBioRunWellMetrics
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from lang_qc.db.utils import get_well_metrics_from_qc_states
 from lang_qc.db.qc_schema import (
     QcState,
     QcStateDict,
@@ -33,7 +34,6 @@ from lang_qc.db.qc_schema import (
 from lang_qc.endpoints.inbox import (
     pack_wells_and_states,
     extract_well_label_and_run_name_from_state,
-    get_well_metrics_from_qc_states,
 )
 from lang_qc.models.inbox_models import FilteredInboxResults
 
