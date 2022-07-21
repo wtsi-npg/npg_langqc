@@ -38,6 +38,10 @@ from lang_qc.db.qc_schema import (
 from lang_qc.models.inbox_models import QcStatus
 
 
+class NotFoundInDatabaseException(Exception):
+    """Exception thrown when something is not found in the DB."""
+
+
 def create_id_product(run_name, well_label):
     return PacBioWell(run_name=run_name, well_label=well_label).hash_product_id()
 
@@ -188,7 +192,7 @@ def update_qc_state(
         )
     ).one_or_none()
     if desired_qc_state_dict is None:
-        raise Exception(
+        raise NotFoundInDatabaseException(
             "Desired QC state is not in the QC database. It might not be allowed."
         )
 
@@ -196,15 +200,15 @@ def update_qc_state(
         select(User).where(User.username == qc_status_post.user)
     ).scalar_one_or_none()
     if user is None:
-        raise Exception(
-            "User has not been found in the QC database. Has it been registered?"
+        raise NotFoundInDatabaseException(
+            "User has not been found in the QC database. Have they been registered?"
         )
 
     qc_type = qcdb_session.execute(
         select(QcType.id_qc_type).where(QcType.qc_type == qc_status_post.qc_type)
     ).one_or_none()
     if qc_type is None:
-        raise Exception("QC type is not in the QC database.")
+        raise NotFoundInDatabaseException("QC type is not in the QC database.")
 
     qc_state_db.user = user
     qc_state_db.date_updated = datetime.now()

@@ -5,6 +5,8 @@ from tests.fixtures.inbox_data import test_data_factory
 from fastapi.testclient import TestClient
 import pytest
 
+from lang_qc.models.inbox_models import QcStatus
+
 
 def test_change_non_existent_well(test_client: TestClient, test_data_factory):
     """Expect an error if we try to assign a state to a well which doesn't exist."""
@@ -26,7 +28,11 @@ def test_change_non_existent_well(test_client: TestClient, test_data_factory):
 
     response = test_client.post("/pacbio/run/NONEXISTENT/well/A0/qc_assign", post_data)
 
-    assert response.status_code == 400
+    assert response.status_code == 404
+    assert (
+        response.json()["detail"]
+        == "Well A0 from run NONEXISTENT is not in the MLWH database."
+    )
 
 
 def test_change_from_passed_to_fail(test_client: TestClient, test_data_factory):
@@ -70,7 +76,10 @@ def test_change_from_passed_to_fail(test_client: TestClient, test_data_factory):
     "invalid_argument,expected_message",
     [
         ("qc_type", "QC type is not in the QC database."),
-        ("user", "User has not been found in the QC database. Has it been registered?"),
+        (
+            "user",
+            "User has not been found in the QC database. Have they been registered?",
+        ),
         (
             "qc_state",
             "Desired QC state is not in the QC database. It might not be allowed.",
@@ -95,10 +104,15 @@ def test_error_on_invalid_values(
         "is_preliminary": False,
     }
 
-    post_data[invalid_argument] = "invalidvalue"
-    response = test_client.post(
-        "/pacbio/run/MARATHON/well/A1/qc_assign", json.dumps(post_data)
-    )
+    for well_label in "A1", "B1":
 
-    assert response.status_code == 400
-    assert response.json()["detail"] == expected_message
+        post_data[invalid_argument] = "invalidvalue"
+        response = test_client.post(
+            f"/pacbio/run/MARATHON/well/{well_label}/qc_assign", json.dumps(post_data)
+        )
+
+        assert response.status_code == 400
+        assert (
+            response.json()["detail"] == f"An error occured: {expected_message}\n"
+            f"Request body was: {QcStatus.parse_obj(post_data).json()}"
+        )
