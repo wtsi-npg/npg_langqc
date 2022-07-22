@@ -166,7 +166,6 @@ def construct_seq_product_for_well(
     )
 
     qcdb_session.add(seq_product)
-    qcdb_session.commit()
 
     return seq_product
 

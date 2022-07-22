@@ -54,66 +54,63 @@ def assign_qc_status(
     mlwhdb_session: Session = Depends(get_mlwh_db),
 ) -> QcStatus:
 
+    qcdb_session.begin()
     qc_state = get_qc_state_for_well(run_name, well_label, qcdb_session)
 
-    with qcdb_session.no_autoflush:
+    if qc_state is None:
+        # The first time a QC state is being set (e.g claiming a well)
 
-        if qc_state is None:
-            # The first time a QC state is being set (e.g claiming a well)
+        seq_product = get_seq_product_for_well(run_name, well_label, qcdb_session)
 
-            seq_product = get_seq_product_for_well(run_name, well_label, qcdb_session)
-
-            if seq_product is None:
-                # Check that well exists in mlwh
-                mlwh_well = mlwhdb_session.execute(
-                    select(PacBioRunWellMetrics).where(
-                        and_(
-                            PacBioRunWellMetrics.pac_bio_run_name == run_name,
-                            PacBioRunWellMetrics.well_label == well_label,
-                        )
+        if seq_product is None:
+            # Check that well exists in mlwh
+            mlwh_well = mlwhdb_session.execute(
+                select(PacBioRunWellMetrics).where(
+                    and_(
+                        PacBioRunWellMetrics.pac_bio_run_name == run_name,
+                        PacBioRunWellMetrics.well_label == well_label,
                     )
-                ).scalar()
-                if mlwh_well is None:
-                    raise HTTPException(
-                        status_code=404,
-                        detail=f"Well {well_label} from run {run_name} is"
-                        " not in the MLWH database.",
-                    )
-
-                # Create a SeqProduct and related things for the well.
-                seq_product = construct_seq_product_for_well(
-                    run_name, well_label, qcdb_session
+                )
+            ).scalar()
+            if mlwh_well is None:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"Well {well_label} from run {run_name} is"
+                    " not in the MLWH database.",
                 )
 
-            qc_state = QcState(
-                seq_product=seq_product,
+            # Create a SeqProduct and related things for the well.
+            seq_product = construct_seq_product_for_well(
+                run_name, well_label, qcdb_session
             )
 
-        else:
-            # time to add a historical entry
-            qcdb_session.add(
-                QcStateHist(
-                    id_seq_product=qc_state.id_seq_product,
-                    id_user=qc_state.id_user,
-                    id_qc_state_dict=qc_state.id_qc_state_dict,
-                    id_qc_type=qc_state.id_qc_type,
-                    created_by=qc_state.created_by,
-                    date_created=qc_state.date_created,
-                    date_updated=qc_state.date_updated,
-                    is_preliminary=qc_state.is_preliminary,
-                )
-            )
-            qcdb_session.commit()
+        qc_state = QcState(
+            id_seq_product=seq_product.id_seq_product,
+        )
 
-        try:
-            update_qc_state(request_body, qc_state, qcdb_session)
-        except NotFoundInDatabaseException as e:
-            raise HTTPException(
-                status_code=400,
-                detail=f"An error occured: {str(e)}\nRequest body was: {request_body.json()}",
+    else:
+        # time to add a historical entry
+        qcdb_session.add(
+            QcStateHist(
+                id_seq_product=qc_state.id_seq_product,
+                id_user=qc_state.id_user,
+                id_qc_state_dict=qc_state.id_qc_state_dict,
+                id_qc_type=qc_state.id_qc_type,
+                created_by=qc_state.created_by,
+                date_created=qc_state.date_created,
+                date_updated=qc_state.date_updated,
+                is_preliminary=qc_state.is_preliminary,
             )
+        )
 
-        qcdb_session.merge(qc_state)
-        qcdb_session.commit()
+    try:
+        update_qc_state(request_body, qc_state, qcdb_session)
+    except NotFoundInDatabaseException as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"An error occured: {str(e)}\nRequest body was: {request_body.json()}",
+        )
+
+    qcdb_session.commit()
 
     return qc_status_json(qc_state)
