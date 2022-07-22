@@ -32,7 +32,8 @@ from lang_qc.endpoints.inbox import (
     pack_wells_and_states,
 )
 from lang_qc.models.inbox_models import FilteredInboxResults
-from tests.fixtures.inbox_data import filtered_inbox_data, inbox_data, wells_and_states
+
+from tests.fixtures.inbox_data import test_data_factory, inbox_data, wells_and_states
 
 
 def test_incorrect_filter(test_client: TestClient):
@@ -70,8 +71,15 @@ def assert_filtered_inbox_equals_expected(response, expected_data):
     assert actual_data == expected_data
 
 
-def test_qc_complete_filter(test_client: TestClient, filtered_inbox_data):
+def test_qc_complete_filter(test_client: TestClient, test_data_factory):
     """Test passing `qc_complete` filter."""
+
+    desired_wells = {
+        "MARATHON": {"A1": "Passed", "A2": "Passed", "A3": "On hold", "A4": None},
+        "SEMI-MARATHON": {"A1": "Failed", "A2": "Claimed", "A3": "Claimed", "A4": None},
+        "QUARTER-MILE": {"A1": None, "A2": "On hold", "A3": "On hold", "A4": None},
+    }
+    test_data_factory(desired_wells)
 
     response = test_client.get("/pacbio/wells?qc_status=qc_complete")
 
@@ -82,9 +90,15 @@ def test_qc_complete_filter(test_client: TestClient, filtered_inbox_data):
     assert_filtered_inbox_equals_expected(response, expected_data)
 
 
-def test_on_hold_filter(test_client: TestClient, filtered_inbox_data):
+def test_on_hold_filter(test_client: TestClient, test_data_factory):
     """Test passing `on_hold` filter."""
 
+    desired_wells = {
+        "MARATHON": {"A1": "Passed", "A2": "Passed", "A3": "On hold", "A4": None},
+        "SEMI-MARATHON": {"A1": "Failed", "A2": "Claimed", "A3": "Claimed", "A4": None},
+        "QUARTER-MILE": {"A1": None, "A2": "On hold", "A3": "On hold", "A4": None},
+    }
+    test_data_factory(desired_wells)
     response = test_client.get("/pacbio/wells?qc_status=on_hold")
     expected_data = {
         "MARATHON": {"A3": "On hold"},
@@ -94,9 +108,15 @@ def test_on_hold_filter(test_client: TestClient, filtered_inbox_data):
     assert_filtered_inbox_equals_expected(response, expected_data)
 
 
-def test_in_progress_filter(test_client: TestClient, filtered_inbox_data):
+def test_in_progress_filter(test_client: TestClient, test_data_factory):
     """Test passing `in_progress` filter."""
 
+    desired_wells = {
+        "MARATHON": {"A1": "Passed", "A2": "Passed", "A3": "On hold", "A4": None},
+        "SEMI-MARATHON": {"A1": "Failed", "A2": "Claimed", "A3": "Claimed", "A4": None},
+        "QUARTER-MILE": {"A1": None, "A2": "On hold", "A3": "On hold", "A4": None},
+    }
+    test_data_factory(desired_wells)
     response = test_client.get("/pacbio/wells?qc_status=in_progress")
     expected_data = {
         "SEMI-MARATHON": {"A3": "Claimed", "A2": "Claimed"},
@@ -105,9 +125,15 @@ def test_in_progress_filter(test_client: TestClient, filtered_inbox_data):
     assert_filtered_inbox_equals_expected(response, expected_data)
 
 
-def test_inbox_filter(test_client: TestClient, filtered_inbox_data):
+def test_inbox_filter(test_client: TestClient, test_data_factory):
     """Test passing `inbox` filter."""
 
+    desired_wells = {
+        "MARATHON": {"A1": "Passed", "A2": "Passed", "A3": "On hold", "A4": None},
+        "SEMI-MARATHON": {"A1": "Failed", "A2": "Claimed", "A3": "Claimed", "A4": None},
+        "QUARTER-MILE": {"A1": None, "A2": "On hold", "A3": "On hold", "A4": None},
+    }
+    test_data_factory(desired_wells)
     response = test_client.get("/pacbio/wells?qc_status=inbox")
     expected_data = {
         "MARATHON": {"A4": None},
@@ -118,9 +144,15 @@ def test_inbox_filter(test_client: TestClient, filtered_inbox_data):
     assert_filtered_inbox_equals_expected(response, expected_data)
 
 
-def test_default_filter(test_client: TestClient, filtered_inbox_data):
+def test_default_filter(test_client: TestClient, test_data_factory):
     """Test passing no filter, equivalent to `inbox` filter."""
 
+    desired_wells = {
+        "MARATHON": {"A1": "Passed", "A2": "Passed", "A3": "On hold", "A4": None},
+        "SEMI-MARATHON": {"A1": "Failed", "A2": "Claimed", "A3": "Claimed", "A4": None},
+        "QUARTER-MILE": {"A1": None, "A2": "On hold", "A3": "On hold", "A4": None},
+    }
+    test_data_factory(desired_wells)
     response = test_client.get("/pacbio/wells?qc_status=inbox")
     expected_data = {
         "MARATHON": {"A4": None},
@@ -181,12 +213,18 @@ def test_extract_well_label_and_run_name_from_state(
 
 
 def test_get_well_metrics_from_qc_states(
-    qcdb_test_session, mlwhdb_test_session, filtered_inbox_data
+    qcdb_test_session, mlwhdb_test_session, test_data_factory
 ):
     """Test lang_qc.endpoints.get_well_metrics_from_qc_states function."""
     # Passing an empty list should return an empty list
     assert get_well_metrics_from_qc_states([], mlwhdb_test_session) == []
 
+    desired_wells = {
+        "MARATHON": {"A1": "Passed", "A2": "Passed", "A3": "On hold", "A4": None},
+        "SEMI-MARATHON": {"A1": "Failed", "A2": "Claimed", "A3": "Claimed", "A4": None},
+        "QUARTER-MILE": {"A1": None, "A2": "On hold", "A3": "On hold", "A4": None},
+    }
+    test_data_factory(desired_wells)
     states = (
         qcdb_test_session.execute(
             select(QcState).join(QcStateDict).where(QcStateDict.state == "On hold")
