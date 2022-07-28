@@ -17,6 +17,44 @@ Then set two environment variables:
 Finally, run the server: `uvicorn lang_qc.main:app`.
 Or `uvicorn lang_qc.main:app --reload` to reload the server on code changes.
 
+## Using docker-compose
+
+To run the server, create an env file containing defining the following environment variables:
+
+- OIDCProviderMetadataURL
+- OIDCClientID
+- OIDCClientSecret
+- ODICCryptoPassphrase
+- OIDCRedirectURI
+- CORS_ORGINS
+- QCDB_URL
+- DB_URL
+- CERT_FOLDER: absolute path to a folder containing your `cert.pem` and `key.pem`
+- SERVER_HOST
+
+Then from the root of this repository, run :
+`CERT_FOLDER=/path/to/cert/folder docker-compose --env-file /path/to/env/file up -d`.
+
+### Development setup
+
+Follow the same steps as above. Then use `docker-compose.dev.yml` to override `docker-compose.yml`:
+
+```sh
+docker-compose \
+  --env-file /path/to/env/file 
+  -f docker-compose.yml
+  -f docker-compose.dev.yml
+  up -d
+```
+
+The `/lang_qc/` folder will be bind-mounted into the docker container, and the server will hot-reload with
+your changes. Additionally, two databases will be spun up with the default credentials used when running
+`pytest` in the project (as of writing these will not have the schema setup by default: this is not a problem
+for running unit tests, but if you want to use these databases to test the web app then you must create the schemas and
+populate the databases with some data.).
+
+   
+
 ## Using Docker
 
 This repository provides a [Docker image](https://github.com/wtsi-npg/npg_langqc/pkgs/container/npg_langqc).
