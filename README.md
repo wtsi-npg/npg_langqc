@@ -16,19 +16,21 @@ Or `uvicorn lang_qc.main:app --reload` to reload the server on code changes.
 
 ## Using docker-compose
 
-To run the server, create an env file containing defining the following environment variables:
+To run the server, create an env file with the following template:
 
-- OIDCProviderMetadataURL
-- OIDCClientID
-- OIDCClientSecret
-- ODICCryptoPassphrase
-- OIDCRedirectURI
-- CORS_ORGINS
-- QCDB_URL
-- DB_URL
-- CERT_FOLDER: absolute path to a folder containing your `cert.pem` and `key.pem`
-- SERVER_HOST
-- HTTPS_PORT
+```
+OIDCProviderMetadataURL=<identityproviderhostURL>/.well-known/openid-configuration # e.g. https://accounts.google.com/.well-known/openid-configuration
+OIDCClientID=<yourclientID> # set by the OIDC Provider
+OIDCClientSecret=<yourclientsecret> # set by the OIDC Provider
+ODICCryptoPassphrase=somesecurepassphrase # you can choose this
+OIDCRedirectURI=https://example.com/login-redirect # must match what is set on the OIDC Provider side
+CORS_ORGINS=https://example.com:<someport> # most likely not needed anymore, probably can be left blank
+QCDB_URL=mysql+pymysql://<user>:<password>@<host>:<port>/<dbname>?charset=utf8mb4 # mlwh db
+DB_URL=mysql+pymysql://<user>:<password>@<host>:<port>/<dbname>?charset=utf8mb4 # qc db
+CERT_FOLDER=/absolute/path/to/certs/folder # must contain `cert.pem` and `key.pem`
+SERVER_HOST=https://example.com:443 # can omit port if standard, used for frontend build to refer to right API server.
+HTTPS_PORT=443 # port on which the deployment will be exposed.
+```
 
 Then from the root of this repository, run :
 Build: `docker-compose --env-file /path/to/env/file build`
