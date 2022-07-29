@@ -31,11 +31,24 @@ To run the server, create an env file containing defining the following environm
 - HTTPS_PORT
 
 Then from the root of this repository, run :
-`CERT_FOLDER=/path/to/cert/folder docker-compose --env-file /path/to/env/file up -d`.
+Build: `docker-compose --env-file /path/to/env/file build`
+Run: `docker-compose --env-file /path/to/env/file up -d`
 
 ### Development setup
 
 Follow the same steps as above. Then use `docker-compose.dev.yml` to override `docker-compose.yml`:
+
+Build:
+
+```sh
+docker-compose \
+  --env-file /path/to/env/file 
+  -f docker-compose.yml
+  -f docker-compose.dev.yml
+  build
+```
+
+Run:
 
 ```sh
 docker-compose \
