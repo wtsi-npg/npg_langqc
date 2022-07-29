@@ -1,8 +1,5 @@
 #  Long Read QC
 
-A front- and back-end solution for quality control of long read sequencing data.
-For front-end specifics, refer to the [README](frontend/README.md)
-
 ## Install and run locally
 
 You can install the package with `pip install .` from the repository's root.
@@ -31,6 +28,7 @@ To run the server, create an env file containing defining the following environm
 - DB_URL
 - CERT_FOLDER: absolute path to a folder containing your `cert.pem` and `key.pem`
 - SERVER_HOST
+- HTTPS_PORT
 
 Then from the root of this repository, run :
 `CERT_FOLDER=/path/to/cert/folder docker-compose --env-file /path/to/env/file up -d`.
