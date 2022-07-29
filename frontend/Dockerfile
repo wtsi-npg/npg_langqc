@@ -14,10 +14,6 @@ COPY . /code/longue_vue/
 RUN  sed -i "s,https://dev-langqc.dnapipelines.sanger.ac.uk,${API_SERVER_HOST}/,g" ./src/views/RunView.vue \
   && npm run build -- --base=${BASE_PATH}
 
-FROM python:3.10
+FROM httpd:alpine
 
-COPY --from=build-stage /code/longue_vue/dist/ /longue_vue/
-
-WORKDIR /longue_vue/
-
-CMD python -m http.server 3000
+COPY --from=build-stage /code/longue_vue/dist/ /usr/local/apache2/htdocs/
