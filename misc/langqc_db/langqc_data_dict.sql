@@ -21,9 +21,10 @@ insert into qc_type (`qc_type`, `description`) values
 
 insert into qc_state_dict (`state`, `outcome`)
   values ('Passed', 1),
-         ('Failed, reagent problem', 0),
-         ('Failed, flowcell problem', 0),
+         ('Failed, Instrument', 0),
+         ('Failed, SMRT cell', 0),
          ('Failed', 0),
+         ('Aborted', 0),
          ('Undecided', NULL),
          ('Claimed', NULL),
          ('On hold', NULL);
