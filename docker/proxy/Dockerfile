@@ -16,6 +16,10 @@ RUN a2enmod proxy\
   && a2enmod proxy_balancer\
   && a2enmod proxy_connect\
   && a2enmod proxy_html \
-  && a2enmod ssl 
+  && a2enmod ssl \
+  # Redirect logs to stdout/stderr for easier docker logging.
+  && ln -sf /dev/stdout /var/log/apache2/access.log \
+  && ln -sf /dev/stdout /var/log/apache2/other_vhosts_access.log \
+  && ln -sf /dev/stderr /var/log/apache2/error.log
 
 CMD apachectl -D FOREGROUND
