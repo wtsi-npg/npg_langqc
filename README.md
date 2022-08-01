@@ -16,6 +16,15 @@ Or `uvicorn lang_qc.main:app --reload` to reload the server on code changes.
 
 ## Using docker-compose
 
+### Requirements:
+
+The deployment was tested with versions at least as recent as:
+
+- `Docker version 20.10.5 and 20.10.8`
+- `docker-compose version 1.28.6 and 1.29.2`
+
+Think about using a more recent version of Ubuntu, for example `focal` rather than `bionic`.
+
 To run the server, create an env file with the following template:
 
 ```
