@@ -13,6 +13,7 @@ FROM python:3.10-slim as base
 
 RUN apt-get update -qq \
     && apt-get install -qq --no-install-recommends git \
+    && rm -rf /var/lib/apt/lists/* \
     && groupadd -r apprunner \
     && useradd -r -g apprunner apprunner
 
@@ -35,4 +36,4 @@ CMD ["uvicorn", "lang_qc.main:app", "--host", "0.0.0.0", "--port", "443", "--ssl
 FROM base as development
 WORKDIR /code
 USER apprunner
-CMD uvicorn lang_qc.main:app --reload
+CMD ["uvicorn", "lang_qc.main:app" , "--reload"]
