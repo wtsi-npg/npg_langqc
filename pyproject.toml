@@ -15,7 +15,7 @@ uvicorn = { version = "^0.17", extras = ["standard"] }
 ml-warehouse = { git = "https://github.com/wtsi-npg/ml-warehouse-python.git", tag="1.0.0" }
 SQLAlchemy = { version = "^1.4.35", extras = ["pymysql"] }
 pydantic = "^1.9.0"
-product_id = { git = "https://github.com/absanger/product_id.git", branch="master"}
+npg_id_generation = { git = "https://github.com/wtsi-npg/npg_id_generation.git", branch="master"}
 
 [tool.poetry.dev-dependencies]
 black = "^22.3.0"

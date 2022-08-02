@@ -20,7 +20,7 @@ import json
 from datetime import datetime
 from typing import Optional
 
-from product_id.main import PacBioWell
+from npg_id_generation import PacBioEntity
 from sqlalchemy.orm import Session
 from sqlalchemy import select, and_
 
@@ -43,7 +43,7 @@ class NotFoundInDatabaseException(Exception):
 
 
 def create_id_product(run_name, well_label):
-    return PacBioWell(run_name=run_name, well_label=well_label).hash_product_id()
+    return PacBioEntity(run_name=run_name, well_label=well_label).hash_product_id()
 
 
 def create_well_properties(run_name, well_label):
@@ -51,7 +51,7 @@ def create_well_properties(run_name, well_label):
 
 
 def create_well_properties_digest(run_name, well_label):
-    return PacBioWell(run_name=run_name, well_label=well_label).hash_product_id()
+    return PacBioEntity(run_name=run_name, well_label=well_label).hash_product_id()
 
 
 def get_seq_product_for_well(run_name: str, well_label: str, qcdb_session: Session):
