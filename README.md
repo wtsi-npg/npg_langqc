@@ -1,8 +1,5 @@
 #  Long Read QC
 
-A front- and back-end solution for quality control of long read sequencing data.
-For front-end specifics, refer to the [README](frontend/README.md)
-
 ## Install and run locally
 
 You can install the package with `pip install .` from the repository's root.
@@ -16,6 +13,71 @@ Then set two environment variables:
 
 Finally, run the server: `uvicorn lang_qc.main:app`.
 Or `uvicorn lang_qc.main:app --reload` to reload the server on code changes.
+
+## Using docker-compose
+
+### Requirements:
+
+The deployment was tested with versions at least as recent as:
+
+- `Docker version 20.10.5 and 20.10.8`
+- `docker-compose version 1.28.6 and 1.29.2`
+
+Think about using a more recent version of Ubuntu, for example `focal` rather than `bionic`.
+
+To run the server, create an env file with the following template:
+
+```
+OIDCProviderMetadataURL=<identityproviderhostURL>/.well-known/openid-configuration # e.g. https://accounts.google.com/.well-known/openid-configuration
+OIDCClientID=<yourclientID> # set by the OIDC Provider
+OIDCClientSecret=<yourclientsecret> # set by the OIDC Provider
+ODICCryptoPassphrase=somesecurepassphrase # you can choose this
+OIDCRedirectURI=https://example.com/login-redirect # must match what is set on the OIDC Provider side
+CORS_ORGINS=https://example.com:<someport> # most likely not needed anymore, probably can be left blank
+QCDB_URL=mysql+pymysql://<user>:<password>@<host>:<port>/<dbname>?charset=utf8mb4 # mlwh db
+DB_URL=mysql+pymysql://<user>:<password>@<host>:<port>/<dbname>?charset=utf8mb4 # qc db
+CERT_FOLDER=/absolute/path/to/certs/folder # must contain `cert.pem` and `key.pem`
+SERVER_HOST=https://example.com:443 # can omit port if standard, used for frontend build to refer to right API server.
+HTTPS_PORT=443 # port on which the deployment will be exposed.
+```
+
+You might want to `chmod 600 /path/to/env/file` as it contains passwords.
+
+Then from the root of this repository, run :
+Build: `docker-compose --env-file /path/to/env/file build`
+Run: `docker-compose --env-file /path/to/env/file up -d`
+
+### Development setup
+
+Follow the same steps as above. Then use `docker-compose.dev.yml` to override `docker-compose.yml`:
+
+Build:
+
+```sh
+docker-compose \
+  --env-file /path/to/env/file 
+  -f docker-compose.yml
+  -f docker-compose.dev.yml
+  build
+```
+
+Run:
+
+```sh
+docker-compose \
+  --env-file /path/to/env/file 
+  -f docker-compose.yml
+  -f docker-compose.dev.yml
+  up -d
+```
+
+The `/lang_qc/` folder will be bind-mounted into the docker container, and the server will hot-reload with
+your changes. Additionally, two databases will be spun up with the default credentials used when running
+`pytest` in the project (as of writing these will not have the schema setup by default: this is not a problem
+for running unit tests, but if you want to use these databases to test the web app then you must create the schemas and
+populate the databases with some data.).
+
+   
 
 ## Using Docker
 

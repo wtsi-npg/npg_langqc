@@ -16,3 +16,6 @@ coverage
 *.njsproj
 *.sln
 *.sw?
+
+# Ignore docker-compose env file to not accidentally commit credentials.
+.env
