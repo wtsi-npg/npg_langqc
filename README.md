@@ -1,5 +1,8 @@
 #  Long Read QC
 
+A front- and back-end solution for quality control of long read sequencing data.
+For front-end specifics, refer to the [README](frontend/README.md)
+
 ## Install and run locally
 
 You can install the package with `pip install .` from the repository's root.
