@@ -41,6 +41,8 @@ SERVER_HOST=https://example.com:443 # can omit port if standard, used for fronte
 HTTPS_PORT=443 # port on which the deployment will be exposed.
 ```
 
+You might want to `chmod 600 /path/to/env/file` as it contains passwords.
+
 Then from the root of this repository, run :
 Build: `docker-compose --env-file /path/to/env/file build`
 Run: `docker-compose --env-file /path/to/env/file up -d`
