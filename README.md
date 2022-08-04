@@ -28,6 +28,7 @@ The deployment was tested with versions at least as recent as:
 - `docker-compose version 1.28.6 and 1.29.2`
 
 Think about using a more recent version of Ubuntu, for example `focal` rather than `bionic`.
+The ports you would like to expose should also be open on your server.
 
 To run the server, create an env file with the following template:
 
@@ -50,6 +51,25 @@ You might want to `chmod 600 /path/to/env/file` as it contains passwords.
 Then from the root of this repository, run :
 Build: `docker-compose --env-file /path/to/env/file build`
 Run: `docker-compose --env-file /path/to/env/file up -d`
+
+Finally, you can setup a systemd service in `/etc/systemd/system/npg_langqc.service` (change the paths accordingly):
+
+```
+[Unit]
+Description=%i service with docker compose
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+WorkingDirectory=/path/to/repository/root
+ExecStart=/usr/local/bin/docker-compose --env-file /path/to/env/file up -d --remove-orphans
+ExecStop=/usr/local/bin/docker-compose --env-file /path/to/env/file  down
+
+[Install]
+WantedBy=multi-user.target
+```
 
 ### Development setup
 
