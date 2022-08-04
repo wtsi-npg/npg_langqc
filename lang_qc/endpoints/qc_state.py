@@ -143,6 +143,7 @@ def assign_qc_status(
     mlwhdb_session: Session = Depends(get_mlwh_db),
 ) -> QcStatus:
 
+    qcdb_session.begin()
     qc_state = get_qc_state_for_well(run_name, well_label, qcdb_session)
 
     if qc_state is None:
