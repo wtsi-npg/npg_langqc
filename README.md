@@ -1,5 +1,9 @@
 #  Long Read QC
 
+Please see the documents in the [docs](docs) folder for documentation on
+subjects other than development, testing and deployment.
+
+
 ## Install and run locally
 
 You can install the package with `pip install .` from the repository's root.
