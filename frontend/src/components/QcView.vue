@@ -9,6 +9,7 @@
         return `https://${metric.smrt_link.hostname}:${pacBioPort}/sl/run-qc/${metric.smrt_link.run_uuid}`
     }
 </script>
+
 <template>
 <div id="Top tier attributes of run">
     <table class="summary">
@@ -55,7 +56,7 @@
     }
     th {
         font-weight: bold;
-        background-color: #9292ff
+        background-color: #9292ff;
     }
     table.summary {
         border: 0px;
