@@ -139,3 +139,27 @@ def test_error_on_unclaimed_well(test_client: TestClient, test_data_factory):
         response.json()["detail"]
         == "Cannot assign a state to a well which has not yet been claimed."
     )
+
+
+def test_error_on_preclaimed_well(test_client: TestClient, test_data_factory):
+    """Test error on assigning a new state to a well claimed by another user."""
+
+    test_data = {"MARATHON": {"A1": "Passed", "B1": None}}
+    test_data_factory(test_data)
+
+    post_data = {
+        "user": "cd32",
+        "qc_type": "library",
+        "qc_state": "Passed",
+        "is_preliminary": True,
+    }
+
+    response = test_client.post(
+        "/pacbio/run/MARATHON/well/A1/qc_assign", json.dumps(post_data)
+    )
+
+    assert response.status_code == 401
+    assert (
+        response.json()["detail"]
+        == "Cannot assign a state to a well which has been claimed by another user."
+    )

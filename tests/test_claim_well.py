@@ -80,7 +80,7 @@ def test_claim_well_unknown_user(test_client: TestClient, test_data_factory):
     assert response.status_code == 400
     assert (
         response.json()["detail"]
-        == "User has not been found in the QC database. Has it been registered?"
+        == "User has not been found in the QC database. Have they been registered?"
     )
 
 

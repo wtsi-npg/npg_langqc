@@ -96,7 +96,7 @@ def claim_well(
     if user is None:
         raise HTTPException(
             status_code=400,
-            detail="User has not been found in the QC database. Has it been registered?",
+            detail="User has not been found in the QC database. Have they been registered?",
         )
 
     qc_type = qcdb_session.execute(
@@ -168,6 +168,28 @@ def assign_qc_status(
                 status_code=400,
                 detail="Cannot assign a state to a well which has not yet been claimed.",
             )
+
+    # Check if well has been claimed by another user.
+    if qc_state.user.username != request_body.user:
+
+        # Maybe they aren't even allowed to do things.
+
+        if (
+            qcdb_session.execute(
+                select(User).where(User.username == request_body.user)
+            ).scalar_one_or_none()
+            is None
+        ):
+            raise HTTPException(
+                status_code=400,
+                detail="An error occured: User has not been found in the QC database. "
+                "Have they been registered?\n"
+                f"Request body was: {request_body.json()}",
+            )
+        raise HTTPException(
+            status_code=401,
+            detail="Cannot assign a state to a well which has been claimed by another user.",
+        )
 
     # time to add a historical entry
     qcdb_session.add(
