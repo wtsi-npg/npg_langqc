@@ -18,19 +18,15 @@
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
 from fastapi import APIRouter, Depends, HTTPException
-from ml_warehouse.schema import PacBioRunWellMetrics
-from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
 
 from lang_qc.db.mlwh_connection import get_mlwh_db
 from lang_qc.db.qc_connection import get_qc_db
 from lang_qc.db.qc_schema import (
     QcState,
-    QcStateDict,
     QcStateHist,
-    QcType,
-    User,
 )
+from lang_qc.db.utils import get_qc_state_dict, get_qc_type, get_user, get_well_metrics
 from lang_qc.models.inbox_models import QcStatus
 from lang_qc.util.qc_state_helpers import (
     get_seq_product_for_well,
@@ -59,7 +55,27 @@ def claim_well(
     mlwhdb_session: Session = Depends(get_mlwh_db),
 ) -> QcStatus:
 
-    qcdb_session.begin()
+    # Fetch "static" data first.
+
+    user = get_user(body.user, qcdb_session)
+    if user is None:
+        raise HTTPException(
+            status_code=400,
+            detail="User has not been found in the QC database. Have they been registered?",
+        )
+
+    qc_type = get_qc_type(body.qc_type, qcdb_session)
+    if qc_type is None:
+        raise HTTPException(
+            status_code=400, detail="QC type is not in the QC database."
+        )
+
+    qc_state_dict = get_qc_state_dict("Claimed", qcdb_session)
+    if qc_state_dict is None:
+        raise HTTPException(
+            status_code=400, detail="QC state dict is not in the QC database."
+        )
+
     qc_state = get_qc_state_for_well(run_name, well_label, qcdb_session)
 
     if qc_state is not None:
@@ -71,14 +87,7 @@ def claim_well(
 
     if seq_product is None:
         # Check that well exists in mlwh
-        mlwh_well = mlwhdb_session.execute(
-            select(PacBioRunWellMetrics).where(
-                and_(
-                    PacBioRunWellMetrics.pac_bio_run_name == run_name,
-                    PacBioRunWellMetrics.well_label == well_label,
-                )
-            )
-        ).scalar()
+        mlwh_well = get_well_metrics(run_name, well_label, mlwhdb_session)
         if mlwh_well is None:
             raise HTTPException(
                 status_code=404,
@@ -88,32 +97,6 @@ def claim_well(
 
     # Create a SeqProduct and related things for the well.
     seq_product = construct_seq_product_for_well(run_name, well_label, qcdb_session)
-
-    user = qcdb_session.execute(
-        select(User).where(User.username == body.user)
-    ).scalar_one_or_none()
-
-    if user is None:
-        raise HTTPException(
-            status_code=400,
-            detail="User has not been found in the QC database. Have they been registered?",
-        )
-
-    qc_type = qcdb_session.execute(
-        select(QcType).where(QcType.qc_type == "library")
-    ).scalar_one_or_none()
-    if qc_type is None:
-        raise HTTPException(
-            status_code=400, detail="QC type is not in the QC database."
-        )
-
-    qc_state_dict = qcdb_session.execute(
-        select(QcStateDict).where(QcStateDict.state == "Claimed")
-    ).scalar_one_or_none()
-    if qc_state_dict is None:
-        raise HTTPException(
-            status_code=400, detail="QC state dict is not in the QC database."
-        )
 
     qc_state = QcState(
         created_by="LangQC",
@@ -143,22 +126,23 @@ def assign_qc_status(
     mlwhdb_session: Session = Depends(get_mlwh_db),
 ) -> QcStatus:
 
-    qcdb_session.begin()
+    qcdb_session.begin()  # This doesn't seem to be needed
+
+    # Fetch "static" data first
+    user = get_user(request_body.user, qcdb_session)
+    if user is None:
+        raise HTTPException(
+            status_code=400,
+            detail="An error occured: User has not been found in the QC database. "
+            "Have they been registered?\n"
+            f"Request body was: {request_body.json()}",
+        )
     qc_state = get_qc_state_for_well(run_name, well_label, qcdb_session)
 
     if qc_state is None:
+        qcdb_session.rollback()
         # 400 if unclaimed, 404 if the well does not even exist.
-        if (
-            mlwhdb_session.execute(
-                select(PacBioRunWellMetrics).filter(
-                    and_(
-                        PacBioRunWellMetrics.well_label == well_label,
-                        PacBioRunWellMetrics.pac_bio_run_name == run_name,
-                    )
-                )
-            ).one_or_none()
-            is None
-        ):
+        if get_well_metrics(run_name, well_label, mlwhdb_session) is None:
             raise HTTPException(
                 status_code=404,
                 detail=f"Well {well_label} from run {run_name} is not in the MLWH database.",
@@ -170,22 +154,7 @@ def assign_qc_status(
             )
 
     # Check if well has been claimed by another user.
-    if qc_state.user.username != request_body.user:
-
-        # Maybe they aren't even allowed to do things.
-
-        if (
-            qcdb_session.execute(
-                select(User).where(User.username == request_body.user)
-            ).scalar_one_or_none()
-            is None
-        ):
-            raise HTTPException(
-                status_code=400,
-                detail="An error occured: User has not been found in the QC database. "
-                "Have they been registered?\n"
-                f"Request body was: {request_body.json()}",
-            )
+    if qc_state.user != user:
         raise HTTPException(
             status_code=401,
             detail="Cannot assign a state to a well which has been claimed by another user.",
