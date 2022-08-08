@@ -38,7 +38,7 @@ def get_qc_db() -> Session:
         engine = create_engine(url, future=True)
 
     if session_factory is None:
-        session_factory = sessionmaker(engine, expire_on_commit=False)
+        session_factory = sessionmaker(engine)
 
     db = session_factory()
     try:
