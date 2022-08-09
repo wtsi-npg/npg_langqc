@@ -166,7 +166,7 @@ def construct_seq_product_for_well(
 
 
 def update_qc_state(
-    qc_status_post: QcStatus, qc_state_db: QcState, qcdb_session: Session
+    qc_status_post: QcStatus, qc_state_db: QcState, username: str, qcdb_session: Session
 ):
     """Update the properties of the QcState, without pushing the changes.
 
@@ -185,7 +185,7 @@ def update_qc_state(
             "Desired QC state is not in the QC database. It might not be allowed."
         )
 
-    user = get_user(qc_status_post.user, qcdb_session)
+    user = get_user(username, qcdb_session)
     if user is None:
         raise NotFoundInDatabaseException(
             "User has not been found in the QC database. Have they been registered?"

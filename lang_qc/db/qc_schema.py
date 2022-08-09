@@ -72,7 +72,7 @@ class User(Base):
     __tablename__ = 'user'
 
     id_user = Column(INTEGER, primary_key=True)
-    username = Column(String(12), nullable=False, unique=True)
+    username = Column(String(255), nullable=False, unique=True)
     iscurrent = Column(TINYINT(1), nullable=False, server_default=text("'1'"))
     date_created = Column(DateTime, server_default=text('CURRENT_TIMESTAMP'), comment='Datetime the user record was created')
     date_updated = Column(DateTime, server_default=text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'), comment='Datetime the user record was created or changed')

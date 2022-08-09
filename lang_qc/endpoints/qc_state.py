@@ -17,7 +17,8 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException
+
 from sqlalchemy.orm import Session
 
 from lang_qc.db.mlwh_connection import get_mlwh_db
@@ -51,13 +52,19 @@ def claim_well(
     run_name: str,
     well_label: str,
     body: QcClaimPostBody,
+    oidc_claim_email: str | None = Header(default=None, convert_underscores=False),
     qcdb_session: Session = Depends(get_qc_db),
     mlwhdb_session: Session = Depends(get_mlwh_db),
 ) -> QcStatus:
 
+    if oidc_claim_email is None:
+        raise HTTPException(
+            status_code=401, detail="No user provided, is the user logged in?"
+        )
+
     # Fetch "static" data first.
 
-    user = get_user(body.user, qcdb_session)
+    user = get_user(oidc_claim_email, qcdb_session)
     if user is None:
         raise HTTPException(
             status_code=400,
@@ -123,14 +130,20 @@ def assign_qc_status(
     run_name: str,
     well_label: str,
     request_body: QcStatusAssignmentPostBody,
+    oidc_claim_email: str | None = Header(default=None, convert_underscores=False),
     qcdb_session: Session = Depends(get_qc_db),
     mlwhdb_session: Session = Depends(get_mlwh_db),
 ) -> QcStatus:
 
+    if oidc_claim_email is None:
+        raise HTTPException(
+            status_code=401, detail="No user provided, is the user logged in?"
+        )
+
     qcdb_session.begin()  # This doesn't seem to be needed
 
     # Fetch "static" data first
-    user = get_user(request_body.user, qcdb_session)
+    user = get_user(oidc_claim_email, qcdb_session)
     if user is None:
         raise HTTPException(
             status_code=400,
@@ -138,6 +151,7 @@ def assign_qc_status(
             "Have they been registered?\n"
             f"Request body was: {request_body.json()}",
         )
+
     qc_state = get_qc_state_for_well(run_name, well_label, qcdb_session)
 
     if qc_state is None:
@@ -168,7 +182,7 @@ def assign_qc_status(
     )
 
     try:
-        update_qc_state(request_body, qc_state, qcdb_session)
+        update_qc_state(request_body, qc_state, oidc_claim_email, qcdb_session)
     except NotFoundInDatabaseException as e:
         raise HTTPException(
             status_code=400,
