@@ -39,9 +39,7 @@ def test_change_non_existent_well(test_client: TestClient, test_data_factory):
     )
 
 
-def test_change_from_passed_to_fail(
-    test_client: TestClient, test_data_factory
-):  # noqa: F811;
+def test_change_from_passed_to_fail(test_client: TestClient, test_data_factory):
     """Successfully change a state from passed to failed"""
 
     test_data = {
@@ -132,9 +130,9 @@ def test_error_on_unknown_user(test_client: TestClient, test_data_factory):
     )
 
     assert response.status_code == 400
-    assert response.json()["detail"] == (
-        "An error occured: User has not been found in the QC database. Have they been registered?\n"
-        f"Request body was: {QcStatusAssignmentPostBody.parse_obj(post_data).json()}"
+    assert (
+        response.json()["detail"]
+        == "User has not been found in the QC database. Have they been registered?"
     )
 
 

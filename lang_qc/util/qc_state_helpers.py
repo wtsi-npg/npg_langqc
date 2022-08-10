@@ -31,8 +31,9 @@ from lang_qc.db.qc_schema import (
     SeqProduct,
     SubProduct,
     SubProductAttr,
+    User,
 )
-from lang_qc.db.utils import get_qc_state_dict, get_qc_type, get_user
+from lang_qc.db.utils import get_qc_state_dict, get_qc_type
 from lang_qc.models.inbox_models import QcStatus
 
 
@@ -166,7 +167,7 @@ def construct_seq_product_for_well(
 
 
 def update_qc_state(
-    qc_status_post: QcStatus, qc_state_db: QcState, username: str, qcdb_session: Session
+    qc_status_post: QcStatus, qc_state_db: QcState, user: User, qcdb_session: Session
 ):
     """Update the properties of the QcState, without pushing the changes.
 
@@ -183,12 +184,6 @@ def update_qc_state(
     if desired_qc_state_dict is None:
         raise NotFoundInDatabaseException(
             "Desired QC state is not in the QC database. It might not be allowed."
-        )
-
-    user = get_user(username, qcdb_session)
-    if user is None:
-        raise NotFoundInDatabaseException(
-            "User has not been found in the QC database. Have they been registered?"
         )
 
     qc_type = get_qc_type(qc_status_post.qc_type, qcdb_session)
