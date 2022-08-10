@@ -76,13 +76,6 @@ def claim_well(
             status_code=400, detail="QC state dict is not in the QC database."
         )
 
-    qc_state = get_qc_state_for_well(run_name, well_label, qcdb_session)
-
-    if qc_state is not None:
-        raise HTTPException(
-            status_code=400, detail="The well has already been claimed."
-        )
-
     seq_product = get_seq_product_for_well(run_name, well_label, qcdb_session)
 
     if seq_product is None:
@@ -95,8 +88,16 @@ def claim_well(
                 " not in the MLWH database.",
             )
 
-    # Create a SeqProduct and related things for the well.
-    seq_product = construct_seq_product_for_well(run_name, well_label, qcdb_session)
+        # Create a SeqProduct and related things for the well.
+        seq_product = construct_seq_product_for_well(run_name, well_label, qcdb_session)
+
+    else:
+        qc_state = get_qc_state_for_well(run_name, well_label, qcdb_session)
+
+        if qc_state is not None:
+            raise HTTPException(
+                status_code=400, detail="The well has already been claimed."
+            )
 
     qc_state = QcState(
         created_by="LangQC",
@@ -140,18 +141,10 @@ def assign_qc_status(
     qc_state = get_qc_state_for_well(run_name, well_label, qcdb_session)
 
     if qc_state is None:
-        qcdb_session.rollback()
-        # 400 if unclaimed, 404 if the well does not even exist.
-        if get_well_metrics(run_name, well_label, mlwhdb_session) is None:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Well {well_label} from run {run_name} is not in the MLWH database.",
-            )
-        else:
-            raise HTTPException(
-                status_code=400,
-                detail="Cannot assign a state to a well which has not yet been claimed.",
-            )
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot assign a state to a well which has not yet been claimed.",
+        )
 
     # Check if well has been claimed by another user.
     if qc_state.user != user:

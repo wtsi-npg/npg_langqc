@@ -29,10 +29,10 @@ def test_change_non_existent_well(test_client: TestClient, test_data_factory):
 
     response = test_client.post("/pacbio/run/NONEXISTENT/well/A0/qc_assign", post_data)
 
-    assert response.status_code == 404
+    assert response.status_code == 400
     assert (
         response.json()["detail"]
-        == "Well A0 from run NONEXISTENT is not in the MLWH database."
+        == "Cannot assign a state to a well which has not yet been claimed."
     )
 
 
