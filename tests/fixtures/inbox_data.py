@@ -95,6 +95,7 @@ def test_data_factory(mlwhdb_test_session, qcdb_test_session):
         )
         seq_platform = SeqPlatform(name="PacBio", description="Pacific Biosciences.")
         user = User(username="zx80")
+        other_user = User(username="cd32")
         states = ["Passed", "Failed", "Claimed", "On hold"]
         state_dicts = {}
 
@@ -103,7 +104,14 @@ def test_data_factory(mlwhdb_test_session, qcdb_test_session):
 
         qcdb_test_session.add_all(state_dicts.values())
         qcdb_test_session.add_all(
-            [library_qc_type, run_name_attr, well_label_attr, seq_platform, user]
+            [
+                library_qc_type,
+                run_name_attr,
+                well_label_attr,
+                seq_platform,
+                user,
+                other_user,
+            ]
         )
         qcdb_test_session.commit()
 

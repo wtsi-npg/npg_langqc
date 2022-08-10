@@ -6,6 +6,7 @@ from fastapi.testclient import TestClient
 import pytest
 
 from lang_qc.models.inbox_models import QcStatus
+from lang_qc.models.qc_state_models import QcStatusAssignmentPostBody
 
 
 def test_change_non_existent_well(test_client: TestClient, test_data_factory):
@@ -28,10 +29,10 @@ def test_change_non_existent_well(test_client: TestClient, test_data_factory):
 
     response = test_client.post("/pacbio/run/NONEXISTENT/well/A0/qc_assign", post_data)
 
-    assert response.status_code == 404
+    assert response.status_code == 400
     assert (
         response.json()["detail"]
-        == "Well A0 from run NONEXISTENT is not in the MLWH database."
+        == "Cannot assign a state to a well which has not yet been claimed."
     )
 
 
@@ -104,15 +105,61 @@ def test_error_on_invalid_values(
         "is_preliminary": False,
     }
 
-    for well_label in "A1", "B1":
+    post_data[invalid_argument] = "invalidvalue"
+    response = test_client.post(
+        f"/pacbio/run/SEMI-MARATHON/well/D1/qc_assign", json.dumps(post_data)
+    )
 
-        post_data[invalid_argument] = "invalidvalue"
-        response = test_client.post(
-            f"/pacbio/run/MARATHON/well/{well_label}/qc_assign", json.dumps(post_data)
-        )
+    assert response.status_code == 400
+    assert (
+        response.json()["detail"] == f"An error occured: {expected_message}\n"
+        f"Request body was: {QcStatusAssignmentPostBody.parse_obj(post_data).json()}"
+    )
 
-        assert response.status_code == 400
-        assert (
-            response.json()["detail"] == f"An error occured: {expected_message}\n"
-            f"Request body was: {QcStatus.parse_obj(post_data).json()}"
-        )
+
+def test_error_on_unclaimed_well(test_client: TestClient, test_data_factory):
+    """Test error on assigning a new state to an unclaimed well."""
+
+    test_data = {"MARATHON": {"A1": None, "B1": None}}
+    test_data_factory(test_data)
+
+    post_data = {
+        "user": "zx80",
+        "qc_type": "library",
+        "qc_state": "Passed",
+        "is_preliminary": True,
+    }
+
+    response = test_client.post(
+        "/pacbio/run/MARATHON/well/A1/qc_assign", json.dumps(post_data)
+    )
+
+    assert response.status_code == 400
+    assert (
+        response.json()["detail"]
+        == "Cannot assign a state to a well which has not yet been claimed."
+    )
+
+
+def test_error_on_preclaimed_well(test_client: TestClient, test_data_factory):
+    """Test error on assigning a new state to a well claimed by another user."""
+
+    test_data = {"MARATHON": {"A1": "Passed", "B1": None}}
+    test_data_factory(test_data)
+
+    post_data = {
+        "user": "cd32",
+        "qc_type": "library",
+        "qc_state": "Passed",
+        "is_preliminary": True,
+    }
+
+    response = test_client.post(
+        "/pacbio/run/MARATHON/well/A1/qc_assign", json.dumps(post_data)
+    )
+
+    assert response.status_code == 401
+    assert (
+        response.json()["detail"]
+        == "Cannot assign a state to a well which has been claimed by another user."
+    )

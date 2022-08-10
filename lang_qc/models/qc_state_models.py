@@ -17,31 +17,19 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
-import os
-
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session
-
-engine = None
-session_factory = None
+from pydantic import BaseModel
 
 
-def get_qc_db() -> Session:
-    """Get QC DB connection"""
+class QcStatusAssignmentPostBody(BaseModel):
 
-    global engine, session_factory
+    user: str
+    qc_type: str
+    qc_state: str
+    is_preliminary: bool
 
-    if engine is None:
-        url = os.environ.get("QCDB_URL")
-        if url is None or url == "":
-            raise Exception("ENV['QCDB_URL'] must be set with a database URL")
-        engine = create_engine(url, future=True, pool_recycle=3600)
 
-    if session_factory is None:
-        session_factory = sessionmaker(engine)
+class QcClaimPostBody(BaseModel):
+    """Body for the qc_claim endpoint."""
 
-    db = session_factory()
-    try:
-        yield db
-    finally:
-        db.close()
+    user: str
+    qc_type: str

@@ -27,14 +27,12 @@ from sqlalchemy import select, and_
 from lang_qc.db.qc_schema import (
     ProductLayout,
     QcState,
-    QcStateDict,
-    QcType,
     SeqPlatform,
     SeqProduct,
     SubProduct,
     SubProductAttr,
-    User,
 )
+from lang_qc.db.utils import get_qc_state_dict, get_qc_type, get_user
 from lang_qc.models.inbox_models import QcStatus
 
 
@@ -66,7 +64,6 @@ def get_seq_product_for_well(run_name: str, well_label: str, qcdb_session: Sessi
     Returns:
         The SeqProduct corresponding to the well.
     """
-
     return (
         qcdb_session.execute(
             select(SeqProduct)
@@ -97,7 +94,6 @@ def get_qc_state_for_well(
     Returns:
         Either a QcState object if one is found, or None if not.
     """
-
     return qcdb_session.execute(
         select(QcState)
         .join(SeqProduct)
@@ -166,7 +162,6 @@ def construct_seq_product_for_well(
     )
 
     qcdb_session.add(seq_product)
-
     return seq_product
 
 
@@ -183,36 +178,27 @@ def update_qc_state(
     Returns:
         None
     """
-
     # Check that values are in the DB.
-    desired_qc_state_dict = qcdb_session.execute(
-        select(QcStateDict.id_qc_state_dict).where(
-            QcStateDict.state == qc_status_post.qc_state
-        )
-    ).one_or_none()
+    desired_qc_state_dict = get_qc_state_dict(qc_status_post.qc_state, qcdb_session)
     if desired_qc_state_dict is None:
         raise NotFoundInDatabaseException(
             "Desired QC state is not in the QC database. It might not be allowed."
         )
 
-    user = qcdb_session.execute(
-        select(User).where(User.username == qc_status_post.user)
-    ).scalar_one_or_none()
+    user = get_user(qc_status_post.user, qcdb_session)
     if user is None:
         raise NotFoundInDatabaseException(
             "User has not been found in the QC database. Have they been registered?"
         )
 
-    qc_type = qcdb_session.execute(
-        select(QcType.id_qc_type).where(QcType.qc_type == qc_status_post.qc_type)
-    ).one_or_none()
+    qc_type = get_qc_type(qc_status_post.qc_type, qcdb_session)
     if qc_type is None:
         raise NotFoundInDatabaseException("QC type is not in the QC database.")
 
     qc_state_db.user = user
     qc_state_db.date_updated = datetime.now()
-    qc_state_db.id_qc_state_dict = desired_qc_state_dict[0]
-    qc_state_db.id_qc_type = qc_type[0]
+    qc_state_db.id_qc_state_dict = desired_qc_state_dict.id_qc_state_dict
+    qc_state_db.id_qc_type = qc_type.id_qc_type
     qc_state_db.created_by = "LangQC"
     qc_state_db.is_preliminary = qc_status_post.is_preliminary
 
@@ -226,6 +212,7 @@ def qc_status_json(db_qc_state: QcState) -> QcStatus:
     Returns:
         A QcStatus object with the properties from the DB QCState record.
     """
+
     return QcStatus(
         user=db_qc_state.user.username,
         date_created=db_qc_state.date_created,
