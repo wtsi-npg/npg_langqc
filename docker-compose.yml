@@ -31,4 +31,3 @@ services:
       args:
         API_SERVER_HOST: $SERVER_HOST
         BASE_PATH: /ui/
-    
