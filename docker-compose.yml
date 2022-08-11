@@ -12,6 +12,9 @@ services:
     command: uvicorn lang_qc.main:app --host 0.0.0.0 --port 8181
 
   proxy_server:
+    depends_on:
+      - lang_qc
+      - longue_vue
     build: ./docker/proxy/
     ports:
       - "${HTTPS_PORT}:443"
@@ -26,6 +29,8 @@ services:
 
 
   longue_vue:
+    depends_on:
+      - lang_qc
     build: 
       context: ./frontend
       args:
