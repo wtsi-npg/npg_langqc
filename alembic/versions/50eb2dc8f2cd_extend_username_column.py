@@ -18,17 +18,17 @@ depends_on = None
 
 def upgrade() -> None:
 
-    sql = '''
+    sql = """
     ALTER TABLE `user`
     MODIFY `username` VARCHAR(255) NOT NULL
-    '''
+    """
     op.execute(sql)
 
 
 def downgrade() -> None:
 
-    sql = '''
+    sql = """
     ALTER TABLE `user`
     MODIFY `username` VARCHAR(12) NOT NULL
-    ''' 
+    """
     op.execute(sql)
