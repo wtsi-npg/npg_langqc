@@ -23,7 +23,7 @@ jobs:
         run: |
           # Set BRANCH to latest if BRANCH is master
           [ $BRANCH = "master" ] && BRANCH=latest
-          docker build --label $REPOLABEL -t ghcr.io/${{ github.repository_owner }}/npg_langqc:${BRANCH} .
+          docker build --target production --label $REPOLABEL -t ghcr.io/${{ github.repository_owner }}/npg_langqc:${BRANCH} .
           docker image push ghcr.io/${{ github.repository_owner}}/npg_langqc:${BRANCH}
         env:
           REPOLABEL: "org.opencontainers.image.source=${{ github.repository_url }}"
