@@ -24,7 +24,7 @@ RUN a2enmod proxy\
   && ln -sf /dev/stderr /var/log/apache2/error.log \
   # Apache2 seems to need this folder when run directly
   # apache2ctl usually checks if it exists and makes it / cleans it up
-  && mkdir /var/run/apache2
+  && mkdir -p /var/run/apache2
 
 # Allow apache2 to shutdown gracefully
 STOPSIGNAL SIGWINCH
