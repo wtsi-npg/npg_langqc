@@ -101,9 +101,10 @@ your changes. Additionally, two databases will be spun up with the default crede
 for running unit tests, but if you want to use these databases to test the web app then you must create the schemas and
 populate the databases with some data.).
 
-Similarly, the `/frontend/` folder will be bind-mounted into the longue_vue container, and the server will hot-reload
+Similarly, the `/frontend/{src,public}` folders will be bind-mounted into the longue_vue container, and the server will hot-reload
 your changes. You will still need to reload your browser to see the changes.
 Remember to change the url to the API in the JS code.
+Any change that is done in any file not in `/frontend/{public,src}` will require a docker-compose build.
 
 ## Using Docker
 

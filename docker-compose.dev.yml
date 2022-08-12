@@ -41,4 +41,5 @@ services:
       context: ./frontend
       target: development
     volumes:
-      - ./frontend:/code/longue_vue/
+      - ./frontend/src:/code/longue_vue/src/
+      - ./frontend/public:/code/longue_vue/public/
