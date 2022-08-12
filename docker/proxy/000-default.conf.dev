@@ -1,0 +1,47 @@
+<VirtualHost *:443>
+    # ProxyPreserveHost On
+    # Servers to proxy the connection, or;
+    # List of application servers:
+    # Usage:
+    # ProxyPass / http://[IP Addr.]:[port]/
+    # ProxyPassReverse / http://[IP Addr.]:[port]/
+    # Example:
+
+    # Proxy to lang_qc API server
+    # Think of switching this to a /api/ route prefix to simplify
+    ProxyPass  /pacbio http://lang_qc:8181/pacbio
+    ProxyPassReverse /pacbio http://lang_qc:8181/pacbio
+    ProxyPass  /docs http://lang_qc:8181/docs
+    ProxyPassReverse /docs http://lang_qc:8181/docs
+    ProxyPass  /openapi.json http://lang_qc:8181/openapi.json
+    ProxyPassReverse /openapi.json http://lang_qc:8181/openapi.json    
+    
+    # Proxy to longue_vue
+    ProxyPass /ui/ http://longue_vue/ui/
+    ProxyPassReverse /ui/ http://longue_vue/ui/
+           
+    # Require login for the whole site
+    <Location />
+        AuthType openid-connect
+        Require valid-user
+    </Location>
+    
+    # Set OIDC configuration
+    OIDCProviderMetadataURL ${OIDCProviderMetadataURL}
+    OIDCClientID ${OIDCClientID}
+    OIDCClientSecret ${OIDCClientSecret}
+
+    OIDCUnAuthAction auth
+    OIDCRedirectURI ${OIDCRedirectURI}
+    OIDCCryptoPassphrase ${OIDCCryptoPassphrase}
+    OIDCScope "openid email"
+
+    # Redirect from root to the root of the web app.
+    RedirectMatch 301 ^/$ /ui/
+
+    ServerName localhost
+    SSLEngine on
+    SSLCertificateFile "/certs/cert.pem"
+    SSLCertificateKeyFile "/certs/key.pem"
+
+</VirtualHost>
