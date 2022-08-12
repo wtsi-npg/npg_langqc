@@ -30,3 +30,15 @@ services:
       - MYSQL_DATABASE=langqc
     ports:
       - "3307:3307"
+
+  proxy_server:
+    build:
+      context: ./docker/proxy
+      target: development
+
+  longue_vue:
+    build:
+      context: ./frontend
+      target: development
+    volumes:
+      - ./frontend:/code/longue_vue/

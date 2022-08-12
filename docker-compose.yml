@@ -15,7 +15,9 @@ services:
     depends_on:
       - lang_qc
       - longue_vue
-    build: ./docker/proxy/
+    build: 
+      context: ./docker/proxy/
+      target: production
     ports:
       - "${HTTPS_PORT}:443"
     environment:
@@ -33,6 +35,7 @@ services:
       - lang_qc
     build: 
       context: ./frontend
+      target: production
       args:
         API_SERVER_HOST: $SERVER_HOST
         BASE_PATH: /ui/

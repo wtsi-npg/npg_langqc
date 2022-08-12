@@ -1,4 +1,4 @@
-FROM ubuntu:focal
+FROM ubuntu:focal as production
 
 ENV DEBIAN_FRONTEND noninteractive
 
@@ -32,3 +32,7 @@ STOPSIGNAL SIGWINCH
 COPY start.sh /start.sh
 
 CMD ["/start.sh"]
+
+FROM production as development
+
+COPY 000-default.conf.dev /etc/apache2/sites-enabled/000-default.conf
