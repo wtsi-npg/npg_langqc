@@ -18,6 +18,7 @@
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
 from fastapi import APIRouter, Depends, HTTPException
+
 from sqlalchemy.orm import Session
 
 from lang_qc.db.mlwh_connection import get_mlwh_db
@@ -26,7 +27,7 @@ from lang_qc.db.qc_schema import (
     QcState,
     QcStateHist,
 )
-from lang_qc.db.utils import get_qc_state_dict, get_qc_type, get_user, get_well_metrics
+from lang_qc.db.utils import get_qc_state_dict, get_qc_type, get_well_metrics
 from lang_qc.models.inbox_models import QcStatus
 from lang_qc.util.qc_state_helpers import (
     get_seq_product_for_well,
@@ -36,6 +37,7 @@ from lang_qc.util.qc_state_helpers import (
     update_qc_state,
     NotFoundInDatabaseException,
 )
+from lang_qc.util.auth import check_user
 from lang_qc.models.qc_state_models import QcStatusAssignmentPostBody, QcClaimPostBody
 
 
@@ -51,18 +53,12 @@ def claim_well(
     run_name: str,
     well_label: str,
     body: QcClaimPostBody,
+    user=Depends(check_user),
     qcdb_session: Session = Depends(get_qc_db),
     mlwhdb_session: Session = Depends(get_mlwh_db),
 ) -> QcStatus:
 
     # Fetch "static" data first.
-
-    user = get_user(body.user, qcdb_session)
-    if user is None:
-        raise HTTPException(
-            status_code=400,
-            detail="User has not been found in the QC database. Have they been registered?",
-        )
 
     qc_type = get_qc_type(body.qc_type, qcdb_session)
     if qc_type is None:
@@ -123,21 +119,11 @@ def assign_qc_status(
     run_name: str,
     well_label: str,
     request_body: QcStatusAssignmentPostBody,
+    user=Depends(check_user),
     qcdb_session: Session = Depends(get_qc_db),
     mlwhdb_session: Session = Depends(get_mlwh_db),
 ) -> QcStatus:
 
-    qcdb_session.begin()  # This doesn't seem to be needed
-
-    # Fetch "static" data first
-    user = get_user(request_body.user, qcdb_session)
-    if user is None:
-        raise HTTPException(
-            status_code=400,
-            detail="An error occured: User has not been found in the QC database. "
-            "Have they been registered?\n"
-            f"Request body was: {request_body.json()}",
-        )
     qc_state = get_qc_state_for_well(run_name, well_label, qcdb_session)
 
     if qc_state is None:
@@ -168,7 +154,7 @@ def assign_qc_status(
     )
 
     try:
-        update_qc_state(request_body, qc_state, qcdb_session)
+        update_qc_state(request_body, qc_state, user, qcdb_session)
     except NotFoundInDatabaseException as e:
         raise HTTPException(
             status_code=400,

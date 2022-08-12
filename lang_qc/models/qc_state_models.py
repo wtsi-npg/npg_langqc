@@ -21,8 +21,8 @@ from pydantic import BaseModel
 
 
 class QcStatusAssignmentPostBody(BaseModel):
+    """Body for the qc_assign endpoint"""
 
-    user: str
     qc_type: str
     qc_state: str
     is_preliminary: bool
@@ -31,5 +31,4 @@ class QcStatusAssignmentPostBody(BaseModel):
 class QcClaimPostBody(BaseModel):
     """Body for the qc_claim endpoint."""
 
-    user: str
     qc_type: str
