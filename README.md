@@ -103,6 +103,7 @@ populate the databases with some data.).
 
 Similarly, the `/frontend/` folder will be bind-mounted into the longue_vue container, and the server will hot-reload
 your changes. You will still need to reload your browser to see the changes.
+Remember to change the url to the API in the JS code.
 
 ## Using Docker
 
