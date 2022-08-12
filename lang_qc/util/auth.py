@@ -10,8 +10,9 @@ def check_user(
     oidc_claim_email: str | None = Header(default=None, convert_underscores=False),
     qcdb_session: Session = Depends(get_qc_db),
 ) -> User:
-    """Check that a user provided in a header is registered and return the user, or error."""
+    """Check that a user provided in a header is registered and return the User object, or error."""
 
+    # Status code 407 might be more appropriate, 401 is fine for now.
     if oidc_claim_email is None:
         raise HTTPException(
             status_code=401, detail="No user provided, is the user logged in?"
@@ -20,8 +21,8 @@ def check_user(
     user = get_user(oidc_claim_email, qcdb_session)
     if user is None:
         raise HTTPException(
-            status_code=400,
-            detail="User has not been found in the QC database. Have they been registered?",
+            status_code=403,
+            detail="The user is not authorized to perform this operation.",
         )
 
     return user

@@ -129,10 +129,10 @@ def test_error_on_unknown_user(test_client: TestClient, test_data_factory):
         headers={"OIDC_CLAIM_EMAIL": "intruder@example.com"},
     )
 
-    assert response.status_code == 400
+    assert response.status_code == 403
     assert (
         response.json()["detail"]
-        == "User has not been found in the QC database. Have they been registered?"
+        == "The user is not authorized to perform this operation."
     )
 
 
