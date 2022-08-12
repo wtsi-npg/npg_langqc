@@ -95,13 +95,14 @@ docker-compose \
   up -d
 ```
 
-The `/lang_qc/` folder will be bind-mounted into the docker container, and the server will hot-reload with
+The `/lang_qc/` folder will be bind-mounted into the lang_qc docker container, and the server will hot-reload with
 your changes. Additionally, two databases will be spun up with the default credentials used when running
 `pytest` in the project (as of writing these will not have the schema setup by default: this is not a problem
 for running unit tests, but if you want to use these databases to test the web app then you must create the schemas and
 populate the databases with some data.).
 
-   
+Similarly, the `/frontend/` folder will be bind-mounted into the longue_vue container, and the server will hot-reload
+your changes. You will still need to reload your browser to see the changes.
 
 ## Using Docker
 
