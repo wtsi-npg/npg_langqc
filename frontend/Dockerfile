@@ -19,6 +19,7 @@ RUN  sed -i "s,https://dev-langqc.dnapipelines.sanger.ac.uk,${API_SERVER_HOST}/,
 FROM httpd:alpine as production
 
 COPY --from=production-build-stage /code/longue_vue/dist/ /usr/local/apache2/htdocs/
+COPY ./httpd.conf /usr/local/apache2/conf/httpd.conf
 
 FROM base-stage as development
 
