@@ -7,7 +7,7 @@ import LangQc from "@/utils/langqc.js";
 let serviceClient = null;
 let runWell = ref(null);
 let runCollection = ref(null);
-let host = "https://172.27.19.124/";
+let host = "https://dev-langqc.dnapipelines.sanger.ac.uk";
 // Replace this with bootstrapping the data service URL
 // from config or static content server
 
