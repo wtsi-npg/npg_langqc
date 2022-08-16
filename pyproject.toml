@@ -24,6 +24,7 @@ pytest = "^7.1.1"
 fastapi = { extras = ["all"], version = "^0.78.0" }
 sqlacodegen = { git = "http://github.com/agronholm/sqlacodegen.git", tag="3.0.0rc1" }
 alembic = "^1.8.1"
+isort = { version = "^5.10.1", extras = ["colors"] }
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -31,3 +32,6 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.black]
 extend-exclude = "lang_qc/db/qc_schema.py"
+
+[tool.isort]
+profile = "black"
