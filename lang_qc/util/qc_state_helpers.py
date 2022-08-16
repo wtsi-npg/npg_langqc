@@ -21,8 +21,8 @@ from datetime import datetime
 from typing import Optional
 
 from npg_id_generation import PacBioEntity
+from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
-from sqlalchemy import select, and_
 
 from lang_qc.db.qc_schema import (
     ProductLayout,

@@ -26,29 +26,27 @@ from ml_warehouse.schema import PacBioRunWellMetrics
 from sqlalchemy.orm import Session
 
 from lang_qc.db.mlwh_connection import get_mlwh_db
+from lang_qc.db.qc_connection import get_qc_db
+from lang_qc.db.qc_schema import QcState
 from lang_qc.db.utils import (
     extract_well_label_and_run_name_from_state,
-    grab_recent_wells_from_db,
-    get_inbox_wells_and_states,
     get_in_progress_wells_and_states,
+    get_inbox_wells_and_states,
     get_on_hold_wells_and_states,
     get_qc_complete_wells_and_states,
-)
-from lang_qc.db.qc_connection import get_qc_db
-from lang_qc.db.qc_schema import (
-    QcState,
+    grab_recent_wells_from_db,
 )
 from lang_qc.models.inbox_models import (
-    FilteredWellInfo,
     FilteredInboxResultEntry,
     FilteredInboxResults,
-    InboxResults,
+    FilteredWellInfo,
     InboxResultEntry,
-    WellInfo,
-    WellLabel,
+    InboxResults,
     QcStatus,
     QcStatusEnum,
     RunName,
+    WellInfo,
+    WellLabel,
 )
 
 router = APIRouter()

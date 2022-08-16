@@ -22,18 +22,14 @@ from fastapi.testclient import TestClient
 from ml_warehouse.schema import PacBioRunWellMetrics
 from sqlalchemy import select
 
-from lang_qc.db.qc_schema import (
-    QcState,
-    QcStateDict,
-)
+from lang_qc.db.qc_schema import QcState, QcStateDict
 from lang_qc.db.utils import get_well_metrics_from_qc_states
 from lang_qc.endpoints.inbox import (
     extract_well_label_and_run_name_from_state,
     pack_wells_and_states,
 )
 from lang_qc.models.inbox_models import FilteredInboxResults
-
-from tests.fixtures.inbox_data import test_data_factory, inbox_data, wells_and_states
+from tests.fixtures.inbox_data import inbox_data, test_data_factory, wells_and_states
 
 
 def test_incorrect_filter(test_client: TestClient):
