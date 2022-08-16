@@ -1,7 +1,6 @@
 from fastapi.testclient import TestClient
 
 from lang_qc import __version__
-
 from tests.fixtures.inbox_data import inbox_data
 
 

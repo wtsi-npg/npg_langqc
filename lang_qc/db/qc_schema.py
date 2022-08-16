@@ -17,7 +17,17 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
-from sqlalchemy import CHAR, Column, DateTime, ForeignKeyConstraint, Index, JSON, String, Text, text
+from sqlalchemy import (
+    CHAR,
+    JSON,
+    Column,
+    DateTime,
+    ForeignKeyConstraint,
+    Index,
+    String,
+    Text,
+    text,
+)
 from sqlalchemy.dialects.mysql import BIGINT, INTEGER, TINYINT
 from sqlalchemy.orm import declarative_base, relationship
 

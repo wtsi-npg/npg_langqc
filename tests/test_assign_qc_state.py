@@ -1,12 +1,9 @@
 import json
 
-from tests.fixtures.inbox_data import (
-    test_data_factory,
-)
-
 from fastapi.testclient import TestClient
 
 from lang_qc.models.qc_state_models import QcStatusAssignmentPostBody
+from tests.fixtures.inbox_data import test_data_factory
 
 
 def test_change_non_existent_well(test_client: TestClient, test_data_factory):

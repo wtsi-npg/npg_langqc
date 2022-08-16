@@ -18,28 +18,23 @@
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
 from fastapi import APIRouter, Depends, HTTPException
-
 from sqlalchemy.orm import Session
 
 from lang_qc.db.mlwh_connection import get_mlwh_db
 from lang_qc.db.qc_connection import get_qc_db
-from lang_qc.db.qc_schema import (
-    QcState,
-    QcStateHist,
-)
+from lang_qc.db.qc_schema import QcState, QcStateHist
 from lang_qc.db.utils import get_qc_state_dict, get_qc_type, get_well_metrics
 from lang_qc.models.inbox_models import QcStatus
+from lang_qc.models.qc_state_models import QcClaimPostBody, QcStatusAssignmentPostBody
+from lang_qc.util.auth import check_user
 from lang_qc.util.qc_state_helpers import (
-    get_seq_product_for_well,
-    get_qc_state_for_well,
+    NotFoundInDatabaseException,
     construct_seq_product_for_well,
+    get_qc_state_for_well,
+    get_seq_product_for_well,
     qc_status_json,
     update_qc_state,
-    NotFoundInDatabaseException,
 )
-from lang_qc.util.auth import check_user
-from lang_qc.models.qc_state_models import QcStatusAssignmentPostBody, QcClaimPostBody
-
 
 router = APIRouter()
 

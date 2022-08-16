@@ -1,14 +1,14 @@
 from datetime import datetime, timedelta
 from typing import List, Tuple
 
-from ml_warehouse.schema import (
-    PacBioRun,
-    PacBioProductMetrics,
-    PacBioRunWellMetrics,
-    Study,
-    Sample,
-)
 import pytest
+from ml_warehouse.schema import (
+    PacBioProductMetrics,
+    PacBioRun,
+    PacBioRunWellMetrics,
+    Sample,
+    Study,
+)
 from sqlalchemy.orm import Session
 
 from lang_qc.db.qc_schema import (
