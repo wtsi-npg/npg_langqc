@@ -35,7 +35,7 @@ role of static dictionaries.
 
 ## Running migrations
 
-Check what is going to be executed by generate an SQL script. Use
+Check what is going to be executed by generating an SQL script. Use
 
 ```alembic upgrade start:end --sql```
 
