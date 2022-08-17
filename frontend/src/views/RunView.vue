@@ -6,25 +6,24 @@ import LangQc from "@/utils/langqc.js";
 
 let serviceClient = null;
 let runWell = ref(null);
-let runCollection = null;
+let runCollection = ref(null);
 let host = "https://dev-langqc.dnapipelines.sanger.ac.uk";
 // Replace this with bootstrapping the data service URL
 // from config or static content server
+
+function loadWell(runName, label) {
+  // Sets the runWell for the QcView component below
+  serviceClient.getRunWellPromise(runName, label)
+  .then(
+    value => runWell.value = value
+  );
+}
 
 onMounted(() => {
   serviceClient = new LangQc(host);
   try {
     serviceClient.getInboxPromise().then(
-      data => runCollection = data
-    ).then(
-      () => {
-        serviceClient.getRunWellPromise(
-          runCollection[0].run_name,
-          runCollection[0].wells[0].label
-        ).then(
-          value => runWell.value = value
-        );
-      }
+      data => runCollection.value = data
     );
   } catch (error) {
     console.log("Stuff went wrong getting data from backend: "+error);
@@ -38,7 +37,22 @@ onMounted(() => {
   <h2>Runs</h2>
 </div>
 <div>
-  Some content
+  <table>
+    <tr>
+      <th>Run name</th>
+      <th>Well label</th>
+      <th>Time started</th>
+      <th>Time completed</th>
+    </tr>
+    <tr v-for="run in runCollection" >
+      <td>{{ run.run_name }}</td>
+      <td>
+        <button v-for="well in run.wells" v-on:click="loadWell(run.run_name, well.label)">{{ well.label }}</button>
+      </td>
+      <td>{{ run.time_start }}</td>
+      <td>{{ run.time_complete ? run.time_complete : ''}}</td>
+    </tr>
+  </table>
 </div>
 <div v-if="runWell !== null">
   <h2>QC view</h2>
