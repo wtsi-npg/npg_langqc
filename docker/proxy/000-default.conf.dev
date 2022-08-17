@@ -19,11 +19,25 @@
     # Proxy to longue_vue
     ProxyPass /ui/ http://longue_vue/ui/
     ProxyPassReverse /ui/ http://longue_vue/ui/
-           
+    
     # Require login for the whole site
-    <Location />
+    <Location /pacbio>
         AuthType openid-connect
         Require valid-user
+        OIDCUnAuthAction 401
+    </Location>
+    
+    <Location /login-redirect>
+        AuthType openid-connect
+        Require valid-user
+        OIDCUnAuthAction auth
+    </Location>
+    
+    <Location /ui/login>
+        AuthType openid-connect
+        Require valid-user
+        OIDCUnAuthAction auth
+        
     </Location>
     
     # Set OIDC configuration
@@ -31,10 +45,11 @@
     OIDCClientID ${OIDCClientID}
     OIDCClientSecret ${OIDCClientSecret}
 
-    OIDCUnAuthAction auth
+    
     OIDCRedirectURI ${OIDCRedirectURI}
     OIDCCryptoPassphrase ${OIDCCryptoPassphrase}
     OIDCScope "openid email"
+    OIDCInfoHook userinfo
 
     # Redirect from root to the root of the web app.
     RedirectMatch 301 ^/$ /ui/
@@ -44,4 +59,5 @@
     SSLCertificateFile "/certs/cert.pem"
     SSLCertificateKeyFile "/certs/key.pem"
 
+    
 </VirtualHost>

@@ -1,5 +1,17 @@
 <script setup>
-import { RouterLink, RouterView } from 'vue-router'
+import { RouterLink, RouterView } from 'vue-router';
+import { onMounted, ref } from "vue";
+
+let logout_redirect_url = ref(null);
+
+onMounted(() => {
+  
+  // Construct a logout url, the url to which the user is redirected must be registered
+  // in your OIDC provider application.
+  logout_redirect_url.value = "/login-redirect?logout=" + encodeURIComponent(location.origin);
+  
+})
+
 </script>
 
 <template>
@@ -12,6 +24,12 @@ import { RouterLink, RouterView } from 'vue-router'
       <nav>
         <RouterLink to="/">Home</RouterLink>
         <RouterLink to="/about">About</RouterLink>
+        <!-- 
+        Using anchors instead of RouterLinks to make the browser fetch the page from the server,
+        triggering the login or logout series of redirects.
+        -->
+        <a href="/ui/login">Login</a>
+        <a :href="logout_redirect_url">Logout</a>
       </nav>
     </div>
   </header>
