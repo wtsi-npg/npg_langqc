@@ -1,14 +1,14 @@
 from datetime import datetime, timedelta
 from typing import List, Tuple
 
-from ml_warehouse.schema import (
-    PacBioRun,
-    PacBioProductMetrics,
-    PacBioRunWellMetrics,
-    Study,
-    Sample,
-)
 import pytest
+from ml_warehouse.schema import (
+    PacBioProductMetrics,
+    PacBioRun,
+    PacBioRunWellMetrics,
+    Sample,
+    Study,
+)
 from sqlalchemy.orm import Session
 
 from lang_qc.db.qc_schema import (
@@ -94,7 +94,8 @@ def test_data_factory(mlwhdb_test_session, qcdb_test_session):
             attr_name="well_label", description="PacBio well label"
         )
         seq_platform = SeqPlatform(name="PacBio", description="Pacific Biosciences.")
-        user = User(username="zx80")
+        user = User(username="zx80@example.com")
+        other_user = User(username="cd32@example.com")
         states = ["Passed", "Failed", "Claimed", "On hold"]
         state_dicts = {}
 
@@ -103,7 +104,14 @@ def test_data_factory(mlwhdb_test_session, qcdb_test_session):
 
         qcdb_test_session.add_all(state_dicts.values())
         qcdb_test_session.add_all(
-            [library_qc_type, run_name_attr, well_label_attr, seq_platform, user]
+            [
+                library_qc_type,
+                run_name_attr,
+                well_label_attr,
+                seq_platform,
+                user,
+                other_user,
+            ]
         )
         qcdb_test_session.commit()
 

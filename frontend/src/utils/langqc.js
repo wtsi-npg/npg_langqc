@@ -9,12 +9,11 @@ export default class LangQc {
 
     this.urls = {
       inbox: this.buildUrl('pacbio/inbox', ['weeks=1']),
-      run: this.buildUrl('pacbio/run')
+      run: this.buildUrl('pacbio/run'),
+      wells_inbox: this.buildUrl('pacbio/wells', ['qc_status=inbox'])
     };
     this.commonHeaders = {
-      'Accept': 'application/json',
-      'Origin': 'https://*.dnapipelines.sanger.ac.uk',
-      'access-control-allow-origin': 'https://*.dnapipelines.sanger.ac.uk'
+      'Accept': 'application/json'
     };
   }
 
@@ -33,7 +32,7 @@ export default class LangQc {
 
   getInboxPromise() {
     return fetch(
-      this.getUrl('inbox'),
+      this.getUrl('wells_inbox'),
       {
         headers: this.commonHeaders
       }
@@ -41,7 +40,6 @@ export default class LangQc {
       response => response.json()
     ).catch(
       (error) => {
-        console.log("Why are errors hard?" + error);
         throw error;
       }
     );

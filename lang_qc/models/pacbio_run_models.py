@@ -22,7 +22,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from lang_qc.models.object_models import Study, Sample, PacBioRunWellMetrics
+from lang_qc.models.object_models import PacBioRunWellMetrics, Sample, Study
 
 
 class Well(BaseModel):

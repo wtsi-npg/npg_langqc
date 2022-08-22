@@ -17,7 +17,17 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
-from sqlalchemy import CHAR, Column, DateTime, ForeignKeyConstraint, Index, JSON, String, Text, text
+from sqlalchemy import (
+    CHAR,
+    JSON,
+    Column,
+    DateTime,
+    ForeignKeyConstraint,
+    Index,
+    String,
+    Text,
+    text,
+)
 from sqlalchemy.dialects.mysql import BIGINT, INTEGER, TINYINT
 from sqlalchemy.orm import declarative_base, relationship
 
@@ -72,7 +82,7 @@ class User(Base):
     __tablename__ = 'user'
 
     id_user = Column(INTEGER, primary_key=True)
-    username = Column(String(12), nullable=False, unique=True)
+    username = Column(String(255), nullable=False, unique=True)
     iscurrent = Column(TINYINT(1), nullable=False, server_default=text("'1'"))
     date_created = Column(DateTime, server_default=text('CURRENT_TIMESTAMP'), comment='Datetime the user record was created')
     date_updated = Column(DateTime, server_default=text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'), comment='Datetime the user record was created or changed')
