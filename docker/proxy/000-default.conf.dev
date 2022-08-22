@@ -25,6 +25,8 @@
         AuthType openid-connect
         Require valid-user
         OIDCUnAuthAction 401
+        Header set Cache-Control "private"
+        Header set Cache-Control "no-cache"
     </Location>
     
     <Location /login-redirect>
@@ -37,7 +39,8 @@
         AuthType openid-connect
         Require valid-user
         OIDCUnAuthAction auth
-        
+        Header set Cache-Control "private"
+        Header set Cache-Control "no-cache"
     </Location>
     
     # Set OIDC configuration
