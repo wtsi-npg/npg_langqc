@@ -22,7 +22,8 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from lang_qc.models.object_models import PacBioRunWellMetrics, Sample, Study
+from lang_qc.models.object_models import Sample, Study
+from lang_qc.pacbio.qc_data import QCDataWell
 
 
 class Well(BaseModel):
@@ -78,4 +79,4 @@ class PacBioRunResponse(BaseModel):
     run_info: PacBioRunInfo
     study: Study
     sample: Sample
-    metrics: PacBioRunWellMetrics
+    metrics: QCDataWell

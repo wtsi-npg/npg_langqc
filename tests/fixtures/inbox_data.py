@@ -39,6 +39,21 @@ def inbox_data(mlwhdb_test_session):
         metrics.instrument_type = "pacbio"
         metrics.ccs_execution_mode = "None"
         metrics.well_status = "Complete"
+        if label == "A1":
+            # Fill in QC data
+            metrics.productive_zmws_num = 8007271
+            metrics.binding_kit = "Sequel II Binding Kit 2.2"
+            metrics.control_num_reads = 7400
+            metrics.control_read_length_mean = 51266
+            metrics.hifi_read_bases = 28534670263
+            metrics.hifi_read_length_mean = 11619
+            metrics.local_base_rate = 2.7341
+            metrics.p0_num = 2602438
+            metrics.p1_num = 5288229
+            metrics.p2_num = 124004
+            metrics.polymerase_read_bases = 534419894800
+            metrics.polymerase_read_length_mean = 101200
+            metrics.movie_minutes = 1800
         mlwhdb_test_session.add(metrics)
 
         mlwhdb_test_session.add(

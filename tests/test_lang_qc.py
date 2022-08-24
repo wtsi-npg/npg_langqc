@@ -49,10 +49,46 @@ def test_inbox(test_client: TestClient, inbox_data):
 
 
 def test_get_well(test_client: TestClient, inbox_data):
-    """Test retrieving a well."""
+    """Test retrieving a well with and without QC data."""
 
     response = test_client.get("/pacbio/run/MARATHON/well/A0")
     assert response.status_code == 200
     result = response.json()
 
     assert result["run_info"]["well"]["label"] == "A0"
+    qc_data = {
+        "binding_kit": None,
+        "control_num_reads": None,
+        "control_read_length_mean": None,
+        "hifi_read_bases": None,
+        "hifi_read_length_mean": None,
+        "local_base_rate": None,
+        "p0_num": None,
+        "p1_num": None,
+        "p2_num": None,
+        "polymerase_read_bases": None,
+        "polymerase_read_length_mean": None,
+        "movie_minutes": None,
+    }
+    assert result["metrics"] == qc_data
+
+    response = test_client.get("/pacbio/run/MARATHON/well/A1")
+    assert response.status_code == 200
+    result = response.json()
+
+    assert result["run_info"]["well"]["label"] == "A1"
+    qc_data = {
+        "binding_kit": "Sequel II Binding Kit 2.2",
+        "control_num_reads": 7400,
+        "control_read_length_mean": 51266,
+        "hifi_read_bases": 28.53,
+        "hifi_read_length_mean": 11619,
+        "local_base_rate": 2.73,
+        "p0_num": 32.50,
+        "p1_num": 66.04,
+        "p2_num": 1.55,
+        "polymerase_read_bases": 534.42,
+        "polymerase_read_length_mean": 101200,
+        "movie_minutes": 30,
+    }
+    assert result["metrics"] == qc_data
