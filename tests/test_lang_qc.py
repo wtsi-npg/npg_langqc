@@ -57,18 +57,24 @@ def test_get_well(test_client: TestClient, inbox_data):
 
     assert result["run_info"]["well"]["label"] == "A0"
     qc_data = {
-        "binding_kit": None,
-        "control_num_reads": None,
-        "control_read_length_mean": None,
-        "hifi_read_bases": None,
-        "hifi_read_length_mean": None,
-        "local_base_rate": None,
-        "p0_num": None,
-        "p1_num": None,
-        "p2_num": None,
-        "polymerase_read_bases": None,
-        "polymerase_read_length_mean": None,
-        "movie_minutes": None,
+        "binding_kit": {"value": None, "label": "Binding Kit"},
+        "control_num_reads": {"value": None, "label": "Number of Control Reads"},
+        "control_read_length_mean": {
+            "value": None,
+            "label": "Control Read Length (bp)",
+        },
+        "hifi_read_bases": {"value": None, "label": "CCS Yield (Gb)"},
+        "hifi_read_length_mean": {"value": None, "label": "CCS Mean Length (bp)"},
+        "local_base_rate": {"value": None, "label": "CCS Mean Length (bp)"},
+        "p0_num": {"value": None, "label": "P0 %"},
+        "p1_num": {"value": None, "label": "P1 %"},
+        "p2_num": {"value": None, "label": "P2 %"},
+        "polymerase_read_bases": {"value": None, "label": "Total Cell Yield (Gb)"},
+        "polymerase_read_length_mean": {
+            "value": None,
+            "label": "Mean Ploymerase Read Length (bp)",
+        },
+        "movie_minutes": {"value": None, "label": "Run Time (hr)"},
     }
     assert result["metrics"] == qc_data
 
@@ -76,19 +82,18 @@ def test_get_well(test_client: TestClient, inbox_data):
     assert response.status_code == 200
     result = response.json()
 
+    qc_data["binding_kit"]["value"] = "Sequel II Binding Kit 2.2"
+    qc_data["control_num_reads"]["value"] = 7400
+    qc_data["control_read_length_mean"]["value"] = 51266
+    qc_data["hifi_read_bases"]["value"] = 28.53
+    qc_data["hifi_read_length_mean"]["value"] = 11619
+    qc_data["local_base_rate"]["value"] = 2.73
+    qc_data["p0_num"]["value"] = 32.50
+    qc_data["p1_num"]["value"] = 66.04
+    qc_data["p2_num"]["value"] = 1.55
+    qc_data["polymerase_read_bases"]["value"] = 534.42
+    qc_data["polymerase_read_length_mean"]["value"] = 101200
+    qc_data["movie_minutes"]["value"] = 30
+
     assert result["run_info"]["well"]["label"] == "A1"
-    qc_data = {
-        "binding_kit": "Sequel II Binding Kit 2.2",
-        "control_num_reads": 7400,
-        "control_read_length_mean": 51266,
-        "hifi_read_bases": 28.53,
-        "hifi_read_length_mean": 11619,
-        "local_base_rate": 2.73,
-        "p0_num": 32.50,
-        "p1_num": 66.04,
-        "p2_num": 1.55,
-        "polymerase_read_bases": 534.42,
-        "polymerase_read_length_mean": 101200,
-        "movie_minutes": 30,
-    }
     assert result["metrics"] == qc_data

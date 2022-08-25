@@ -25,28 +25,30 @@ from pydantic import BaseModel, Field
 
 class QCDataWell(BaseModel):
 
-    binding_kit: str = Field(default=None, title="Binding Kit")
-    control_num_reads: int = Field(default=None, title="Number of Control Reads")
-    control_read_length_mean: int = Field(
+    binding_kit: dict = Field(default=None, title="Binding Kit")
+    control_num_reads: dict = Field(default=None, title="Number of Control Reads")
+    control_read_length_mean: dict = Field(
         default=None, title="Control Read Length (bp)"
     )
-    hifi_read_bases: float = Field(default=None, title="CCS Yield (Gb)")
-    hifi_read_length_mean: int = Field(default=None, title="CCS Mean Length (bp)")
-    local_base_rate: float = Field(default=None, title="CCS Mean Length (bp)")
-    p0_num: float = Field(default=None, title="P0 %")
-    p1_num: float = Field(default=None, title="P1 %")
-    p2_num: float = Field(default=None, title="P2 %")
-    polymerase_read_bases: float = Field(default=None, title="Total Cell Yield (Gb)")
-    polymerase_read_length_mean: int = Field(
+    hifi_read_bases: dict = Field(default=None, title="CCS Yield (Gb)")
+    hifi_read_length_mean: dict = Field(default=None, title="CCS Mean Length (bp)")
+    local_base_rate: dict = Field(default=None, title="CCS Mean Length (bp)")
+    p0_num: dict = Field(default=None, title="P0 %")
+    p1_num: dict = Field(default=None, title="P1 %")
+    p2_num: dict = Field(default=None, title="P2 %")
+    polymerase_read_bases: dict = Field(default=None, title="Total Cell Yield (Gb)")
+    polymerase_read_length_mean: dict = Field(
         default=None, title="Mean Ploymerase Read Length (bp)"
     )
-    movie_minutes: int = Field(default=None, title="Run Time (hr)")
+    movie_minutes: dict = Field(default=None, title="Run Time (hr)")
 
     class Config:
         orm_mode = True
 
     @classmethod
     def from_orm(cls, obj: PacBioRunWellMetrics) -> "QCDataWell":
+
+        attrs = cls.schema()["properties"]
 
         straight_map_attr_names = [
             "binding_kit",
@@ -57,23 +59,13 @@ class QCDataWell(BaseModel):
             "polymerase_read_length_mean",
         ]
 
-        map_attr_names = [
-            *straight_map_attr_names,
-            "hifi_read_bases",
-            "polymerase_read_bases",
-            "movie_minutes",
-            "p0_num",
-            "p1_num",
-            "p2_num",
-        ]
-
         productive_zmws_num = 0
         if obj.productive_zmws_num is not None:
             productive_zmws_num = obj.productive_zmws_num
 
         qc_data = {}
 
-        for name in map_attr_names:
+        for name in attrs:
 
             value = getattr(obj, name)
 
@@ -95,6 +87,6 @@ class QCDataWell(BaseModel):
             if isinstance(value, float):
                 value = round(value, 2)
 
-            qc_data[name] = value
+            qc_data[name] = {"value": value, "label": attrs[name]["title"]}
 
         return QCDataWell.parse_obj(qc_data)
