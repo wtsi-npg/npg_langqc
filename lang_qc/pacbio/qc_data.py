@@ -25,6 +25,7 @@ from pydantic import BaseModel, Field
 
 class QCDataWell(BaseModel):
 
+    smrt_link: dict = Field(title="URL components for a SMRT Link page")
     binding_kit: dict = Field(default=None, title="Binding Kit")
     control_num_reads: dict = Field(default=None, title="Number of Control Reads")
     control_read_length_mean: dict = Field(
@@ -70,6 +71,13 @@ class QCDataWell(BaseModel):
         qc_data = {}
 
         for name in attrs:
+
+            if name == "smrt_link":
+                qc_data[name] = {
+                    "run_uuid": obj.sl_run_uuid,
+                    "hostname": obj.sl_hostname,
+                }
+                continue
 
             value = getattr(obj, name)
 

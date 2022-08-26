@@ -57,6 +57,7 @@ def test_get_well(test_client: TestClient, inbox_data):
 
     assert result["run_info"]["well"]["label"] == "A0"
     qc_data = {
+        "smrt_link": {"run_uuid": None, "hostname": None},
         "binding_kit": {"value": None, "label": "Binding Kit"},
         "control_num_reads": {"value": None, "label": "Number of Control Reads"},
         "control_read_length_mean": {
@@ -82,6 +83,10 @@ def test_get_well(test_client: TestClient, inbox_data):
     assert response.status_code == 200
     result = response.json()
 
+    qc_data["smrt_link"] = {
+        "run_uuid": "05b0a368-2548-11ed-861d-0242ac120002",
+        "hostname": "esa_host",
+    }
     qc_data["binding_kit"]["value"] = "Sequel II Binding Kit 2.2"
     qc_data["control_num_reads"]["value"] = 7400
     qc_data["control_read_length_mean"]["value"] = 51266

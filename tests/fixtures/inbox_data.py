@@ -54,6 +54,8 @@ def inbox_data(mlwhdb_test_session):
             metrics.polymerase_read_bases = 534419894800
             metrics.polymerase_read_length_mean = 101200
             metrics.movie_minutes = 1800
+            metrics.sl_run_uuid = "05b0a368-2548-11ed-861d-0242ac120002"
+            metrics.sl_hostname = "esa_host"
         mlwhdb_test_session.add(metrics)
 
         mlwhdb_test_session.add(
