@@ -6,7 +6,7 @@
     const pacBioPort = "8243";
 
     function generateSmrtLink(metric) {
-        return `https://${metric.sl_hostname}:${pacBioPort}/sl/run-qc/${metric.sl_run_uuid}`
+        return `https://${metric.smrt_link.hostname}:${pacBioPort}/sl/run-qc/${metric.smrt_link.run_uuid}`
     }
 </script>
 <template>
@@ -38,10 +38,10 @@
             <th>QC property</th>
             <th>Value</th>
         </tr>
-        <template v-for="metric, key in runWell.metrics">
-            <tr>
-                <td>{{key}}</td>
-                <td>{{metric}}</td>
+        <template v-for="(metric, key) in runWell.metrics">
+            <tr v-if="key != 'smrt_link'">
+                <td>{{metric.label}}</td>
+                <td>{{metric.value}}</td>
             </tr>
         </template>
     </table>
