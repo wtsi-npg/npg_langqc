@@ -38,7 +38,7 @@ class QCDataWell(BaseModel):
     p2_num: dict = Field(default=None, title="P2 %")
     polymerase_read_bases: dict = Field(default=None, title="Total Cell Yield (Gb)")
     polymerase_read_length_mean: dict = Field(
-        default=None, title="Mean Ploymerase Read Length (bp)"
+        default=None, title="Mean Polymerase Read Length (bp)"
     )
     movie_minutes: dict = Field(default=None, title="Run Time (hr)")
 
@@ -46,18 +46,22 @@ class QCDataWell(BaseModel):
         orm_mode = True
 
     @classmethod
-    def from_orm(cls, obj: PacBioRunWellMetrics) -> "QCDataWell":
+    def from_orm(cls, obj: PacBioRunWellMetrics):
 
+        # Introspect the class definition, get a dictionary of specs
+        # for properties with property names as the keys.
         attrs = cls.schema()["properties"]
 
-        straight_map_attr_names = [
-            "binding_kit",
-            "control_num_reads",
-            "control_read_length_mean",
-            "hifi_read_length_mean",
-            "local_base_rate",
-            "polymerase_read_length_mean",
-        ]
+        straight_map_attr_names = set(
+            [
+                "binding_kit",
+                "control_num_reads",
+                "control_read_length_mean",
+                "hifi_read_length_mean",
+                "local_base_rate",
+                "polymerase_read_length_mean",
+            ]
+        )
 
         productive_zmws_num = 0
         if obj.productive_zmws_num is not None:
@@ -87,6 +91,8 @@ class QCDataWell(BaseModel):
             if isinstance(value, float):
                 value = round(value, 2)
 
+            # Label is the value of the title of the property
+            # as defined in this class in the code above.
             qc_data[name] = {"value": value, "label": attrs[name]["title"]}
 
-        return QCDataWell.parse_obj(qc_data)
+        return cls.parse_obj(qc_data)

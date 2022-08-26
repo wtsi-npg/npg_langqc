@@ -72,7 +72,7 @@ def test_get_well(test_client: TestClient, inbox_data):
         "polymerase_read_bases": {"value": None, "label": "Total Cell Yield (Gb)"},
         "polymerase_read_length_mean": {
             "value": None,
-            "label": "Mean Ploymerase Read Length (bp)",
+            "label": "Mean Polymerase Read Length (bp)",
         },
         "movie_minutes": {"value": None, "label": "Run Time (hr)"},
     }
