@@ -55,7 +55,8 @@ def test_get_well(test_client: TestClient, inbox_data):
     assert response.status_code == 200
     result = response.json()
 
-    assert result["run_info"]["well"]["label"] == "A0"
+    assert result["run_info"]["well_label"] == "A0"
+    assert result["run_info"]["library_type"] == "pipeline type 1"
     qc_data = {
         "smrt_link": {"run_uuid": None, "hostname": None},
         "binding_kit": {"value": None, "label": "Binding Kit"},
@@ -100,5 +101,6 @@ def test_get_well(test_client: TestClient, inbox_data):
     qc_data["polymerase_read_length_mean"]["value"] = 101200
     qc_data["movie_minutes"]["value"] = 30
 
-    assert result["run_info"]["well"]["label"] == "A1"
+    assert result["run_info"]["well_label"] == "A1"
+    assert result["run_info"]["library_type"] == "pipeline type 1"
     assert result["metrics"] == qc_data

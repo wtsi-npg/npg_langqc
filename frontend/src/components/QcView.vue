@@ -19,8 +19,11 @@
             <td>Run</td><td>{{runWell.run_info.pac_bio_run_name}}</td>
         </tr>
         <tr>
-            <td>Well</td><td>{{runWell.run_info.well.label}}</td>
+            <td>Well</td><td>{{runWell.run_info.well_label}}</td>
         </tr>
+        <tr>
+            <td>Library type</td><td>{{runWell.run_info.library_type}}</td>
+        </tr> 
         <tr>
             <td>Study</td><td>{{runWell.study.id}}</td>
         </tr>
