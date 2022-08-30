@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>
 
-import re
-
 from ml_warehouse.schema import PacBioRunWellMetrics
 from pydantic import BaseModel, Field
 
@@ -33,7 +31,7 @@ class QCDataWell(BaseModel):
     )
     hifi_read_bases: dict = Field(default=None, title="CCS Yield (Gb)")
     hifi_read_length_mean: dict = Field(default=None, title="CCS Mean Length (bp)")
-    local_base_rate: dict = Field(default=None, title="CCS Mean Length (bp)")
+    local_base_rate: dict = Field(default=None, title="Local Base Rate")
     p0_num: dict = Field(default=None, title="P0 %")
     p1_num: dict = Field(default=None, title="P1 %")
     p2_num: dict = Field(default=None, title="P2 %")
@@ -53,16 +51,14 @@ class QCDataWell(BaseModel):
         # for properties with property names as the keys.
         attrs = cls.schema()["properties"]
 
-        straight_map_attr_names = set(
-            [
-                "binding_kit",
-                "control_num_reads",
-                "control_read_length_mean",
-                "hifi_read_length_mean",
-                "local_base_rate",
-                "polymerase_read_length_mean",
-            ]
-        )
+        straight_map_attr_names = {
+            "binding_kit",
+            "control_num_reads",
+            "control_read_length_mean",
+            "hifi_read_length_mean",
+            "local_base_rate",
+            "polymerase_read_length_mean",
+        }
 
         productive_zmws_num = 0
         if obj.productive_zmws_num is not None:
@@ -84,7 +80,7 @@ class QCDataWell(BaseModel):
             if (value is not None) and (name not in straight_map_attr_names):
                 if name == "movie_minutes":
                     value = round(value / 60)
-                elif re.search("p(0|1|2)_num", name):
+                elif name in ["p0_num", "p1_num", "p2_num"]:
                     if value == 0:
                         # We retain zero value whatever the denominator is.
                         pass

@@ -66,7 +66,7 @@ def test_get_well(test_client: TestClient, inbox_data):
         },
         "hifi_read_bases": {"value": None, "label": "CCS Yield (Gb)"},
         "hifi_read_length_mean": {"value": None, "label": "CCS Mean Length (bp)"},
-        "local_base_rate": {"value": None, "label": "CCS Mean Length (bp)"},
+        "local_base_rate": {"value": None, "label": "Local Base Rate"},
         "p0_num": {"value": None, "label": "P0 %"},
         "p1_num": {"value": None, "label": "P1 %"},
         "p2_num": {"value": None, "label": "P2 %"},
