@@ -43,7 +43,7 @@
         </tr>
         <template v-for="(sectionClass, name) in groupMetrics(runWell.metrics)">
             <template v-for="[niceName, metric], dbName in sectionClass">
-                <tr v-if="key != 'smrt_link'" :class=name>
+                <tr :class=name>
                     <td :title="dbName">{{niceName}}</td>
                     <td>{{metric}}</td>
                 </tr>
