@@ -64,6 +64,7 @@ def inbox_data(mlwhdb_test_session):
                 pac_bio_run_name="MARATHON",
                 last_updated=datetime.now(),
                 recorded_at=datetime.now(),
+                pipeline_id_lims="pipeline type 1",
                 id_sample_tmp=0,
                 id_study_tmp=0,
                 id_pac_bio_run_lims=0,

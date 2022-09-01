@@ -26,52 +26,20 @@ from lang_qc.models.object_models import Sample, Study
 from lang_qc.pacbio.qc_data import QCDataWell
 
 
-class Well(BaseModel):
-
-    label: str = Field(default=None, title="Well Label")
-    uuid_lims: str = Field(default=None, title="LIMS label uuid")
-
-    class Config:
-        orm_mode = False
-
-
-class PacBioLibraryTube(BaseModel):
-
-    id_lims: str = Field(default=None, title="library tube LIMS id")
-    uuid: str = Field(default=None, title="library tube uuid")
-    name: str = Field(default=None, title="library tube name")
-
-    class Config:
-        orm_mode = False
-
-
 class PacBioRunInfo(BaseModel):
 
     last_updated: date = Field(default=None)
     recorded_at: date = Field(default=None)
-    id_pac_bio_run_lims: str = Field(default=None)
     pac_bio_run_name: str = Field(default=None)
-    pipeline_id_lims: str = Field(default=None)
-    cost_code: str = Field(default=None)
-    well: Well
-    pac_bio_library_tube: PacBioLibraryTube
+    library_type: str = Field(default=None, title="Library_type")
+    well_label: str = Field(default=None, title="Well Label")
 
     class Config:
         orm_mode = True
 
     @classmethod
     def from_orm(cls, obj: Any) -> "PacBioRunInfo":
-        obj.well = Well(
-            label=getattr(obj, "well_label", None),
-            uuid_lims=getattr(obj, "well_uuid_lims", None),
-        )
-
-        obj.pac_bio_library_tube = PacBioLibraryTube(
-            id_lims=getattr(obj, "pac_bio_library_tube_id_lims", None),
-            uuid=getattr(obj, "pac_bio_library_tube_uuid", None),
-            name=getattr(obj, "pac_bio_library_tube_name", None),
-        )
-
+        obj.library_type = obj.pipeline_id_lims
         return super().from_orm(obj)
 
 
