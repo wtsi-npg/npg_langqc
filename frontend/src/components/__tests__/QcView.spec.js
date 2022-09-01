@@ -23,10 +23,9 @@ describe('Component renders', () => {
             id: 'oldSock'
           },
           metrics: {
-            sl_hostname: 'test.url',
-            sl_run_uuid: '123456',
-            metric1: 9000,
-            metric2: 'VeryBad'
+            smrt_link: {hostname: 'test.url', run_uuid: '123456'},
+            metric1: {value: 9000, label: 'metric_one'},
+            metric2: {value: 'VeryBad', label: 'metric_two'}
           }
         }
       }

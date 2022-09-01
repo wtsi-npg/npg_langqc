@@ -1,4 +1,4 @@
-import { join, reject } from "lodash";
+import { join } from "lodash";
 
 export default class LangQc {
   constructor(host) {
