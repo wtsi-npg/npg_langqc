@@ -1,4 +1,6 @@
 <script setup>
+    import groupMetrics from "../utils/metrics.js";
+
     const props = defineProps({
         runWell: Object, // PacBioRunResult
     });
@@ -9,6 +11,7 @@
         return `https://${metric.smrt_link.hostname}:${pacBioPort}/sl/run-qc/${metric.smrt_link.run_uuid}`
     }
 </script>
+
 <template>
 <div id="Top tier attributes of run">
     <table class="summary">
@@ -38,11 +41,13 @@
             <th>QC property</th>
             <th>Value</th>
         </tr>
-        <template v-for="(metric, key) in runWell.metrics">
-            <tr v-if="key != 'smrt_link'">
-                <td>{{metric.label}}</td>
-                <td>{{metric.value}}</td>
-            </tr>
+        <template v-for="(sectionClass, name) in groupMetrics(runWell.metrics)">
+            <template v-for="[niceName, metric], dbName in sectionClass">
+                <tr :class=name>
+                    <td :title="dbName">{{niceName}}</td>
+                    <td>{{metric}}</td>
+                </tr>
+            </template>
         </template>
     </table>
 </div>
@@ -55,10 +60,22 @@
     }
     th {
         font-weight: bold;
-        background-color: #9292ff
+        background-color: #9292ff;
     }
     table.summary {
         border: 0px;
         font-weight: bold;
+    }
+    .MetricOrange {
+        background-color: #F8CBAD;
+    }
+    .MetricBlue {
+        background-color: #BDD6EE;
+    }
+    .MetricGreen {
+        background-color: #C6E0B4;
+    }
+    .MetricYellow {
+        background-color: #FFE698;
     }
 </style>
