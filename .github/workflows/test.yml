@@ -9,27 +9,27 @@ on:
 jobs:
   test-packaging:
     runs-on: ubuntu-latest
-  
+
     steps:
       - uses: actions/checkout@v3
-  
+
       - uses: actions/setup-python@v3
         with:
           python-version: '3.10'
           architecture: 'x64'
-  
+
       - name: "Run pip install"
         run: |
           pip install .
-      
-  
+
+
   test:
     runs-on: ubuntu-latest
-    
+
     strategy:
       matrix:
         mysql-version: ["5.7", "8.0"]
-    
+
     services:
       mysql-mlwh:
         image: mysql:${{ matrix.mysql-version }}
@@ -64,21 +64,31 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Install Poetry
         run: |
           pipx install poetry
-        
+
       - uses: actions/setup-python@v3
         with:
           python-version: '3.10'
           architecture: 'x64'
-        
+
       - name: Run poetry install
         run: |
           poetry env use '3.10'
           poetry install
-        
+
       - name: Run pytest
         run: |
           poetry run pytest
+
+  test-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout
+      - uses: actions/setup-node
+        with:
+          node-version: '18.x'
+      - run: npm install
+      - run: npm run test
