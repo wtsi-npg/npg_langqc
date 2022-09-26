@@ -16,7 +16,7 @@ See [Vite Configuration Reference](https://vitejs.dev/config/).
 
 - Install node.js, perhaps using `nvm`
 - npm install
-- npx vitest
+- npm run test
 
 ### Compile and Hot-Reload for Development
 

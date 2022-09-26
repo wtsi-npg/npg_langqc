@@ -26,7 +26,7 @@ export default class LangQc {
   }
 
   getUrl(alias) {
-    return this.urls[alias].href;
+    return this.urls[alias];
   }
 
   getInboxPromise() {
