@@ -91,4 +91,6 @@ jobs:
         with:
           node-version: '18'
       - run: npm install
+        working-directory: ./frontend
       - run: npm run test
+        working-directory: ./frontend
