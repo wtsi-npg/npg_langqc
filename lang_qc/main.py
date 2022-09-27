@@ -21,8 +21,8 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from lang_qc.endpoints.inbox import router as pacbio_run_router
-from lang_qc.endpoints.pacbio_run import router as inbox_router
+from lang_qc.endpoints.pacbio_well import router as inbox_router
+from lang_qc.endpoints.pacbio_wells import router as pacbio_run_router
 from lang_qc.endpoints.qc_state import router as qc_state_router
 
 # Get origins from environment, must be a comma-separated list of origins
