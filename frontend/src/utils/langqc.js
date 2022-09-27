@@ -12,12 +12,12 @@ export default class LangQc {
     };
   }
 
-  buildUrl(path, args) {
+  buildUrl(path = '', args) {
     let base = '/pacbio'; // Get app base path from build stage
     let search = '';
 
     if (Array.isArray(path)) {
-      path = path.join('/');
+      path = '/' + path.join('/');
     }
     if (Array.isArray(args)) {
       search = '?' + join(args, "&");
@@ -46,7 +46,7 @@ export default class LangQc {
 
   getRunWellPromise(name, well) {
     return fetch(
-      this.buildUrl(join(['run', name,'well',well])),
+      this.buildUrl(['run', name,'well',well]),
       {
         headers: this.commonHeaders
       }
