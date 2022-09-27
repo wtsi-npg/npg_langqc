@@ -23,7 +23,7 @@
         </tr>
         <tr>
             <td>Library type</td><td>{{runWell.run_info.library_type}}</td>
-        </tr> 
+        </tr>
         <tr>
             <td>Study</td><td>{{runWell.study.id}}</td>
         </tr>
@@ -44,8 +44,8 @@
             <th>QC property</th>
             <th>Value</th>
         </tr>
-        <template v-for="(sectionClass, name) in groupMetrics(runWell.metrics)">
-            <template v-for="[niceName, metric], dbName in sectionClass">
+        <template :key="name" v-for="(sectionClass, name) in groupMetrics(runWell.metrics)">
+            <template :key="niceName" v-for="[niceName, metric], dbName in sectionClass">
                 <tr :class=name>
                     <td :title="dbName">{{niceName}}</td>
                     <td>{{metric}}</td>

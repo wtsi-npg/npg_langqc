@@ -2,21 +2,13 @@ import { describe, expect, test, vi } from 'vitest';
 import LangQc from "../langqc.js";
 import createFetchMock from 'vitest-fetch-mock';
 
-
-describe('Instantiate client', () => {
-    test('No argument, no instance', () => {
-        expect(() => { new LangQc() })
-        .toThrowError('LangQc client must know where the web service is')
-    })
-});
-
 describe('Constructing LangQC client', () => {
     test('Check route setting', () => {
-        let client = new LangQc('https://niceplace.test');
+        let client = new LangQc();
         expect(client).toBeDefined();
 
-        expect(client.getUrl('inbox').toString()).toEqual('https://niceplace.test/pacbio/inbox?weeks=1');
-        expect(client.getUrl('run').toString()).toEqual('https://niceplace.test/pacbio/run');
+        expect(client.getUrl('inbox').toString()).toEqual('/pacbio/inbox?weeks=1');
+        expect(client.getUrl('run').toString()).toEqual('/pacbio/run');
     })
 });
 
@@ -30,7 +22,7 @@ describe('Example fake remote api call', () => {
         })
     );
 
-    let client = new LangQc('https://niceplace.test');
+    let client = new LangQc();
     let response = client.getInboxPromise();
     // No internet used!
     test('Data in comes straight out again', () => {

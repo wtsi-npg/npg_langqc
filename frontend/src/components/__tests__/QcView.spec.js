@@ -1,6 +1,5 @@
 import { describe, expect, test } from 'vitest';
 import { render } from '@testing-library/vue';
-// import { mount } from '@vue/test-utils';
 
 import QcView from '../QcView.vue';
 

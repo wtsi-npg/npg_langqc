@@ -44,10 +44,10 @@ onMounted(() => {
       <th>Time started</th>
       <th>Time completed</th>
     </tr>
-    <tr v-for="run in runCollection" >
+    <tr :key="run.run_name" v-for="run in runCollection" >
       <td>{{ run.run_name }}</td>
       <td>
-        <button v-for="well in run.wells" v-on:click="loadWell(run.run_name, well.label)">{{ well.label }}</button>
+        <button :key="well.label" v-for="well in run.wells" v-on:click="loadWell(run.run_name, well.label)">{{ well.label }}</button>
       </td>
       <td>{{ run.time_start }}</td>
       <td>{{ run.time_complete ? run.time_complete : ''}}</td>

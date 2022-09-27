@@ -26,6 +26,7 @@ export default function groupMetrics(metrics) {
         for (const label of members) {
             if (! (cssClass in groupedMetrics)) { groupedMetrics[cssClass] = {} };
 
+            if (! (label in metrics)) { continue; }
             if (Number.isInteger(metrics[label].value)) {
                 // Format integers into 1,000 where appropriate
                 groupedMetrics[cssClass][label] = [metrics[label].label, metrics[label].value.toLocaleString()];
@@ -34,6 +35,5 @@ export default function groupMetrics(metrics) {
             }
         }
     }
-    console.log(groupedMetrics);
     return groupedMetrics;
 }
