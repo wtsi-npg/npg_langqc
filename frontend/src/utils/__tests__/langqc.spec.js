@@ -3,7 +3,7 @@ import LangQc from "../langqc.js";
 import createFetchMock from 'vitest-fetch-mock';
 
 describe('Constructing LangQC client', () => {
-    test('Check route setting', () => {
+    test('Check default route setting', () => {
         let client = new LangQc();
         expect(client).toBeDefined();
 
@@ -18,7 +18,7 @@ describe('Example fake remote api call', () => {
 
     fetch.mockResolvedValue(
         new Promise( () => {
-            stuff: 'nonsense'
+            return {stuff: 'nonsense'}
         })
     );
 
@@ -31,5 +31,23 @@ describe('Example fake remote api call', () => {
         });
 
         expect(fetch.mock.calls.length).toEqual(1);
+    });
+});
+
+describe('URL generation' , () => {
+    let client = new LangQc();
+
+    test('buildUrl edges', () => {
+        expect(client.buildUrl()).toEqual('/pacbio');
+
+        expect(client.buildUrl('/wells/stuff')).toEqual('/pacbio/wells/stuff');
+
+        expect(client.buildUrl('/wells', ['weeks=1'])).toEqual('/pacbio/wells?weeks=1');
+
+        expect(client.buildUrl(['run', 'TRACTION-RUN-10', 'well', 'B1'])).toEqual('/pacbio/run/TRACTION-RUN-10/well/B1');
+    });
+
+    test('getUrl', () => {
+        expect(client.getUrl('run')).toEqual('/pacbio/run')
     });
 });
