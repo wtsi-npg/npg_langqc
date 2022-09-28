@@ -16,10 +16,10 @@ def test_not_found(test_client: TestClient):
 
 def test_inbox(test_client: TestClient, inbox_data):
     """Test the inbox endpoint."""
-    response = test_client.get("/pacbio/inbox?weeks=1")
 
+    response = test_client.get("/pacbio/wells")
     assert response.status_code == 200
-    assert set([well["label"] for well in response.json()[0]["wells"]]) == set(
+    wells_1 = set(
         [
             "A0",
             "A1",
@@ -30,8 +30,13 @@ def test_inbox(test_client: TestClient, inbox_data):
             "A6",
         ]
     )
+    assert set([well["label"] for well in response.json()[0]["wells"]]) == wells_1
 
-    response = test_client.get("/pacbio/inbox?weeks=2")
+    response = test_client.get("/pacbio/wells?qc_status=inbox")
+    assert response.status_code == 200
+    assert set([well["label"] for well in response.json()[0]["wells"]]) == wells_1
+
+    response = test_client.get("/pacbio/wells?qc_status=inbox&weeks=2")
     assert response.status_code == 200
     assert set([well["label"] for well in response.json()[0]["wells"]]) == set(
         [

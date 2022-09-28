@@ -7,7 +7,7 @@ describe('Constructing LangQC client', () => {
         let client = new LangQc();
         expect(client).toBeDefined();
 
-        expect(client.getUrl('inbox').toString()).toEqual('/pacbio/inbox?weeks=1');
+        expect(client.getUrl('wells_inbox').toString()).toEqual('/pacbio/wells?qc_status=inbox&weeks=1');
         expect(client.getUrl('run').toString()).toEqual('/pacbio/run');
     })
 });

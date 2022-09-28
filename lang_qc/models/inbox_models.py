@@ -55,11 +55,6 @@ class InboxResultEntry(BaseModel):
     wells: List[WellInfo]
 
 
-class InboxResults(BaseModel):
-
-    __root__: List[InboxResultEntry]
-
-
 class QcStatus(BaseModel):
     """Represents QC metadata associated with a QC-able entity (usually a well).
 
