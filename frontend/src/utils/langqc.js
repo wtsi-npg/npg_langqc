@@ -3,9 +3,8 @@ import { join } from "lodash";
 export default class LangQc {
   constructor() {
     this.urls = {
-      inbox: this.buildUrl('/inbox', ['weeks=1']),
       run: this.buildUrl('/run'),
-      wells_inbox: this.buildUrl('/wells', ['qc_status=inbox'])
+      wells_inbox: this.buildUrl('/wells', ['qc_status=inbox', 'weeks=1'])
     };
     this.commonHeaders = {
       'Accept': 'application/json'
