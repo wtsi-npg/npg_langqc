@@ -36,6 +36,12 @@ def test_inbox(test_client: TestClient, inbox_data):
     assert response.status_code == 200
     assert set([well["label"] for well in response.json()[0]["wells"]]) == wells_1
 
+    response = test_client.get("/pacbio/wells?weeks=-1")
+    assert response.status_code == 422  # positive value is expected
+
+    response = test_client.get("/pacbio/wells?qc_status=something")
+    assert response.status_code == 422
+
     response = test_client.get("/pacbio/wells?qc_status=inbox&weeks=2")
     assert response.status_code == 200
     assert set([well["label"] for well in response.json()[0]["wells"]]) == set(

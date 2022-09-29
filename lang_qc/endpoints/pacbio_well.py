@@ -22,8 +22,10 @@ from typing import Dict, List, Tuple
 
 from fastapi import APIRouter, Depends, HTTPException
 from ml_warehouse.schema import PacBioRun, PacBioRunWellMetrics
+from pydantic import PositiveInt
 from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
+from starlette import status
 
 from lang_qc.db.mlwh_connection import get_mlwh_db
 from lang_qc.db.qc_connection import get_qc_db
@@ -62,17 +64,32 @@ from lang_qc.util.qc_state_helpers import (
 router = APIRouter(
     prefix="/pacbio",
     tags=["pacbio"],
+    responses={
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {"description": "Unexpected error"}
+    },
 )
 
 
 @router.get(
     "/wells",
-    tags=["Listing of wells filtered by status"],
+    summary="Get a list of runs with wells filtered by status",
+    description="""
+         Taking an optional 'qc_status' as a query parameter, returns a list of
+         runs with wells filtered by status. The default qc status is 'inbox'.
+         Possible values for this parameter are defined in QcStatusEnum. For the
+         inbox view an optional 'weeks' query parameter can be used, it defaults
+         to one week and defines the number of weeks to look back.
+    """,
+    responses={
+        status.HTTP_422_UNPROCESSABLE_ENTITY: {
+            "description": "Invalid query parameter value"
+        }
+    },
     response_model=FilteredInboxResults,
 )
 def get_wells_filtered_by_status(
     qc_status: QcStatusEnum = QcStatusEnum.INBOX,
-    weeks: int = 1,
+    weeks: PositiveInt = 1,
     qcdb_session: Session = Depends(get_qc_db),
     mlwh_session: Session = Depends(get_mlwh_db),
 ):
@@ -83,7 +100,7 @@ def get_wells_filtered_by_status(
 
 @router.get(
     "/run/{run_name}/well/{well_label}",
-    tags=["Well QC data"],
+    summary="Get QC data for a well",
     response_model=PacBioRunResponse,
 )
 def get_pacbio_well(
@@ -114,7 +131,7 @@ def get_pacbio_well(
 
 @router.post(
     "/run/{run_name}/well/{well_label}/qc_claim",
-    tags=["Well level QC operations"],
+    summary="Well level QC operation - claim the well to start QC",
     response_model=QcStatus,
 )
 def claim_well(
@@ -180,7 +197,7 @@ def claim_well(
 
 @router.post(
     "/run/{run_name}/well/{well_label}/qc_assign",
-    tags=["Well level QC operations"],
+    summary=["Well level QC operation - assign QC state"],
     response_model=QcStatus,
 )
 def assign_qc_status(
@@ -324,7 +341,10 @@ def pack_wells_and_states(wells, qc_states) -> FilteredInboxResults:
 
 
 def grab_wells_with_status(
-    status: QcStatusEnum, qcdb_session: Session, mlwh_session: Session, weeks: int = 1
+    status: QcStatusEnum,
+    qcdb_session: Session,
+    mlwh_session: Session,
+    weeks: PositiveInt = 1,
 ) -> Tuple[List[PacBioRunWellMetrics], List[QcState]]:
     """Get wells from the QC DB filtered by QC status."""
 
