@@ -16,6 +16,7 @@
 #
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
+
 from typing import List, Tuple
 
 from fastapi.testclient import TestClient
@@ -28,7 +29,7 @@ from lang_qc.endpoints.pacbio_well import (
     extract_well_label_and_run_name_from_state,
     pack_wells_and_states,
 )
-from lang_qc.models.inbox_models import FilteredInboxResults
+from lang_qc.models.inbox_models import FilteredInboxResultEntry
 from tests.fixtures.inbox_data import inbox_data, test_data_factory, wells_and_states
 
 
@@ -48,21 +49,23 @@ def assert_filtered_inbox_equals_expected(response, expected_data):
     """
 
     assert response.status_code == 200
-    content = FilteredInboxResults.parse_obj(response.json())
+    results = response.json()
+    assert type(results) is list
 
     # We try to unpack the data to make expected data again
 
     actual_data = {}
 
-    for result in content.__root__:
+    for result in results:
+        assert type(result) is dict
         wells = {}
-        for well_info in result.wells:
-            wells[well_info.label] = (
-                well_info.qc_status.qc_state
-                if well_info.qc_status is not None
+        for well_info in result["wells"]:
+            wells[well_info["label"]] = (
+                well_info["qc_status"]["qc_state"]
+                if well_info["qc_status"] is not None
                 else None
             )
-        actual_data[result.run_name] = wells
+        actual_data[result["run_name"]] = wells
 
     assert actual_data == expected_data
 

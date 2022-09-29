@@ -78,8 +78,3 @@ class FilteredWellInfo(WellInfo):
 class FilteredInboxResultEntry(InboxResultEntry):
 
     wells: List[FilteredWellInfo]
-
-
-class FilteredInboxResults(BaseModel):
-
-    __root__: List[FilteredInboxResultEntry]

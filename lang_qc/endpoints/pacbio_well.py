@@ -42,7 +42,6 @@ from lang_qc.db.utils import (
 )
 from lang_qc.models.inbox_models import (
     FilteredInboxResultEntry,
-    FilteredInboxResults,
     FilteredWellInfo,
     QcStatus,
     QcStatusEnum,
@@ -85,7 +84,7 @@ router = APIRouter(
             "description": "Invalid query parameter value"
         }
     },
-    response_model=FilteredInboxResults,
+    response_model=List[FilteredInboxResultEntry],
 )
 def get_wells_filtered_by_status(
     qc_status: QcStatusEnum = QcStatusEnum.INBOX,
@@ -251,8 +250,9 @@ def assign_qc_status(
     return qc_status_json(qc_state)
 
 
-def pack_wells_and_states(wells, qc_states) -> FilteredInboxResults:
-    """Pack wells and states together into FilteredInboxResults.
+def pack_wells_and_states(wells, qc_states) -> List[FilteredInboxResultEntry]:
+    """Pack wells and states together into a list of FilteredInboxResultEntry
+    objects.
 
     If a well does not have a corresponding QC state, it will be
     set to `None`.
@@ -312,7 +312,7 @@ def pack_wells_and_states(wells, qc_states) -> FilteredInboxResults:
         )
 
     # Construct the results
-    results: FilteredInboxResults = []
+    results: List = []
 
     for run_name, raw_wells_dict in packed_wells.items():
         raw_wells = raw_wells_dict.values()
