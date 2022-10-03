@@ -65,8 +65,6 @@ def assert_filtered_inbox_equals_expected(response, expected_data):
             else None
         )
         actual_data.append({rwell: qc_state})
-    print(actual_data)
-    print(expected_data)
     assert actual_data == expected_data
 
 

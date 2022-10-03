@@ -257,12 +257,12 @@ def pack_wells_and_states(wells, qc_states) -> List[InboxResultEntry]:
     well_id2qc_state: Dict = {}
 
     for well in wells:
-        unique_id = _get_id_for_well((well.pac_bio_run_name, well.well_label))
+        unique_id = _id_for_well((well.pac_bio_run_name, well.well_label))
         well_id2well[unique_id] = well
 
     for state in qc_states:
 
-        unique_id = _get_id_for_well(extract_well_label_and_run_name_from_state(state))
+        unique_id = _id_for_well(extract_well_label_and_run_name_from_state(state))
         if unique_id not in well_id2well:
             raise Exception(
                 f"A state has been found which does not correspond to a well: {state}"
@@ -282,7 +282,7 @@ def pack_wells_and_states(wells, qc_states) -> List[InboxResultEntry]:
     results: List = []
     # Sort the keys so that the wells are listed in order of
     # run name, then well label.
-    for well_id in sorted(well_id2well.keys()):
+    for well_id in sorted(well_id2well):
         well = well_id2well[well_id]
         results.append(
             InboxResultEntry(
@@ -322,6 +322,6 @@ def grab_wells_with_status(
             raise Exception("An unknown filter was passed.")
 
 
-def _get_id_for_well(run_well: Tuple) -> str:
+def _id_for_well(run_well: Tuple) -> str:
 
     return ":".join(run_well)
