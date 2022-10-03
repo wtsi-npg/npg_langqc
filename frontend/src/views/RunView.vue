@@ -44,7 +44,7 @@ onMounted(() => {
       <th>Time started</th>
       <th>Time completed</th>
     </tr>
-    <tr v-for="wellObj in wellCollection" >
+    <tr :key="wellObj.run_name + ':' + wellObj.well.label" v-for="wellObj in wellCollection" >
       <td>{{ wellObj.run_name }}</td>
       <td>
         <button v-on:click="loadWell(wellObj.run_name, wellObj.well.label)">{{ wellObj.well.label }}</button>
