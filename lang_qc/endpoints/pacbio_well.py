@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
-from dataclasses import dataclass
 from typing import Dict, List, Tuple
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -41,13 +40,10 @@ from lang_qc.db.utils import (
     get_well_metrics,
 )
 from lang_qc.models.inbox_models import (
-    FilteredInboxResultEntry,
-    FilteredInboxResults,
-    FilteredWellInfo,
+    InboxResultEntry,
     QcStatus,
     QcStatusEnum,
-    RunName,
-    WellLabel,
+    WellInfo,
 )
 from lang_qc.models.pacbio_run_models import PacBioRunResponse, Sample, Study
 from lang_qc.models.qc_state_models import QcClaimPostBody, QcStatusAssignmentPostBody
@@ -85,7 +81,7 @@ router = APIRouter(
             "description": "Invalid query parameter value"
         }
     },
-    response_model=FilteredInboxResults,
+    response_model=List[InboxResultEntry],
 )
 def get_wells_filtered_by_status(
     qc_status: QcStatusEnum = QcStatusEnum.INBOX,
@@ -251,56 +247,28 @@ def assign_qc_status(
     return qc_status_json(qc_state)
 
 
-def pack_wells_and_states(wells, qc_states) -> FilteredInboxResults:
-    """Pack wells and states together into FilteredInboxResults.
+def pack_wells_and_states(wells, qc_states) -> List[InboxResultEntry]:
+    """Pack wells and states together into a list of InboxResultEntry objects.
 
-    If a well does not have a corresponding QC state, it will be
-    set to `None`.
+    If a well does not have a corresponding QC state, it will be set to `None`.
     """
 
-    @dataclass
-    class RawWellWithState:
-        """A convenience class to wrap wells and qc state into one."""
-
-        metrics: PacBioRunWellMetrics
-        qc_status: QcStatus
-
-    # Start sorting the wells into runs.
-    packed_wells: Dict[RunName, Dict[WellLabel, RawWellWithState]] = {}
+    well_id2well: Dict = {}
+    well_id2qc_state: Dict = {}
 
     for well in wells:
+        unique_id = _id_for_well((well.pac_bio_run_name, well.well_label))
+        well_id2well[unique_id] = well
 
-        run_name = well.pac_bio_run_name
-        well_label = well.well_label
-
-        if run_name not in packed_wells:
-            packed_wells[run_name] = {}
-
-        if well_label not in packed_wells[run_name]:
-            packed_wells[run_name][well_label] = RawWellWithState(
-                metrics=well, qc_status=None
-            )
-        else:
-            raise Exception(
-                "Conflicting PacBioRunWellMetrics: \n"
-                f"\tleft: {packed_wells[run_name][well_label]}\n"
-                f"\tright: {well}"
-            )
-
-    # Add the QC states to their corresponding wells.
     for state in qc_states:
-        run_name, well_label = extract_well_label_and_run_name_from_state(state)
 
-        if run_name not in packed_wells.keys():
-            raise Exception(
-                f"A state has been found which does not correspond to a run: {state}"
-            )
-        if well_label not in packed_wells[run_name].keys():
+        unique_id = _id_for_well(extract_well_label_and_run_name_from_state(state))
+        if unique_id not in well_id2well:
             raise Exception(
                 f"A state has been found which does not correspond to a well: {state}"
             )
 
-        packed_wells[run_name][well_label].qc_status = QcStatus(
+        well_id2qc_state[unique_id] = QcStatus(
             user=state.user.username,
             date_created=state.date_created,
             date_updated=state.date_updated,
@@ -311,29 +279,22 @@ def pack_wells_and_states(wells, qc_states) -> FilteredInboxResults:
             created_by=state.created_by,
         )
 
-    # Construct the results
-    results: FilteredInboxResults = []
-
-    for run_name, raw_wells_dict in packed_wells.items():
-        raw_wells = raw_wells_dict.values()
-        first_well = next(iter(raw_wells))
-        time_start = first_well.metrics.run_start
-        time_complete = first_well.metrics.run_complete
+    results: List = []
+    # Sort the keys so that the wells are listed in order of
+    # run name, then well label.
+    for well_id in sorted(well_id2well):
+        well = well_id2well[well_id]
         results.append(
-            FilteredInboxResultEntry(
-                run_name=run_name,
-                # There will always be at least one well in a run.
-                time_start=time_start,
-                time_complete=time_complete,
-                wells=[
-                    FilteredWellInfo(
-                        label=raw_well.metrics.well_label,
-                        start=raw_well.metrics.well_start,
-                        complete=raw_well.metrics.well_complete,
-                        qc_status=raw_well.qc_status,
-                    )
-                    for raw_well in raw_wells
-                ],
+            InboxResultEntry(
+                run_name=well.pac_bio_run_name,
+                time_start=well.run_start,
+                time_complete=well.run_complete,
+                well=WellInfo(
+                    label=well.well_label,
+                    start=well.well_start,
+                    complete=well.well_complete,
+                    qc_status=well_id2qc_state.get(well_id, None),
+                ),
             )
         )
 
@@ -359,3 +320,8 @@ def grab_wells_with_status(
             return get_qc_complete_wells_and_states(qcdb_session, mlwh_session)
         case _:
             raise Exception("An unknown filter was passed.")
+
+
+def _id_for_well(run_well: Tuple) -> str:
+
+    return ":".join(run_well)

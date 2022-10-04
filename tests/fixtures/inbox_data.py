@@ -234,4 +234,4 @@ def wells_and_states() -> Tuple[List[PacBioRunWellMetrics], List[QcState]]:
                 )
             )
 
-        return (run_metrics, states)
+    return (run_metrics, states)

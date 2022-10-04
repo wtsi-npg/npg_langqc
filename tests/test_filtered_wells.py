@@ -16,6 +16,7 @@
 #
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
+
 from typing import List, Tuple
 
 from fastapi.testclient import TestClient
@@ -28,7 +29,6 @@ from lang_qc.endpoints.pacbio_well import (
     extract_well_label_and_run_name_from_state,
     pack_wells_and_states,
 )
-from lang_qc.models.inbox_models import FilteredInboxResults
 from tests.fixtures.inbox_data import inbox_data, test_data_factory, wells_and_states
 
 
@@ -37,6 +37,9 @@ def test_incorrect_filter(test_client: TestClient):
 
     response = test_client.get("/pacbio/wells?qc_status=thisdoesntexist")
     assert response.status_code == 422
+
+    response = test_client.get("/pacbio/wells?weeks=-1")
+    assert response.status_code == 422  # positive value is expected
 
 
 def assert_filtered_inbox_equals_expected(response, expected_data):
@@ -48,22 +51,20 @@ def assert_filtered_inbox_equals_expected(response, expected_data):
     """
 
     assert response.status_code == 200
-    content = FilteredInboxResults.parse_obj(response.json())
+    results = response.json()
+    assert type(results) is list
 
-    # We try to unpack the data to make expected data again
+    actual_data = []
 
-    actual_data = {}
-
-    for result in content.__root__:
-        wells = {}
-        for well_info in result.wells:
-            wells[well_info.label] = (
-                well_info.qc_status.qc_state
-                if well_info.qc_status is not None
-                else None
-            )
-        actual_data[result.run_name] = wells
-
+    for result in results:
+        assert type(result) is dict
+        rwell = result["run_name"] + ":" + result["well"]["label"]
+        qc_state = (
+            result["well"]["qc_status"]["qc_state"]
+            if result["well"]["qc_status"] is not None
+            else None
+        )
+        actual_data.append({rwell: qc_state})
     assert actual_data == expected_data
 
 
@@ -79,10 +80,11 @@ def test_qc_complete_filter(test_client: TestClient, test_data_factory):
 
     response = test_client.get("/pacbio/wells?qc_status=qc_complete")
 
-    expected_data = {
-        "MARATHON": {"A1": "Passed", "A2": "Passed"},
-        "SEMI-MARATHON": {"A1": "Failed"},
-    }
+    expected_data = [
+        {"MARATHON:A1": "Passed"},
+        {"MARATHON:A2": "Passed"},
+        {"SEMI-MARATHON:A1": "Failed"},
+    ]
     assert_filtered_inbox_equals_expected(response, expected_data)
 
 
@@ -96,10 +98,11 @@ def test_on_hold_filter(test_client: TestClient, test_data_factory):
     }
     test_data_factory(desired_wells)
     response = test_client.get("/pacbio/wells?qc_status=on_hold")
-    expected_data = {
-        "MARATHON": {"A3": "On hold"},
-        "QUARTER-MILE": {"A2": "On hold", "A3": "On hold"},
-    }
+    expected_data = [
+        {"MARATHON:A3": "On hold"},
+        {"QUARTER-MILE:A2": "On hold"},
+        {"QUARTER-MILE:A3": "On hold"},
+    ]
 
     assert_filtered_inbox_equals_expected(response, expected_data)
 
@@ -114,9 +117,10 @@ def test_in_progress_filter(test_client: TestClient, test_data_factory):
     }
     test_data_factory(desired_wells)
     response = test_client.get("/pacbio/wells?qc_status=in_progress")
-    expected_data = {
-        "SEMI-MARATHON": {"A3": "Claimed", "A2": "Claimed"},
-    }
+    expected_data = [
+        {"SEMI-MARATHON:A2": "Claimed"},
+        {"SEMI-MARATHON:A3": "Claimed"},
+    ]
 
     assert_filtered_inbox_equals_expected(response, expected_data)
 
@@ -131,13 +135,31 @@ def test_inbox_filter(test_client: TestClient, test_data_factory):
     }
     test_data_factory(desired_wells)
     response = test_client.get("/pacbio/wells?qc_status=inbox")
-    expected_data = {
-        "MARATHON": {"A4": None},
-        "SEMI-MARATHON": {"A4": None},
-        "QUARTER-MILE": {"A1": None, "A4": None},
-    }
+    expected_data = [
+        {"MARATHON:A4": None},
+        {"QUARTER-MILE:A1": None},
+        {"QUARTER-MILE:A4": None},
+        {"SEMI-MARATHON:A4": None},
+    ]
 
     assert_filtered_inbox_equals_expected(response, expected_data)
+
+    response = test_client.get("/pacbio/wells?qc_status=inbox&weeks=1")
+    assert_filtered_inbox_equals_expected(response, expected_data)
+
+
+def test_multiple_weeks_filter(test_client: TestClient, inbox_data):
+
+    wells_list = ["A0", "A1", "A2", "A3", "A4", "A5", "A6"]
+
+    response = test_client.get("/pacbio/wells?qc_status=inbox&weeks=1")
+    assert response.status_code == 200
+    assert [well_item["well"]["label"] for well_item in response.json()] == wells_list
+
+    response = test_client.get("/pacbio/wells?qc_status=inbox&weeks=2")
+    assert response.status_code == 200
+    wells_list.extend(["A7", "A8"])
+    assert [well_item["well"]["label"] for well_item in response.json()] == wells_list
 
 
 def test_default_filter(test_client: TestClient, test_data_factory):
@@ -149,12 +171,13 @@ def test_default_filter(test_client: TestClient, test_data_factory):
         "QUARTER-MILE": {"A1": None, "A2": "On hold", "A3": "On hold", "A4": None},
     }
     test_data_factory(desired_wells)
-    response = test_client.get("/pacbio/wells?qc_status=inbox")
-    expected_data = {
-        "MARATHON": {"A4": None},
-        "SEMI-MARATHON": {"A4": None},
-        "QUARTER-MILE": {"A1": None, "A4": None},
-    }
+    response = test_client.get("/pacbio/wells")
+    expected_data = [
+        {"MARATHON:A4": None},
+        {"QUARTER-MILE:A1": None},
+        {"QUARTER-MILE:A4": None},
+        {"SEMI-MARATHON:A4": None},
+    ]
 
     assert_filtered_inbox_equals_expected(response, expected_data)
 
@@ -164,35 +187,12 @@ def test_pack_well_and_states(wells_and_states):
 
     wells, states = wells_and_states
 
-    packed: FilteredInboxResults = pack_wells_and_states(wells, states)
+    packed = pack_wells_and_states(wells, states)
 
-    # Count the wells in packed
-    count = 0
-    for entry in packed:
-        count += len(entry.wells)
+    assert len(packed) == 7
 
-    assert len(wells) == count
-
-    for entry in packed:
-        # Check that each result has a corresponding qc_status and
-        # that all wells are accounted for.
-        for well in entry.wells:
-            assert well.qc_status is not None
-
-        corresponding_well_metrics: List[PacBioRunWellMetrics] = [
-            well for well in wells if well.pac_bio_run_name == entry.run_name
-        ]
-
-        assert [well.label for well in entry.wells] == [
-            well.well_label for well in corresponding_well_metrics
-        ]
-
-        # Remove them from the original list to make sure there are no duplicates.
-        for well in corresponding_well_metrics:
-            wells.remove(well)
-
-    # If there are no duplicates then the starting list of wells should be empty.
-    assert len(wells) == 0
+    for well_entry in packed:
+        assert well_entry.well.qc_status is not None
 
 
 def test_extract_well_label_and_run_name_from_state(
@@ -237,3 +237,61 @@ def test_get_well_metrics_from_qc_states(
     )
 
     assert expected == actual
+
+
+def test_get_well(test_client: TestClient, inbox_data):
+    """Test retrieving a well with and without QC data."""
+
+    response = test_client.get("/pacbio/run/MARATHON/well/A0")
+    assert response.status_code == 200
+    result = response.json()
+
+    assert result["run_info"]["well_label"] == "A0"
+    assert result["run_info"]["library_type"] == "pipeline type 1"
+    qc_data = {
+        "smrt_link": {"run_uuid": None, "hostname": None},
+        "binding_kit": {"value": None, "label": "Binding Kit"},
+        "control_num_reads": {"value": None, "label": "Number of Control Reads"},
+        "control_read_length_mean": {
+            "value": None,
+            "label": "Control Read Length (bp)",
+        },
+        "hifi_read_bases": {"value": None, "label": "CCS Yield (Gb)"},
+        "hifi_read_length_mean": {"value": None, "label": "CCS Mean Length (bp)"},
+        "local_base_rate": {"value": None, "label": "Local Base Rate"},
+        "p0_num": {"value": None, "label": "P0 %"},
+        "p1_num": {"value": None, "label": "P1 %"},
+        "p2_num": {"value": None, "label": "P2 %"},
+        "polymerase_read_bases": {"value": None, "label": "Total Cell Yield (Gb)"},
+        "polymerase_read_length_mean": {
+            "value": None,
+            "label": "Mean Polymerase Read Length (bp)",
+        },
+        "movie_minutes": {"value": None, "label": "Run Time (hr)"},
+    }
+    assert result["metrics"] == qc_data
+
+    response = test_client.get("/pacbio/run/MARATHON/well/A1")
+    assert response.status_code == 200
+    result = response.json()
+
+    qc_data["smrt_link"] = {
+        "run_uuid": "05b0a368-2548-11ed-861d-0242ac120002",
+        "hostname": "esa_host",
+    }
+    qc_data["binding_kit"]["value"] = "Sequel II Binding Kit 2.2"
+    qc_data["control_num_reads"]["value"] = 7400
+    qc_data["control_read_length_mean"]["value"] = 51266
+    qc_data["hifi_read_bases"]["value"] = 28.53
+    qc_data["hifi_read_length_mean"]["value"] = 11619
+    qc_data["local_base_rate"]["value"] = 2.73
+    qc_data["p0_num"]["value"] = 32.50
+    qc_data["p1_num"]["value"] = 66.04
+    qc_data["p2_num"]["value"] = 1.55
+    qc_data["polymerase_read_bases"]["value"] = 534.42
+    qc_data["polymerase_read_length_mean"]["value"] = 101200
+    qc_data["movie_minutes"]["value"] = 30
+
+    assert result["run_info"]["well_label"] == "A1"
+    assert result["run_info"]["library_type"] == "pipeline type 1"
+    assert result["metrics"] == qc_data
