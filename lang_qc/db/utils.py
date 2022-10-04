@@ -40,6 +40,14 @@ def grab_recent_wells_from_db(
 ) -> List[PacBioRunWellMetrics]:
     """Get wells from the past few weeks from the database."""
 
+    ######
+    # It is important not to show aborted wells in the inbox.
+    #
+    # The well can be complete as in Illumina 'run complete' but that's not
+    # the same as analysis complete which the other conditions are trying for.
+    # It potentially gets a bit easier with v11 but those conditions should
+    # still work ok.
+    #
     stmt = select(PacBioRunWellMetrics).filter(
         and_(
             PacBioRunWellMetrics.polymerase_num_reads is not None,
