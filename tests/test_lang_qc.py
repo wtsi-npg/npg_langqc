@@ -11,3 +11,15 @@ def test_not_found(test_client: TestClient):
     """Test a 404 response."""
     response = test_client.get("/this does not exist")
     assert response.status_code == 404
+
+
+def test_get_qc_flow_states(test_client: TestClient):
+    response = test_client.get("/config/qc_flow_status")
+    assert response.status_code == 200
+    expected = [
+        {"label": "Inbox", "param": "inbox"},
+        {"label": "In Progress", "param": "in_progress"},
+        {"label": "On Hold", "param": "on_hold"},
+        {"label": "QC Complete", "param": "qc_complete"},
+    ]
+    assert response.json() == expected

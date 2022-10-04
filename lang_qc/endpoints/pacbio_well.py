@@ -39,13 +39,9 @@ from lang_qc.db.utils import (
     get_qc_type,
     get_well_metrics,
 )
-from lang_qc.models.inbox_models import (
-    InboxResultEntry,
-    QcStatus,
-    QcStatusEnum,
-    WellInfo,
-)
+from lang_qc.models.inbox_models import InboxResultEntry, QcStatus, WellInfo
 from lang_qc.models.pacbio_run_models import PacBioRunResponse, Sample, Study
+from lang_qc.models.qc_flow_status import QcFlowStatusEnum
 from lang_qc.models.qc_state_models import QcClaimPostBody, QcStatusAssignmentPostBody
 from lang_qc.util.auth import check_user
 from lang_qc.util.qc_state_helpers import (
@@ -72,7 +68,7 @@ router = APIRouter(
     description="""
          Taking an optional 'qc_status' as a query parameter, returns a list of
          runs with wells filtered by status. The default qc status is 'inbox'.
-         Possible values for this parameter are defined in QcStatusEnum. For the
+         Possible values for this parameter are defined in QcFlowStatusEnum. For the
          inbox view an optional 'weeks' query parameter can be used, it defaults
          to one week and defines the number of weeks to look back.
     """,
@@ -84,7 +80,7 @@ router = APIRouter(
     response_model=List[InboxResultEntry],
 )
 def get_wells_filtered_by_status(
-    qc_status: QcStatusEnum = QcStatusEnum.INBOX,
+    qc_status: QcFlowStatusEnum = QcFlowStatusEnum.INBOX,
     weeks: PositiveInt = 1,
     qcdb_session: Session = Depends(get_qc_db),
     mlwh_session: Session = Depends(get_mlwh_db),
@@ -301,7 +297,7 @@ def pack_wells_and_states(wells, qc_states) -> List[InboxResultEntry]:
 
 
 def grab_wells_with_status(
-    status: QcStatusEnum,
+    status: QcFlowStatusEnum,
     qcdb_session: Session,
     mlwh_session: Session,
     weeks: PositiveInt = 1,
@@ -309,13 +305,13 @@ def grab_wells_with_status(
     """Get wells from the QC DB filtered by QC status."""
 
     match status:
-        case QcStatusEnum.INBOX:
+        case QcFlowStatusEnum.INBOX:
             return get_inbox_wells_and_states(qcdb_session, mlwh_session, weeks=weeks)
-        case QcStatusEnum.IN_PROGRESS:
+        case QcFlowStatusEnum.IN_PROGRESS:
             return get_in_progress_wells_and_states(qcdb_session, mlwh_session)
-        case QcStatusEnum.ON_HOLD:
+        case QcFlowStatusEnum.ON_HOLD:
             return get_on_hold_wells_and_states(qcdb_session, mlwh_session)
-        case QcStatusEnum.QC_COMPLETE:
+        case QcFlowStatusEnum.QC_COMPLETE:
             return get_qc_complete_wells_and_states(qcdb_session, mlwh_session)
         case _:
             raise Exception("An unknown filter was passed.")

@@ -16,27 +16,29 @@
 #
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
-import os
 
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from typing import List
 
-from lang_qc.endpoints import config, pacbio_well
+from fastapi import APIRouter
 
-# Get origins from environment, must be a comma-separated list of origins
-# for example, set CORS_ORIGINS=http://localhost:300,https://example.com:443
-origins_env = os.environ.get("CORS_ORIGINS")
-origins = []
-if origins_env is not None:
-    origins = origins_env.split(",")
+from lang_qc.models.qc_flow_status import QcFlowStatus, QcFlowStatusEnum
 
-app = FastAPI(title="LangQC")
-app.include_router(pacbio_well.router)
-app.include_router(config.router)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+router = APIRouter(
+    prefix="/config",
+    tags=["config"],
 )
+
+
+@router.get(
+    "/qc_flow_status",
+    summary="Returns known QC flow statuses and their labels.",
+    description="""
+    A helper for the front end renderer. Returns a sorted list of known
+    QcFlowStatus objects. To ensure that the UI is in synch with the back end,
+    this list can be used by the frontend code.
+    """,
+    response_model=List[QcFlowStatus],
+)
+def get_qc_flow_statuses():
+
+    return QcFlowStatusEnum.qc_flow_statuses()
