@@ -27,13 +27,13 @@ class QcFlowStatus(BaseModel):
     """
     A representation of a single QC flow status.
 
-    The QC flow status migh encapsulate mulriple QC states. It might
+    The QC flow status might encapsulate multiple QC states. It might
     correspond to an unknown (not yet assigned) QC state.
     """
 
     label: str = Field(title="A human readable label of the status")
     param: str = Field(
-        title="A query parameter that should be used retrieve "
+        title="A query parameter that should be used to retrieve "
         + "wells at this stage of the flow"
     )
 
