@@ -202,7 +202,6 @@ def assign_qc_status(
     request_body: QcStatusAssignmentPostBody,
     user=Depends(check_user),
     qcdb_session: Session = Depends(get_qc_db),
-    mlwhdb_session: Session = Depends(get_mlwh_db),
 ) -> QcStatus:
 
     qc_state = get_qc_state_for_well(run_name, well_label, qcdb_session)
