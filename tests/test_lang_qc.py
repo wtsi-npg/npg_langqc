@@ -14,12 +14,14 @@ def test_not_found(test_client: TestClient):
 
 
 def test_get_qc_flow_states(test_client: TestClient):
-    response = test_client.get("/config/qc_flow_status")
+    response = test_client.get("/config")
     assert response.status_code == 200
-    expected = [
-        {"label": "Inbox", "param": "inbox"},
-        {"label": "In Progress", "param": "in_progress"},
-        {"label": "On Hold", "param": "on_hold"},
-        {"label": "QC Complete", "param": "qc_complete"},
-    ]
+    expected = {
+        "qc_flow_statuses": [
+            {"label": "Inbox", "param": "inbox"},
+            {"label": "In Progress", "param": "in_progress"},
+            {"label": "On Hold", "param": "on_hold"},
+            {"label": "QC Complete", "param": "qc_complete"},
+        ]
+    }
     assert response.json() == expected

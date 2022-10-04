@@ -1,6 +1,6 @@
 # Copyright (c) 2022 Genome Research Ltd.
 #
-# Author: Adam Blanchet <ab59@sanger.ac.uk>
+# Author: Marina Gourtovaia <mg8@sanger.ac.uk>
 #
 # This file is part of npg_langqc.
 #
@@ -17,11 +17,11 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
-from typing import List
+from typing import Dict
 
 from fastapi import APIRouter
 
-from lang_qc.models.qc_flow_status import QcFlowStatus, QcFlowStatusEnum
+from lang_qc.models.qc_flow_status import QcFlowStatusEnum
 
 router = APIRouter(
     prefix="/config",
@@ -30,15 +30,18 @@ router = APIRouter(
 
 
 @router.get(
-    "/qc_flow_status",
-    summary="Returns known QC flow statuses and their labels.",
+    "",
+    summary="A helper for the front end renderer.",
     description="""
-    A helper for the front end renderer. Returns a sorted list of known
-    QcFlowStatus objects. To ensure that the UI is in synch with the back end,
-    this list can be used by the frontend code.
-    """,
-    response_model=List[QcFlowStatus],
-)
-def get_qc_flow_statuses():
+    Returns a dictionary with configuration options.
 
-    return QcFlowStatusEnum.qc_flow_statuses()
+    Under the 'qc_flow_states' key returns a list of QcFlowStatus objects,
+    which correspond to known QC flow states. The list is sorted in the temporal
+    order of the manual QC process. To ensure that the UI is in synch with the
+    back end, this list can be used by the frontend code.
+    """,
+    response_model=Dict,
+)
+def get_config():
+
+    return {"qc_flow_statuses": QcFlowStatusEnum.qc_flow_statuses()}
