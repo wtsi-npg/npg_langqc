@@ -12,7 +12,7 @@ export default class LangQc {
   }
 
   buildUrl(path = '', args) {
-    let base = '/pacbio'; // Get app base path from build stage
+    let base = '/api/pacbio'; // Get app base path from build stage
     let search = '';
 
     if (Array.isArray(path)) {

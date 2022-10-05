@@ -7,9 +7,6 @@ import LangQc from "@/utils/langqc.js";
 let serviceClient = null;
 let runWell = ref(null);
 let wellCollection = ref(null);
-let host = "https://dev-langqc.dnapipelines.sanger.ac.uk";
-// Replace this with bootstrapping the data service URL
-// from config or static content server
 
 function loadWell(runName, label) {
   // Sets the runWell for the QcView component below
@@ -20,7 +17,7 @@ function loadWell(runName, label) {
 }
 
 onMounted(() => {
-  serviceClient = new LangQc(host);
+  serviceClient = new LangQc();
   try {
     serviceClient.getInboxPromise().then(
       data => wellCollection.value = data
