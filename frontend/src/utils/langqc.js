@@ -46,8 +46,9 @@ export default class LangQc {
     )
   }
 
-  getInboxPromise(qc_status='inbox', weeks=1) {
-    return this.syncFetch(this.buildUrl('/wells', [`qc_status=${qc_status}`, `weeks=${weeks}`]));
+  getInboxPromise(page_size, page_number, qc_status, weeks=1) {
+    return this.syncFetch(this.buildUrl(
+      '/wells', [`qc_status=${qc_status}`, `page_size=${page_size}`, `page_number=${page_number}`, `weeks=${weeks}`]));
   }
 
   getRunWellPromise(name, well) {

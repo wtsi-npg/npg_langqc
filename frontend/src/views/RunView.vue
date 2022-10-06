@@ -10,8 +10,16 @@ let serviceClient = null;
 // by reacting to these three vars
 let appConfig = ref(null); // cache this I suppose
 
+let qcStatusTabs = ref(null);
+
 let runWell = ref(null);
 let wellCollection = ref(null);
+
+// Pagination parameters
+let startPage = 1;
+let numWellsPerPage = 5;
+let numPagesInWidget = 5;
+let pager = ref(null)
 
 function loadWellDetail(runName, label) {
   // Sets the runWell for the QcView component below
@@ -23,16 +31,19 @@ function loadWellDetail(runName, label) {
 
 function loadWellsByStatus(selectedTab) {
   // To be triggered from Tab elements to load different data sets
-  let status = selectedTab.tab.computedId;
-  serviceClient.getInboxPromise(status).then(
+  let qc_status = selectedTab.tab.computedId;
+  serviceClient.getInboxPromise(numWellsPerPage, startPage, qc_status).then(
     data => wellCollection.value = data
   );
+  // console.log(pager.value.currentPage); //always 1 )
+  // TODO - Have to reset pagination, make page 1 active page.
+  // Alternatively to request the currently active page.
 }
 
 onMounted(() => {
   serviceClient = new LangQc();
   try {
-    serviceClient.getInboxPromise().then(
+    serviceClient.getInboxPromise(numWellsPerPage, startPage, 'inbox').then(
       data => wellCollection.value = data
     );
     serviceClient.getClientConfig().then(
@@ -43,6 +54,18 @@ onMounted(() => {
   }
 });
 
+function onClickPageHandler(page) {
+    //At the end remove the leading hash character.
+    let qc_status = qcStatusTabs.value.activeTabHash.substring(1)
+    try {
+      serviceClient.getInboxPromise(numWellsPerPage, page, qc_status).then(
+        data => wellCollection.value = data
+    );
+    } catch (error) {
+      console.log("Stuff went wrong getting data from backend: "+error);
+    }
+};
+
 </script>
 
 <template>
@@ -50,7 +73,7 @@ onMounted(() => {
   <h2>Runs</h2>
 </div>
 <div v-if="appConfig !== null">
-  <tabs @clicked="loadWellsByStatus">
+  <tabs ref="qcStatusTabs" @clicked="loadWellsByStatus">
     <tab
       v-for="tab in appConfig.qc_flow_statuses"
       :key="tab.param"
@@ -77,6 +100,18 @@ onMounted(() => {
     </tab>
   </tabs>
 </div>
+
+<vue-awesome-paginate ref="pager"
+  :total-items="100"
+  :items-per-page="numWellsPerPage"
+  :max-pages-shown="numPagesInWidget"
+  :current-page="startPage"
+  :show-jump-buttons="false"
+  :show-breakpoint-buttons="true"
+  :show-ending-buttons:="true"
+  :on-click="onClickPageHandler"
+/>
+
 <div v-if="runWell !== null">
   <h2>QC view</h2>
   <QcView :runWell="runWell"/>
@@ -187,5 +222,36 @@ onMounted(() => {
     background-color: #a0c7e4;
     box-shadow: none;
     color: #2c5777;
+  }
+
+  .pagination-container {
+    display: flex;
+    column-gap: 10px;
+    margin-top: 30px;
+    margin-bottom: 30px;
+  }
+
+  .paginate-buttons {
+    height: 40px;
+    width: 40px;
+    border-radius: 20px;
+    cursor: pointer;
+    background-color: rgb(242, 242, 242);
+    border: 1px solid rgb(217, 217, 217);
+    color: black;
+  }
+
+  .paginate-buttons:hover {
+    background-color: #d8d8d8;
+  }
+
+  .active-page {
+    background-color: #3498db;
+    border: 1px solid #3498db;
+    color: white;
+  }
+
+  .active-page:hover {
+    background-color: #2988c8;
   }
 </style>
