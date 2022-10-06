@@ -20,8 +20,16 @@ import os
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseSettings
 
 from lang_qc.endpoints import config, pacbio_well
+
+
+class Settings(BaseSettings):
+    openapi_url: str = "/openapi/openapi.json"
+
+
+settings = Settings()
 
 # Get origins from environment, must be a comma-separated list of origins
 # for example, set CORS_ORIGINS=http://localhost:300,https://example.com:443
@@ -30,7 +38,7 @@ origins = []
 if origins_env is not None:
     origins = origins_env.split(",")
 
-app = FastAPI(title="LangQC")
+app = FastAPI(title="LangQC", openapi_url=settings.openapi_url)
 app.include_router(pacbio_well.router)
 app.include_router(config.router)
 app.add_middleware(
