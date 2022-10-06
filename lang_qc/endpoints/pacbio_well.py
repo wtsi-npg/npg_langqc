@@ -40,9 +40,10 @@ from lang_qc.db.utils import (
     get_well_metrics,
 )
 from lang_qc.models.inbox_models import InboxResultEntry, QcStatus, WellInfo
-from lang_qc.models.pacbio_run_models import PacBioRunResponse, Sample, Study
+from lang_qc.models.lims import Sample, Study
+from lang_qc.models.pacbio_run import PacBioRunResponse
 from lang_qc.models.qc_flow_status import QcFlowStatusEnum
-from lang_qc.models.qc_state_models import QcClaimPostBody, QcStatusAssignmentPostBody
+from lang_qc.models.qc_state import QcClaimPostBody, QcStatusAssignmentPostBody
 from lang_qc.util.auth import check_user
 from lang_qc.util.qc_state_helpers import (
     NotFoundInDatabaseException,
