@@ -7,8 +7,8 @@ describe('Constructing LangQC client', () => {
         let client = new LangQc();
         expect(client).toBeDefined();
 
-        expect(client.getUrl('wells_inbox').toString()).toEqual('/pacbio/wells?qc_status=inbox&weeks=1');
-        expect(client.getUrl('run').toString()).toEqual('/pacbio/run');
+        expect(client.getUrl('wells_inbox').toString()).toEqual('/api/pacbio/wells?qc_status=inbox&weeks=1');
+        expect(client.getUrl('run').toString()).toEqual('/api/pacbio/run');
     })
 });
 
@@ -38,16 +38,16 @@ describe('URL generation' , () => {
     let client = new LangQc();
 
     test('buildUrl edges', () => {
-        expect(client.buildUrl()).toEqual('/pacbio');
+        expect(client.buildUrl()).toEqual('/api/pacbio');
 
-        expect(client.buildUrl('/wells/stuff')).toEqual('/pacbio/wells/stuff');
+        expect(client.buildUrl('/wells/stuff')).toEqual('/api/pacbio/wells/stuff');
 
-        expect(client.buildUrl('/wells', ['weeks=1'])).toEqual('/pacbio/wells?weeks=1');
+        expect(client.buildUrl('/wells', ['weeks=1'])).toEqual('/api/pacbio/wells?weeks=1');
 
-        expect(client.buildUrl(['run', 'TRACTION-RUN-10', 'well', 'B1'])).toEqual('/pacbio/run/TRACTION-RUN-10/well/B1');
+        expect(client.buildUrl(['run', 'TRACTION-RUN-10', 'well', 'B1'])).toEqual('/api/pacbio/run/TRACTION-RUN-10/well/B1');
     });
 
     test('getUrl', () => {
-        expect(client.getUrl('run')).toEqual('/pacbio/run')
+        expect(client.getUrl('run')).toEqual('/api/pacbio/run')
     });
 });
