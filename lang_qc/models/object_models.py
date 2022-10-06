@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
-from datetime import datetime
-
 from pydantic import BaseModel, Field
 
 
@@ -30,22 +28,3 @@ class Study(BaseModel):
 class Sample(BaseModel):
 
     id: str = Field(default=None, title="Sample ID")
-
-
-class PacBioRun(BaseModel):
-    pac_bio_run_name: str = Field(
-        default=None,
-        title="Run Name",
-        description="Lims specific identifier for the pacbio run",
-    )
-    well_label: str = Field(
-        default=None,
-        title="Well Label",
-        description="The well identifier for the plate, A1-H12",
-    )
-    well_complete: datetime = Field(
-        default=None, title="Well Complete", description="Timestamp of well complete"
-    )
-
-    class Config:
-        orm_mode = True
