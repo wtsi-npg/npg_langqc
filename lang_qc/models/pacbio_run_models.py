@@ -22,7 +22,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from lang_qc.models.object_models import Sample, Study
+from lang_qc.models.lims import Sample, Study
 from lang_qc.pacbio.qc_data import QCDataWell
 
 
