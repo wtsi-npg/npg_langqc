@@ -38,22 +38,15 @@ class QcStatus(BaseModel):
     created_by: str = Field(default=None, title="QC State creator")
 
 
-class WellInfo(BaseModel):
+class QcStatusAssignmentPostBody(BaseModel):
+    """Body for the qc_assign endpoint"""
 
-    label: str = Field(
-        default=None, title="Well label", description="The well identifier."
-    )
-    start: datetime = Field(default=None, title="Timestamp of well started")
-    complete: datetime = Field(default=None, title="Timestamp of well complete")
-    qc_status: QcStatus = Field(default=None, title="Well QC status")
+    qc_type: str
+    qc_state: str
+    is_preliminary: bool
 
 
-class InboxResultEntry(BaseModel):
+class QcClaimPostBody(BaseModel):
+    """Body for the qc_claim endpoint."""
 
-    run_name: str = Field(
-        default=None,
-        title="Run Name",
-    )
-    time_start: datetime = Field(default=None, title="Run start time")
-    time_complete: datetime = Field(default=None, title="Run complete time")
-    well: WellInfo
+    qc_type: str

@@ -34,7 +34,7 @@ from lang_qc.db.qc_schema import (
     User,
 )
 from lang_qc.db.utils import get_qc_state_dict, get_qc_type
-from lang_qc.models.inbox_models import QcStatus
+from lang_qc.models.qc_state import QcStatus
 
 
 class NotFoundInDatabaseException(Exception):

@@ -17,18 +17,29 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
-from pydantic import BaseModel
+from datetime import datetime
+
+from pydantic import BaseModel, Field
+
+from lang_qc.models.qc_state import QcStatus
 
 
-class QcStatusAssignmentPostBody(BaseModel):
-    """Body for the qc_assign endpoint"""
+class WellInfo(BaseModel):
 
-    qc_type: str
-    qc_state: str
-    is_preliminary: bool
+    label: str = Field(
+        default=None, title="Well label", description="The well identifier."
+    )
+    start: datetime = Field(default=None, title="Timestamp of well started")
+    complete: datetime = Field(default=None, title="Timestamp of well complete")
+    qc_status: QcStatus = Field(default=None, title="Well QC status")
 
 
-class QcClaimPostBody(BaseModel):
-    """Body for the qc_claim endpoint."""
+class InboxResultEntry(BaseModel):
 
-    qc_type: str
+    run_name: str = Field(
+        default=None,
+        title="Run Name",
+    )
+    time_start: datetime = Field(default=None, title="Run start time")
+    time_complete: datetime = Field(default=None, title="Run complete time")
+    well: WellInfo

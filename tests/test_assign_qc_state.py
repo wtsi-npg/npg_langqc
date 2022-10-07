@@ -2,7 +2,7 @@ import json
 
 from fastapi.testclient import TestClient
 
-from lang_qc.models.qc_state_models import QcStatusAssignmentPostBody
+from lang_qc.models.qc_state import QcStatusAssignmentPostBody
 from tests.fixtures.inbox_data import test_data_factory
 
 
