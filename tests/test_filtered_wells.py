@@ -60,7 +60,7 @@ def assert_filtered_inbox_equals_expected(response, expected_data):
         assert type(result) is dict
         rwell = result["run_name"] + ":" + result["well"]["label"]
         qc_state = (
-            result["well"]["qc_status"]["qc_state"]
+            result["well"]["qc_status"]["state"]
             if result["well"]["qc_status"] is not None
             else None
         )

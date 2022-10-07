@@ -66,8 +66,7 @@ def test_change_from_passed_to_fail(test_client: TestClient, test_data_factory):
     expected = {
         "user": "zx80@example.com",
         "qc_type": "library",
-        "qc_type_description": "Sample/library evaluation",
-        "qc_state": "Failed",
+        "state": "Failed",
         "is_preliminary": False,
         "created_by": "LangQC",
     }

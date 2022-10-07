@@ -51,7 +51,6 @@ from lang_qc.util.qc_state_helpers import (
     construct_seq_product_for_well,
     get_qc_state_for_well,
     get_seq_product_for_well,
-    qc_status_json,
     update_qc_state,
 )
 
@@ -186,7 +185,7 @@ def claim_well(
     qcdb_session.add(qc_state)
     qcdb_session.commit()
 
-    return qc_status_json(qc_state)
+    return QcState.from_orm(qc_state)
 
 
 @router.post(
@@ -241,7 +240,7 @@ def assign_qc_status(
 
     qcdb_session.commit()
 
-    return qc_status_json(qc_state)
+    return QcState.from_orm(qc_state)
 
 
 def pack_wells_and_states(wells, qc_states) -> List[InboxResultEntry]:
@@ -264,17 +263,7 @@ def pack_wells_and_states(wells, qc_states) -> List[InboxResultEntry]:
             raise Exception(
                 f"A state has been found which does not correspond to a well: {state}"
             )
-
-        well_id2qc_state[unique_id] = QcState(
-            user=state.user.username,
-            date_created=state.date_created,
-            date_updated=state.date_updated,
-            qc_type=state.qc_type.qc_type,
-            qc_type_description=state.qc_type.description,
-            qc_state=state.qc_state_dict.state,
-            is_preliminary=state.is_preliminary,
-            created_by=state.created_by,
-        )
+        well_id2qc_state[unique_id] = QcState.from_orm(state)
 
     results: List = []
     # Sort the keys so that the wells are listed in order of

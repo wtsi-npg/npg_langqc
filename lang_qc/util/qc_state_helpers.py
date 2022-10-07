@@ -199,25 +199,3 @@ def update_qc_state(
     qc_state_db.id_qc_type = qc_type.id_qc_type
     qc_state_db.created_by = "LangQC"
     qc_state_db.is_preliminary = qc_status_post.is_preliminary
-
-
-def qc_status_json(db_qc_state: QcState) -> QcStateModel:
-    """Convenience function to convert a DB QcState to a Pydantic QcState model.
-
-    Args:
-        db_qc_state: the DB QcState object
-
-    Returns:
-        A QcState object with the properties from the DB QcState record.
-    """
-
-    return QcStateModel(
-        user=db_qc_state.user.username,
-        date_created=db_qc_state.date_created,
-        date_updated=db_qc_state.date_updated,
-        qc_type=db_qc_state.qc_type.qc_type,
-        qc_type_description=db_qc_state.qc_type.description,
-        qc_state=db_qc_state.qc_state_dict.state,
-        is_preliminary=db_qc_state.is_preliminary,
-        created_by=db_qc_state.created_by,
-    )
