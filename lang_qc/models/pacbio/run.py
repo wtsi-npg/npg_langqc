@@ -23,7 +23,7 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 from lang_qc.models.lims import Sample, Study
-from lang_qc.pacbio.qc_data import QCDataWell
+from lang_qc.models.pacbio.qc_data import QCDataWell
 
 
 class PacBioRunInfo(BaseModel):
