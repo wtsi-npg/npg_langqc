@@ -40,8 +40,8 @@ from lang_qc.db.utils import (
     get_well_metrics,
 )
 from lang_qc.models.lims import Sample, Study
-from lang_qc.models.pacbio_run import PacBioRunResponse
-from lang_qc.models.pacbio_well import InboxResultEntry, WellInfo
+from lang_qc.models.pacbio.run import PacBioRunResponse
+from lang_qc.models.pacbio.well import InboxResultEntry, WellInfo
 from lang_qc.models.qc_flow_status import QcFlowStatusEnum
 from lang_qc.models.qc_state import (
     QcClaimPostBody,
