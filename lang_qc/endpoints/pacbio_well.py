@@ -28,7 +28,8 @@ from starlette import status
 
 from lang_qc.db.mlwh_connection import get_mlwh_db
 from lang_qc.db.qc_connection import get_qc_db
-from lang_qc.db.qc_schema import QcState, QcStateHist
+from lang_qc.db.qc_schema import QcState as QcStateDB
+from lang_qc.db.qc_schema import QcStateHist as QcStateDBHist
 from lang_qc.db.utils import (
     extract_well_label_and_run_name_from_state,
     get_in_progress_wells_and_states,
@@ -43,11 +44,7 @@ from lang_qc.models.lims import Sample, Study
 from lang_qc.models.pacbio.run import PacBioRunResponse
 from lang_qc.models.pacbio.well import InboxResultEntry, WellInfo
 from lang_qc.models.qc_flow_status import QcFlowStatusEnum
-from lang_qc.models.qc_state import (
-    QcClaimPostBody,
-    QcStatus,
-    QcStatusAssignmentPostBody,
-)
+from lang_qc.models.qc_state import QcClaimPostBody, QcState, QcStatusAssignmentPostBody
 from lang_qc.util.auth import check_user
 from lang_qc.util.qc_state_helpers import (
     NotFoundInDatabaseException,
@@ -129,7 +126,7 @@ def get_pacbio_well(
 @router.post(
     "/run/{run_name}/well/{well_label}/qc_claim",
     summary="Well level QC operation - claim the well to start QC",
-    response_model=QcStatus,
+    response_model=QcState,
 )
 def claim_well(
     run_name: str,
@@ -138,7 +135,7 @@ def claim_well(
     user=Depends(check_user),
     qcdb_session: Session = Depends(get_qc_db),
     mlwhdb_session: Session = Depends(get_mlwh_db),
-) -> QcStatus:
+) -> QcState:
 
     # Fetch "static" data first.
 
@@ -177,7 +174,7 @@ def claim_well(
                 status_code=400, detail="The well has already been claimed."
             )
 
-    qc_state = QcState(
+    qc_state = QcStateDB(
         created_by="LangQC",
         is_preliminary=True,
         qc_state_dict=qc_state_dict,
@@ -195,7 +192,7 @@ def claim_well(
 @router.post(
     "/run/{run_name}/well/{well_label}/qc_assign",
     summary=["Well level QC operation - assign QC state"],
-    response_model=QcStatus,
+    response_model=QcState,
 )
 def assign_qc_status(
     run_name: str,
@@ -203,7 +200,7 @@ def assign_qc_status(
     request_body: QcStatusAssignmentPostBody,
     user=Depends(check_user),
     qcdb_session: Session = Depends(get_qc_db),
-) -> QcStatus:
+) -> QcState:
 
     qc_state = get_qc_state_for_well(run_name, well_label, qcdb_session)
 
@@ -222,7 +219,7 @@ def assign_qc_status(
 
     # time to add a historical entry
     qcdb_session.add(
-        QcStateHist(
+        QcStateDBHist(
             id_seq_product=qc_state.id_seq_product,
             id_user=qc_state.id_user,
             id_qc_state_dict=qc_state.id_qc_state_dict,
@@ -268,7 +265,7 @@ def pack_wells_and_states(wells, qc_states) -> List[InboxResultEntry]:
                 f"A state has been found which does not correspond to a well: {state}"
             )
 
-        well_id2qc_state[unique_id] = QcStatus(
+        well_id2qc_state[unique_id] = QcState(
             user=state.user.username,
             date_created=state.date_created,
             date_updated=state.date_updated,

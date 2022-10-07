@@ -22,13 +22,12 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 
-class QcStatus(BaseModel):
-    """Represents QC metadata associated with a QC-able entity (usually a well).
-
-    It stores dates, owning user, and QC status for the relevant entity.
+class QcState(BaseModel):
+    """
+    Represents QC data associated with a QC-able entity.
     """
 
-    user: str = Field(default=None, title="User owning the QC stte.")
+    user: str = Field(default=None, title="User owning the QC state.")
     date_created: datetime = Field(default=None, title="Date created")
     date_updated: datetime = Field(default=None, title="Date updated")
     qc_type: str = Field(default=None, title="QC type")

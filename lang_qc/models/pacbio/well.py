@@ -21,7 +21,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
-from lang_qc.models.qc_state import QcStatus
+from lang_qc.models.qc_state import QcState
 
 
 class WellInfo(BaseModel):
@@ -31,7 +31,7 @@ class WellInfo(BaseModel):
     )
     start: datetime = Field(default=None, title="Timestamp of well started")
     complete: datetime = Field(default=None, title="Timestamp of well complete")
-    qc_status: QcStatus = Field(default=None, title="Well QC status")
+    qc_status: QcState = Field(default=None, title="Well QC status")
 
 
 class InboxResultEntry(BaseModel):
