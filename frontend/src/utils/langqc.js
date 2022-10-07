@@ -3,8 +3,7 @@ import { join } from "lodash";
 export default class LangQc {
   constructor() {
     this.urls = {
-      run: this.buildUrl('/run'),
-      wells_inbox: this.buildUrl('/wells', ['qc_status=inbox', 'weeks=1'])
+      run: this.buildUrl('/run')
     };
     this.commonHeaders = {
       'Accept': 'application/json'
@@ -28,24 +27,11 @@ export default class LangQc {
     return this.urls[alias];
   }
 
-  getInboxPromise() {
+  syncFetch(route) {
+    // Don't use this if you want async efficiency.
+    // Returns a promise that ought to contain backend data
     return fetch(
-      this.getUrl('wells_inbox'),
-      {
-        headers: this.commonHeaders
-      }
-    ).then(
-      response => response.json()
-    ).catch(
-      (error) => {
-        throw error;
-      }
-    );
-  }
-
-  getRunWellPromise(name, well) {
-    return fetch(
-      this.buildUrl(['run', name,'well',well]),
+      route,
       {
         headers: this.commonHeaders
       }
@@ -57,7 +43,19 @@ export default class LangQc {
           throw new Error("API fetch error " + response.statusText);
         }
       }
-    );
+    )
+  }
+
+  getInboxPromise(qc_status='inbox', weeks=1) {
+    return this.syncFetch(this.buildUrl('/wells', [`qc_status=${qc_status}`, `weeks=${weeks}`]));
+  }
+
+  getRunWellPromise(name, well) {
+    return this.syncFetch(this.buildUrl(['run', name,'well',well]));
+  }
+
+  getClientConfig() {
+    return this.syncFetch('/api/config');
   }
 
   claimWell(name, well) {
