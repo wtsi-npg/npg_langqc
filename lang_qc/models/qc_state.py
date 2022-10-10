@@ -18,24 +18,88 @@
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
 from datetime import datetime
+from typing import Optional
 
 from pydantic import BaseModel, Field
 
+from lang_qc.db.qc_schema import QcState as QcStateDB
 
-class QcStatus(BaseModel):
-    """Represents QC metadata associated with a QC-able entity (usually a well).
 
-    It stores dates, owning user, and QC status for the relevant entity.
+class QcState(BaseModel):
+    """
+    Represents QC data associated with a QC-able entity.
     """
 
-    user: str = Field(default=None, title="User owning the QC stte.")
-    date_created: datetime = Field(default=None, title="Date created")
-    date_updated: datetime = Field(default=None, title="Date updated")
-    qc_type: str = Field(default=None, title="QC type")
-    qc_type_description: str = Field(default=None, title="QC type description")
-    qc_state: str = Field(default=None, title="QC state")
+    state: str = Field(
+        default=None,
+        title="Current QC state",
+        description="""
+        For an entity defined by the `id_seq_product` attribute value, the
+        assigned QC state of the type defined by the `qc_type` attribute.
+        """,
+    )
+    outcome: Optional[bool] = Field(
+        default=None,
+        title="Boolean QC outcome",
+        description="""
+        A boolean QC outcome corresponding to the value of the `state` attribute.
+        A False value corresponds to a QC fail, a True value corresponds to a QC
+        pass, an undefined value means that the QC state is neither a pass nor
+        a fail (example - 'on hold').
+        """,
+    )
     is_preliminary: bool = Field(default=None, title="Preliminarity of outcome")
-    created_by: str = Field(default=None, title="QC State creator")
+    qc_type: str = Field(default=None, title="Type of QC performed")
+    id_seq_product: str = Field(default=None, title="Unique entity ID")
+    date_created: datetime = Field(
+        default=None,
+        title="Date the initial state was assigned",
+        description="""
+        Each entity can have a number of QC states associated with it. This date
+        corresponds to the date the initial QC state was assigned.
+        """,
+    )
+    date_updated: datetime = Field(
+        default=None,
+        title="Date the state was updated",
+        description="""
+        This date corresponds to the date when the QC state defined by the `state`
+        attribute of this object was assigned.
+        """,
+    )
+    user: str = Field(default=None, title="User who assigned current QC state")
+    created_by: str = Field(
+        default=None,
+        title="This QC state assignment context",
+        description="""
+        QC state assignment context, i.e. the name of the web application,
+        script name, JIRA ticket number, etc., which is associated with the
+        assignment of the this QC state.
+        """,
+    )
+
+    class Config:
+        orm_mode = True
+
+    @classmethod
+    def from_orm(cls, obj: QcStateDB):
+        """
+        A class factory method. Given a database object representing the
+        QC state, returns an instance of this class object.
+        """
+        return cls(
+            user=obj.user.username,
+            date_created=obj.date_created,
+            date_updated=obj.date_updated,
+            qc_type=obj.qc_type.qc_type,
+            state=obj.qc_state_dict.state,
+            outcome=bool(obj.qc_state_dict.outcome)
+            if obj.qc_state_dict.outcome is not None
+            else None,
+            is_preliminary=bool(obj.is_preliminary),
+            created_by=obj.created_by,
+            id_seq_product=obj.id_seq_product,
+        )
 
 
 class QcStatusAssignmentPostBody(BaseModel):

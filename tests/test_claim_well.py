@@ -55,8 +55,7 @@ def test_claim_well_simple(test_client: TestClient, test_data_factory):
     expected = {
         "user": "zx80@example.com",
         "qc_type": "library",
-        "qc_type_description": "Sample/library evaluation",
-        "qc_state": "Claimed",
+        "state": "Claimed",
         "is_preliminary": True,
         "created_by": "LangQC",
     }
