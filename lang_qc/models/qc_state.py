@@ -73,8 +73,8 @@ class QcState(BaseModel):
         title="This QC state assignment context",
         description="""
         QC state assignment context, i.e. the name of the web application,
-        script name, JIRA ticket number, etc., which i sassociated with the
-        assignment of the this QC state
+        script name, JIRA ticket number, etc., which is associated with the
+        assignment of the this QC state.
         """,
     )
 
