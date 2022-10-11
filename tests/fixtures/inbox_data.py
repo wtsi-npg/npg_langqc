@@ -9,7 +9,6 @@ from ml_warehouse.schema import (
     Sample,
     Study,
 )
-from sqlalchemy.orm import Session
 
 from lang_qc.db.qc_schema import (
     ProductLayout,

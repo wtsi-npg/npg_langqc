@@ -7,7 +7,6 @@ describe('Constructing LangQC client', () => {
         let client = new LangQc();
         expect(client).toBeDefined();
 
-        expect(client.getUrl('wells_inbox').toString()).toEqual('/api/pacbio/wells?qc_status=inbox&weeks=1');
         expect(client.getUrl('run').toString()).toEqual('/api/pacbio/run');
     })
 });
@@ -23,15 +22,29 @@ describe('Example fake remote api call', () => {
     );
 
     let client = new LangQc();
-    let response = client.getInboxPromise();
     // No internet used!
     test('Data in comes straight out again', () => {
+        let response = client.getInboxPromise();
         expect(response).resolves.toBe({
             stuff: 'nonsense'
         });
 
         expect(fetch.mock.calls.length).toEqual(1);
+
+        // First fetch call, first element is URL, second is a header object
+        expect(fetch.mock.calls[0][0]).toEqual('/api/pacbio/wells?qc_status=inbox&weeks=1');
+
+        // We can also test any custom header setting here
     });
+
+    test('Fetch convenience functions send requests to...', () => {
+        // Note that the mock remembers all calls until reset
+        client.getClientConfig();
+        expect(fetch.mock.calls[1][0]).toEqual('/api/config');
+
+        client.getRunWellPromise('blah', 'A2');
+        expect(fetch.mock.calls[2][0]).toEqual('/api/pacbio/run/blah/well/A2');
+    })
 });
 
 describe('URL generation' , () => {
