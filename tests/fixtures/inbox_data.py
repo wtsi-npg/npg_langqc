@@ -146,6 +146,9 @@ def test_data_factory(mlwhdb_test_session, qcdb_test_session):
                         polymerase_num_reads=1337,
                         ccs_execution_mode="None",
                         well_status="Complete",
+                        run_start=datetime.now() - timedelta(days=3),
+                        run_complete=datetime.now() - timedelta(days=1),
+                        well_start=datetime.now() - timedelta(days=2),
                         well_complete=datetime.now() - timedelta(days=1),
                     )
                 )

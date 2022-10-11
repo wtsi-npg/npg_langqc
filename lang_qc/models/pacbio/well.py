@@ -19,12 +19,12 @@
 
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Extra, Field
 
 from lang_qc.models.qc_state import QcState
 
 
-class PacBioWell(BaseModel):
+class PacBioWell(BaseModel, extra=Extra.forbid):
     """
     A response model for a single PacBio well on a particular PacBio run.
     The class contains the attributes that uniquely define this well (`run_name`

@@ -85,6 +85,12 @@ def test_qc_complete_filter(test_client: TestClient, test_data_factory):
     ]
     assert_filtered_inbox_equals_expected(response, expected_data)
 
+    for well in response.json():
+        assert well["run_start_time"] is not None
+        assert well["run_complete_time"] is not None
+        assert well["well_start_time"] is not None
+        assert well["well_complete_time"] is not None
+
 
 def test_on_hold_filter(test_client: TestClient, test_data_factory):
     """Test passing `on_hold` filter."""

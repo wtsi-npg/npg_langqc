@@ -275,10 +275,10 @@ def pack_wells_and_states(wells, qc_states) -> List[PacBioWell]:
             PacBioWell(
                 label=well.well_label,
                 run_name=well.pac_bio_run_name,
-                run_time_start=well.run_start,
-                run_time_complete=well.run_complete,
-                well_time_start=well.well_start,
-                well_time_complete=well.well_complete,
+                run_start_time=well.run_start,
+                run_complete_time=well.run_complete,
+                well_start_time=well.well_start,
+                well_complete_time=well.well_complete,
                 qc_state=well_id2qc_state.get(well_id, None),
             )
         )
