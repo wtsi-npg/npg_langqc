@@ -65,13 +65,13 @@ onMounted(() => {
           <th>Time started</th>
           <th>Time completed</th>
         </tr>
-        <tr :key="wellObj.run_name + ':' + wellObj.well.label" v-for="wellObj in wellCollection" >
+        <tr :key="wellObj.run_name + ':' + wellObj.label" v-for="wellObj in wellCollection" >
           <td>{{ wellObj.run_name }}</td>
           <td>
-            <button v-on:click="loadWellDetail(wellObj.run_name, wellObj.well.label)">{{ wellObj.well.label }}</button>
+            <button v-on:click="loadWellDetail(wellObj.run_name, wellObj.label)">{{ wellObj.label }}</button>
           </td>
-          <td>{{ wellObj.time_start }}</td>
-          <td>{{ wellObj.time_complete ? wellObj.time_complete : ''}}</td>
+          <td>{{ wellObj.run_start_time }}</td>
+          <td>{{ wellObj.run_complete_time ? wellObj.run_complete_time : ''}}</td>
         </tr>
       </table>
     </tab>

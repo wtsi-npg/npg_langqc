@@ -19,27 +19,35 @@
 
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Extra, Field
 
 from lang_qc.models.qc_state import QcState
 
 
-class WellInfo(BaseModel):
+class PacBioWell(BaseModel, extra=Extra.forbid):
+    """
+    A response model for a single PacBio well on a particular PacBio run.
+    The class contains the attributes that uniquely define this well (`run_name`
+    and `level`), along with the time line and current QC state of this well.
 
-    label: str = Field(
-        default=None, title="Well label", description="The well identifier."
-    )
-    start: datetime = Field(default=None, title="Timestamp of well started")
-    complete: datetime = Field(default=None, title="Timestamp of well complete")
-    qc_status: QcState = Field(default=None, title="Well QC status")
+    This model does not contain any information about data that was
+    sequenced or QC metrics or assessment for such data.
+    """
 
-
-class InboxResultEntry(BaseModel):
-
+    label: str = Field(title="Well label", description="The label of the PacBio well")
     run_name: str = Field(
-        default=None,
-        title="Run Name",
+        title="Run name", description="PacBio run name as registered in LIMS"
     )
-    time_start: datetime = Field(default=None, title="Run start time")
-    time_complete: datetime = Field(default=None, title="Run complete time")
-    well: WellInfo
+    run_start_time: datetime = Field(default=None, title="Run start time")
+    run_complete_time: datetime = Field(default=None, title="Run complete time")
+    well_start_time: datetime = Field(default=None, title="Well start time")
+    well_complete_time: datetime = Field(default=None, title="Well complete time")
+    qc_state: QcState = Field(
+        default=None,
+        title="Current QC state of this well",
+        description="""
+        Current QC state of this well as a QcState pydantic model.
+        The well might have no QC state assigned. Whether the QC state is
+        available depends on the lifecycle stage of this well.
+        """,
+    )

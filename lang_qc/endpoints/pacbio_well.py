@@ -42,7 +42,7 @@ from lang_qc.db.utils import (
 )
 from lang_qc.models.lims import Sample, Study
 from lang_qc.models.pacbio.run import PacBioRunResponse
-from lang_qc.models.pacbio.well import InboxResultEntry, WellInfo
+from lang_qc.models.pacbio.well import PacBioWell
 from lang_qc.models.qc_flow_status import QcFlowStatusEnum
 from lang_qc.models.qc_state import QcClaimPostBody, QcState, QcStatusAssignmentPostBody
 from lang_qc.util.auth import check_user
@@ -78,7 +78,7 @@ router = APIRouter(
             "description": "Invalid query parameter value"
         }
     },
-    response_model=List[InboxResultEntry],
+    response_model=List[PacBioWell],
 )
 def get_wells_filtered_by_status(
     qc_status: QcFlowStatusEnum = QcFlowStatusEnum.INBOX,
@@ -243,8 +243,9 @@ def assign_qc_status(
     return QcState.from_orm(qc_state)
 
 
-def pack_wells_and_states(wells, qc_states) -> List[InboxResultEntry]:
-    """Pack wells and states together into a list of InboxResultEntry objects.
+def pack_wells_and_states(wells, qc_states) -> List[PacBioWell]:
+    """
+    Pack wells and QC states together into a list of PacBioWell objects.
 
     If a well does not have a corresponding QC state, it will be set to `None`.
     """
@@ -271,16 +272,14 @@ def pack_wells_and_states(wells, qc_states) -> List[InboxResultEntry]:
     for well_id in sorted(well_id2well):
         well = well_id2well[well_id]
         results.append(
-            InboxResultEntry(
+            PacBioWell(
+                label=well.well_label,
                 run_name=well.pac_bio_run_name,
-                time_start=well.run_start,
-                time_complete=well.run_complete,
-                well=WellInfo(
-                    label=well.well_label,
-                    start=well.well_start,
-                    complete=well.well_complete,
-                    qc_status=well_id2qc_state.get(well_id, None),
-                ),
+                run_start_time=well.run_start,
+                run_complete_time=well.run_complete,
+                well_start_time=well.well_start,
+                well_complete_time=well.well_complete,
+                qc_state=well_id2qc_state.get(well_id, None),
             )
         )
 

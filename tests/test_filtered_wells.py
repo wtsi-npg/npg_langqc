@@ -58,11 +58,9 @@ def assert_filtered_inbox_equals_expected(response, expected_data):
 
     for result in results:
         assert type(result) is dict
-        rwell = result["run_name"] + ":" + result["well"]["label"]
+        rwell = result["run_name"] + ":" + result["label"]
         qc_state = (
-            result["well"]["qc_status"]["state"]
-            if result["well"]["qc_status"] is not None
-            else None
+            result["qc_state"]["state"] if result["qc_state"] is not None else None
         )
         actual_data.append({rwell: qc_state})
     assert actual_data == expected_data
@@ -86,6 +84,12 @@ def test_qc_complete_filter(test_client: TestClient, test_data_factory):
         {"SEMI-MARATHON:A1": "Failed"},
     ]
     assert_filtered_inbox_equals_expected(response, expected_data)
+
+    for well in response.json():
+        assert well["run_start_time"] is not None
+        assert well["run_complete_time"] is not None
+        assert well["well_start_time"] is not None
+        assert well["well_complete_time"] is not None
 
 
 def test_on_hold_filter(test_client: TestClient, test_data_factory):
@@ -154,12 +158,12 @@ def test_multiple_weeks_filter(test_client: TestClient, inbox_data):
 
     response = test_client.get("/pacbio/wells?qc_status=inbox&weeks=1")
     assert response.status_code == 200
-    assert [well_item["well"]["label"] for well_item in response.json()] == wells_list
+    assert [well_item["label"] for well_item in response.json()] == wells_list
 
     response = test_client.get("/pacbio/wells?qc_status=inbox&weeks=2")
     assert response.status_code == 200
     wells_list.extend(["A7", "A8"])
-    assert [well_item["well"]["label"] for well_item in response.json()] == wells_list
+    assert [well_item["label"] for well_item in response.json()] == wells_list
 
 
 def test_default_filter(test_client: TestClient, test_data_factory):
@@ -192,7 +196,7 @@ def test_pack_well_and_states(wells_and_states):
     assert len(packed) == 7
 
     for well_entry in packed:
-        assert well_entry.well.qc_status is not None
+        assert well_entry.qc_state is not None
 
 
 def test_extract_well_label_and_run_name_from_state(
