@@ -21,6 +21,7 @@
     "vue3-tabs-component": "^1.1.0"
   },
   "devDependencies": {
+    "@hennge/vue3-pagination": "^1.0.17",
     "@testing-library/vue": "^6.6.1",
     "@vitejs/plugin-vue": "^3.0.1",
     "@vue/test-utils": "^2.0.2",

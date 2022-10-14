@@ -12,19 +12,26 @@ let appConfig = ref(null); // cache this I suppose
 
 let runWell = ref(null);
 let wellCollection = ref(null);
+let statusFocus = ref(null); // The "active" QC status tab
+let page = ref(1);
 
 function loadWellDetail(runName, label) {
   // Sets the runWell for the QcView component below
   serviceClient.getRunWellPromise(runName, label)
   .then(
-    value => runWell.value = value
+    wells => runWell.value = wells
   );
 }
 
 function loadWellsByStatus(selectedTab) {
   // To be triggered from Tab elements to load different data sets
-  let status = selectedTab.tab.computedId;
-  serviceClient.getInboxPromise(status).then(
+  let qcStatus = selectedTab.tab.computedId;
+  statusFocus.value = qcStatus;
+  onClickPageHandler(1); // Force to page 1
+}
+
+function loadInbox(qcStatus, weeks, pageNumber) {
+  serviceClient.getInboxPromise(qcStatus, weeks, pageNumber).then(
     data => wellCollection.value = data
   );
 }
@@ -32,16 +39,20 @@ function loadWellsByStatus(selectedTab) {
 onMounted(() => {
   serviceClient = new LangQc();
   try {
-    serviceClient.getInboxPromise().then(
-      data => wellCollection.value = data
-    );
     serviceClient.getClientConfig().then(
       data => appConfig.value = data
     );
+    statusFocus.value = 'inbox';
+    loadInbox(statusFocus.value);// Get some default data for the first visible tab
   } catch (error) {
     console.log("Stuff went wrong getting data from backend: "+error);
   }
 });
+
+function onClickPageHandler(pageNumber) {
+  page.value = pageNumber;
+  loadInbox(statusFocus.value, 1, pageNumber);
+};
 
 </script>
 
@@ -74,6 +85,15 @@ onMounted(() => {
           <td>{{ wellObj.run_complete_time ? wellObj.run_complete_time : ''}}</td>
         </tr>
       </table>
+      <VPagination
+        v-model="page"
+        :pages="10"
+        :range-size="1"
+        active-color="#DCEDFF"
+        @update:modelValue="onClickPageHandler"
+        :hideFirstButton="true"
+        :hideLastButton="true"
+      />
     </tab>
   </tabs>
 </div>
@@ -188,4 +208,5 @@ onMounted(() => {
     box-shadow: none;
     color: #2c5777;
   }
+
 </style>
