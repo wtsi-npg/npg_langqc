@@ -85,16 +85,16 @@ function onClickPageHandler(pageNumber) {
           <td>{{ wellObj.run_complete_time ? wellObj.run_complete_time : ''}}</td>
         </tr>
       </table>
-      <VPagination
-        v-model="page"
-        :pages="10"
-        :range-size="1"
-        active-color="#DCEDFF"
-        @update:modelValue="onClickPageHandler"
-        :hideFirstButton="true"
-        :hideLastButton="true"
-      />
     </tab>
+    <VPagination
+      v-model="page"
+      :pages="10"
+      :range-size="1"
+      active-color="#DCEDFF"
+      @update:modelValue="onClickPageHandler"
+      :hideFirstButton="true"
+      :hideLastButton="true"
+    />
   </tabs>
 </div>
 <div v-if="runWell !== null">
