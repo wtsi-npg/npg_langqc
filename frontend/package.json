@@ -15,6 +15,7 @@
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs"
   },
   "dependencies": {
+    "element-plus": "^2.2.18",
     "lodash": "^4.17.21",
     "vue": "^3.2.37",
     "vue-router": "^4.1.2",

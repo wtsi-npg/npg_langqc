@@ -33,7 +33,7 @@
   --color-heading: var(--vt-c-text-light-1);
   --color-text: var(--vt-c-text-light-1);
 
-  --section-gap: 160px;
+  --section-gap: 10px;
 }
 
 *,
@@ -41,7 +41,6 @@
 *::after {
   box-sizing: border-box;
   margin: 0;
-  position: relative;
   font-weight: normal;
 }
 
