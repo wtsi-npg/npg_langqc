@@ -15,6 +15,7 @@ let wellCollection = ref(null);
 
 let activeTab = ref('inbox'); // aka paneName in element-plus
 let activePage = ref(1);
+let pageSize = 10;
 
 let errorMessage = ref(null);
 
@@ -44,18 +45,19 @@ function loadWells(status, page, pageSize) {
 
 function changeTab(selectedTab) {
   // To be triggered from Tab elements to load different data sets
+  // Reset page to 1 on tab change
   activePage.value = 1;
-  loadWells(selectedTab);
+  loadWells(selectedTab, activePage.value, pageSize);
 }
 
 function changePage(pageNumber) {
-  loadWells(activeTab.value, pageNumber);
+  loadWells(activeTab.value, pageNumber, pageSize);
 }
 
 onMounted(() => {
   serviceClient = new LangQc();
   try {
-    loadWells(activeTab.value, activePage.value, 10);
+    loadWells(activeTab.value, activePage.value, pageSize);
     serviceClient.getClientConfig().then(
       data => appConfig.value = data
     );
@@ -108,7 +110,7 @@ onMounted(() => {
       :total="20"
       background
       :pager-count="5"
-      :page-size="10"
+      :page-size="pageSize"
       :hide-on-single-page="true"
       @current-change="changePage"
     ></el-pagination>
