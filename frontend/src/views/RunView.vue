@@ -26,7 +26,7 @@ function loadWellDetail(runName, label) {
     wells => runWell.value = wells
   ).catch(
     (error) => {
-      errorMessage = error.message;
+      errorMessage.value = error.message;
     }
   );
 }
