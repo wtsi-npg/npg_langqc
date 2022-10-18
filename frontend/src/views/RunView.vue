@@ -13,28 +13,51 @@ let appConfig = ref(null); // cache this I suppose
 let runWell = ref(null);
 let wellCollection = ref(null);
 
+let activeTab = ref('inbox'); // aka paneName in element-plus
+let activePage = ref(1);
+let pageSize = 10;
+
+let errorMessage = ref(null);
+
 function loadWellDetail(runName, label) {
   // Sets the runWell for the QcView component below
   serviceClient.getRunWellPromise(runName, label)
   .then(
-    value => runWell.value = value
+    wells => runWell.value = wells
+  ).catch(
+    (error) => {
+      errorMessage.value = error.message;
+    }
   );
 }
 
-function loadWellsByStatus(selectedTab) {
-  // To be triggered from Tab elements to load different data sets
-  let status = selectedTab.tab.computedId;
-  serviceClient.getInboxPromise(status).then(
+function loadWells(status, page, pageSize) {
+  serviceClient.getInboxPromise(status, 1, page, pageSize).then(
     data => wellCollection.value = data
+  ).catch(
+    (error) => {
+      // Reset table of wells to prevent desired tab from showing data from another
+      wellCollection.value = null;
+      errorMessage.value = error.message;
+    }
   );
+}
+
+function changeTab(selectedTab) {
+  // To be triggered from Tab elements to load different data sets
+  // Reset page to 1 on tab change
+  activePage.value = 1;
+  loadWells(selectedTab, activePage.value, pageSize);
+}
+
+function changePage(pageNumber) {
+  loadWells(activeTab.value, pageNumber, pageSize);
 }
 
 onMounted(() => {
   serviceClient = new LangQc();
   try {
-    serviceClient.getInboxPromise().then(
-      data => wellCollection.value = data
-    );
+    loadWells(activeTab.value, activePage.value, pageSize);
     serviceClient.getClientConfig().then(
       data => appConfig.value = data
     );
@@ -46,17 +69,23 @@ onMounted(() => {
 </script>
 
 <template>
+<el-alert
+  v-if="errorMessage !== null"
+  title="Cannot get data"
+  type="error"
+  :description="errorMessage"
+  show-icon
+/>
 <div>
   <h2>Runs</h2>
 </div>
 <div v-if="appConfig !== null">
-  <tabs @clicked="loadWellsByStatus">
-    <tab
+  <el-tabs v-model="activeTab" type="border-card" @tab-change="changeTab">
+    <el-tab-pane
       v-for="tab in appConfig.qc_flow_statuses"
       :key="tab.param"
-      :name="tab.label"
-      :id="tab.param"
-      nav-item-class="nav-item"
+      :label="tab.label"
+      :name="tab.param"
     >
       <table>
         <tr>
@@ -74,8 +103,18 @@ onMounted(() => {
           <td>{{ wellObj.run_complete_time ? wellObj.run_complete_time : ''}}</td>
         </tr>
       </table>
-    </tab>
-  </tabs>
+    </el-tab-pane>
+    <el-pagination
+      v-model:currentPage="activePage"
+      layout="prev, pager, next"
+      :total="20"
+      background
+      :pager-count="5"
+      :page-size="pageSize"
+      :hide-on-single-page="true"
+      @current-change="changePage"
+    ></el-pagination>
+  </el-tabs>
 </div>
 <div v-if="runWell !== null">
   <h2>QC view</h2>
@@ -85,107 +124,5 @@ onMounted(() => {
 </template>
 
 <style>
-  .tabs-component {
-    margin: 4em 0;
-  }
 
-  .tabs-component-tabs {
-    border: solid 1px #ddd;
-    border-radius: 6px;
-    margin-bottom: 5px;
-  }
-
-  @media (min-width: 700px) {
-    .tabs-component-tabs {
-      border: 0;
-      align-items: stretch;
-      display: flex;
-      justify-content: flex-start;
-      margin-bottom: -1px;
-    }
-  }
-
-  .tabs-component-tab {
-    color: #999;
-    font-size: 14px;
-    font-weight: 600;
-    margin-right: 0;
-    list-style: none;
-  }
-
-  .tabs-component-tab:not(:last-child) {
-    border-bottom: dotted 1px #ddd;
-  }
-
-  .tabs-component-tab:hover {
-    color: #666;
-  }
-
-  .tabs-component-tab.is-active {
-    color: #000;
-  }
-
-  .tabs-component-tab.is-disabled * {
-    color: #cdcdcd;
-    cursor: not-allowed !important;
-  }
-
-  @media (min-width: 700px) {
-    .tabs-component-tab {
-      background-color: #fff;
-      border: solid 1px #ddd;
-      border-radius: 3px 3px 0 0;
-      margin-right: .5em;
-      transform: translateY(2px);
-      transition: transform .3s ease;
-    }
-
-    .tabs-component-tab.is-active {
-      border-bottom: solid 1px #fff;
-      z-index: 2;
-      transform: translateY(0);
-    }
-  }
-
-  .tabs-component-tab-a {
-    align-items: center;
-    color: inherit;
-    display: flex;
-    padding: .75em 1em;
-    text-decoration: none;
-  }
-
-  .tabs-component-panels {
-    padding: 4em 0;
-  }
-
-  @media (min-width: 700px) {
-    .tabs-component-panels {
-      background-color: #fff;
-      border: solid 1px #ddd;
-      border-radius: 0 6px 6px 6px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, .05);
-      padding: 4em 2em;
-    }
-  }
-
-  .tabs-component-btn {
-    cursor: pointer;
-    background: #e1ecf4;
-    border-radius: 3px;
-    border: 1px solid #7aa7c7;
-    padding: 4px 8px;
-    color: #39739d;
-  }
-
-  .tabs-component-btn:hover {
-    background-color: #b3d3ea;
-    color: #2c5777;
-  }
-
-  .tabs-component-btn:active {
-    background-color: #a0c7e4;
-    box-shadow: none;
-    color: #2c5777;
-  }
 </style>

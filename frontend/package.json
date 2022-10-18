@@ -15,10 +15,10 @@
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs"
   },
   "dependencies": {
+    "element-plus": "^2.2.18",
     "lodash": "^4.17.21",
     "vue": "^3.2.37",
-    "vue-router": "^4.1.2",
-    "vue3-tabs-component": "^1.1.0"
+    "vue-router": "^4.1.2"
   },
   "devDependencies": {
     "@testing-library/vue": "^6.6.1",
@@ -33,7 +33,6 @@
     "testing-library": "^0.0.2",
     "vite": "^3.0.1",
     "vitest": "latest",
-    "vitest-fetch-mock": "^0.2.1",
-    "vue3-tabs-component": "^1.1.0"
+    "vitest-fetch-mock": "^0.2.1"
   }
 }

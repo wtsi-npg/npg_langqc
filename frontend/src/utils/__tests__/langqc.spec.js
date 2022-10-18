@@ -32,7 +32,11 @@ describe('Example fake remote api call', () => {
         expect(fetch.mock.calls.length).toEqual(1);
 
         // First fetch call, first element is URL, second is a header object
-        expect(fetch.mock.calls[0][0]).toEqual('/api/pacbio/wells?qc_status=inbox&weeks=1');
+        expect(
+            fetch.mock.calls[0][0]
+        ).toEqual(
+            '/api/pacbio/wells?qc_status=inbox&weeks=1&page_size=10&page_number=1'
+        );
 
         // We can also test any custom header setting here
     });
