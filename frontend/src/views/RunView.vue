@@ -16,11 +16,17 @@ let wellCollection = ref(null);
 let activeTab = ref('inbox'); // aka paneName in element-plus
 let activePage = ref(1);
 
+let errorMessage = ref(null);
+
 function loadWellDetail(runName, label) {
   // Sets the runWell for the QcView component below
   serviceClient.getRunWellPromise(runName, label)
   .then(
     wells => runWell.value = wells
+  ).catch(
+    (error) => {
+      errorMessage = error.message;
+    }
   );
 }
 
@@ -31,6 +37,7 @@ function loadWells(status, page, pageSize) {
     (error) => {
       // Reset table of wells to prevent desired tab from showing data from another
       wellCollection.value = null;
+      errorMessage.value = error.message;
     }
   );
 }
@@ -60,6 +67,13 @@ onMounted(() => {
 </script>
 
 <template>
+<el-alert
+  v-if="errorMessage !== null"
+  title="Cannot get data"
+  type="error"
+  :description="errorMessage"
+  show-icon
+/>
 <div>
   <h2>Runs</h2>
 </div>

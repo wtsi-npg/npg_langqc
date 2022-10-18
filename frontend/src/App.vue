@@ -13,10 +13,10 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="common-layout">
+  <div>
     <el-container>
-      <el-header>
-        <img alt="Sanger logo" src="@/assets/sanger-logo.png" height="50" />
+      <el-header direction="horizontal">
+        <img alt="Sanger logo" src="@/assets/sanger-logo.png" height="50" class="logo"/>
 
         <h1>NPG Long Read QC</h1>
 
@@ -42,10 +42,6 @@ onMounted(() => {
 </template>
 
 <style scoped>
-/* header {
-  width: 100%;
-} */
-
 .logo {
   display: inline-block;
   margin: 0 auto 1rem;
@@ -59,7 +55,21 @@ onMounted(() => {
   vertical-align: text-bottom;
 }
 
+.el-header {
+  height: fit-content;
+}
+
 .el-footer {
   vertical-align: bottom;
 }
+
+.el-header,
+.el-footer,
+.el-main {
+  display: block;
+  justify-content: normal;
+  align-items: center;
+  text-align: left;
+}
+
 </style>
