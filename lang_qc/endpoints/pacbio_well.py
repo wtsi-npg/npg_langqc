@@ -78,17 +78,26 @@ router = APIRouter(
             "description": "Invalid query parameter value"
         }
     },
-    response_model=List[PacBioWell],
+    response_model=PacBioPagedWells
 )
 def get_wells_filtered_by_status(
     qc_status: QcFlowStatusEnum = QcFlowStatusEnum.INBOX,
-    weeks: PositiveInt = 1,
+    page_size: PositiveInt,
+    page_number:PositiveInt,
     qcdb_session: Session = Depends(get_qc_db),
     mlwh_session: Session = Depends(get_mlwh_db),
 ):
 
-    wells, states = grab_wells_with_status(qc_status, qcdb_session, mlwh_session, weeks)
-    return pack_wells_and_states(wells, states)
+    pager = PagedRequest(page_size = page_size, page_number=page_number)
+    wells, states = grab_wells_with_status(qc_status, qcdb_session, mlwh_session)
+    pbwells = pack_wells_and_states(wells, states)
+    paged_pbwells = pager.slice_data(pbwells)
+    return PacBioPagedWells(
+            total_number_of_items = len(pbwells),
+            data = pager.pselect_paged_data(paged_wells),
+            qc_flow_status = qc_status,
+            **pager
+        )
 
 
 @router.get(
@@ -290,13 +299,12 @@ def grab_wells_with_status(
     status: QcFlowStatusEnum,
     qcdb_session: Session,
     mlwh_session: Session,
-    weeks: PositiveInt = 1,
 ) -> Tuple[List[PacBioRunWellMetrics], List[QcState]]:
     """Get wells from the QC DB filtered by QC status."""
 
     match status:
         case QcFlowStatusEnum.INBOX:
-            return get_inbox_wells_and_states(qcdb_session, mlwh_session, weeks=weeks)
+            return get_inbox_wells_and_states(qcdb_session, mlwh_session)
         case QcFlowStatusEnum.IN_PROGRESS:
             return get_in_progress_wells_and_states(qcdb_session, mlwh_session)
         case QcFlowStatusEnum.ON_HOLD:

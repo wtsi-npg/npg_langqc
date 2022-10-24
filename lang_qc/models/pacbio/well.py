@@ -22,7 +22,8 @@ from datetime import datetime
 from pydantic import BaseModel, Extra, Field
 
 from lang_qc.models.qc_state import QcState
-
+from lang_qc.models.pager import PagedResponse
+from lang_qc.models.qc_flow_status import QcFlowStatusEnum
 
 class PacBioWell(BaseModel, extra=Extra.forbid):
     """
@@ -51,3 +52,24 @@ class PacBioWell(BaseModel, extra=Extra.forbid):
         available depends on the lifecycle stage of this well.
         """,
     )
+
+
+class PacBioPagedWells(PagedResponse, extra=Extra.forbid):
+    """
+    A response model for paged data about PacBio wells.
+    """
+
+    wells: List[PacBioWell] = Field (
+        default=[],
+        title="A list of PacBioWell objects",
+        description="""
+        A list of `PacBioWell` objects that corresponds to the QC flow status
+        given by the `qc_flow_status` attribute and the page number and size
+        specified secified by teh `page_size` and `page_number` attributes.
+        """
+    )
+    qc_flow_status: QcFlowStatusEnum = Field(
+        title="QC flow status",
+        description="QC flow status used to filter select wells."
+    )
+

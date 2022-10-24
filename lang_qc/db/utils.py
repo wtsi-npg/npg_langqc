@@ -35,10 +35,10 @@ from lang_qc.db.qc_schema import (
 )
 
 
-def grab_recent_wells_from_db(
+def grab_wells_from_db(
     weeks: int, db_session: Session
 ) -> List[PacBioRunWellMetrics]:
-    """Get wells from the past few weeks from the database."""
+    """Get completed wells from the from the database."""
 
     ######
     # It is important not to show aborted wells in the inbox.
@@ -60,10 +60,7 @@ def grab_recent_wells_from_db(
                 ),
                 PacBioRunWellMetrics.ccs_execution_mode == "None",
             ),
-            PacBioRunWellMetrics.well_status == "Complete",
-            PacBioRunWellMetrics.well_complete.between(
-                datetime.now() - timedelta(weeks=weeks), datetime.now()
-            ),
+            PacBioRunWellMetrics.well_status == "Complete"
         )
     )
 
@@ -111,7 +108,7 @@ def get_well_metrics_from_qc_states(
     return wells
 
 
-def get_inbox_wells_and_states(qcdb_session: Session, mlwh_session: Session, weeks=1):
+def get_inbox_wells_and_states(qcdb_session: Session, mlwh_session: Session):
     """Get a pair of lists of inbox PacBioRunWellMetrics and QcState.
 
     The list of states will always be empty.
@@ -120,7 +117,7 @@ def get_inbox_wells_and_states(qcdb_session: Session, mlwh_session: Session, wee
     # Get recent wells, then filter out all those that already have a
     # QcStatus in the DB.
 
-    recent_wells = grab_recent_wells_from_db(weeks, mlwh_session)
+    recent_wells = grab__wells_from_db(weeks, mlwh_session)
 
     stmt = (
         select(QcState)
