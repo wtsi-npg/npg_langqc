@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
-from datetime import datetime, timedelta
 from typing import List, Tuple
 
 from ml_warehouse.schema import PacBioRunWellMetrics
@@ -33,11 +32,10 @@ from lang_qc.db.qc_schema import (
     SubProduct,
     User,
 )
+from lang_qc.models.pacbio.well import WellStatusEnum
 
 
-def grab_wells_from_db(
-    weeks: int, db_session: Session
-) -> List[PacBioRunWellMetrics]:
+def grab_wells_from_db(db_session: Session) -> List[PacBioRunWellMetrics]:
     """Get completed wells from the from the database."""
 
     ######
@@ -60,7 +58,7 @@ def grab_wells_from_db(
                 ),
                 PacBioRunWellMetrics.ccs_execution_mode == "None",
             ),
-            PacBioRunWellMetrics.well_status == "Complete"
+            PacBioRunWellMetrics.well_status == WellStatusEnum.COMPLETE,
         )
     )
 
@@ -114,10 +112,9 @@ def get_inbox_wells_and_states(qcdb_session: Session, mlwh_session: Session):
     The list of states will always be empty.
     """
 
-    # Get recent wells, then filter out all those that already have a
-    # QcStatus in the DB.
+    # Get wells, then filter out all those that already have QC state assigned.
 
-    recent_wells = grab__wells_from_db(weeks, mlwh_session)
+    recent_wells = grab_wells_from_db(mlwh_session)
 
     stmt = (
         select(QcState)

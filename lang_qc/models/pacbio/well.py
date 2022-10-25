@@ -18,18 +18,31 @@
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
 from datetime import datetime
+from enum import Enum, unique
+from typing import List
 
 from pydantic import BaseModel, Extra, Field
 
-from lang_qc.models.qc_state import QcState
 from lang_qc.models.pager import PagedResponse
 from lang_qc.models.qc_flow_status import QcFlowStatusEnum
+from lang_qc.models.qc_state import QcState
+
+
+@unique
+class WellStatusEnum(str, Enum):
+    """
+    An enumeration of SMRT Link well statuses, which are used by this API.
+    """
+
+    COMPLETE = "Complete"
+
 
 class PacBioWell(BaseModel, extra=Extra.forbid):
     """
     A response model for a single PacBio well on a particular PacBio run.
     The class contains the attributes that uniquely define this well (`run_name`
-    and `level`), along with the time line and current QC state of this well.
+    and `level`), along with the time line and the current QC state of this well,
+    if any.
 
     This model does not contain any information about data that was
     sequenced or QC metrics or assessment for such data.
@@ -59,17 +72,24 @@ class PacBioPagedWells(PagedResponse, extra=Extra.forbid):
     A response model for paged data about PacBio wells.
     """
 
-    wells: List[PacBioWell] = Field (
+    wells: List[PacBioWell] = Field(
         default=[],
         title="A list of PacBioWell objects",
         description="""
         A list of `PacBioWell` objects that corresponds to the QC flow status
         given by the `qc_flow_status` attribute and the page number and size
-        specified secified by teh `page_size` and `page_number` attributes.
-        """
+        specified by the `page_size` and `page_number` attributes.
+        """,
     )
     qc_flow_status: QcFlowStatusEnum = Field(
-        title="QC flow status",
-        description="QC flow status used to filter select wells."
+        title="QC flow status", description="QC flow status used to select wells."
     )
 
+    def set_page(self, wells: List[PacBioWell]):
+        """
+        Given a list of `PacBioWell` objects, slices the list according to the
+        value of the `page_size` and `page_number` attributes and sets the the
+        `wells` and `total_number_of_items` attributes.
+        """
+        self.total_number_of_items = len(wells)
+        self.wells = self.slice_data(wells)

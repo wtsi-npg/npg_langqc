@@ -42,7 +42,7 @@ from lang_qc.db.utils import (
 )
 from lang_qc.models.lims import Sample, Study
 from lang_qc.models.pacbio.run import PacBioRunResponse
-from lang_qc.models.pacbio.well import PacBioWell
+from lang_qc.models.pacbio.well import PacBioPagedWells, PacBioWell
 from lang_qc.models.qc_flow_status import QcFlowStatusEnum
 from lang_qc.models.qc_state import QcClaimPostBody, QcState, QcStatusAssignmentPostBody
 from lang_qc.util.auth import check_user
@@ -78,26 +78,27 @@ router = APIRouter(
             "description": "Invalid query parameter value"
         }
     },
-    response_model=PacBioPagedWells
+    response_model=PacBioPagedWells,
 )
 def get_wells_filtered_by_status(
-    qc_status: QcFlowStatusEnum = QcFlowStatusEnum.INBOX,
     page_size: PositiveInt,
-    page_number:PositiveInt,
+    page_number: PositiveInt,
+    qc_status: QcFlowStatusEnum = QcFlowStatusEnum.INBOX,
     qcdb_session: Session = Depends(get_qc_db),
     mlwh_session: Session = Depends(get_mlwh_db),
 ):
 
-    pager = PagedRequest(page_size = page_size, page_number=page_number)
+    # Page size and number values will be validated at this point.
+    paged_pbwells = PacBioPagedWells(
+        page_size=page_size, page_number=page_number, qc_flow_status=qc_status
+    )
+    # Now we are getting all results for a status.
+    # Ideally we'd like to get the relevant page straignt away.
     wells, states = grab_wells_with_status(qc_status, qcdb_session, mlwh_session)
     pbwells = pack_wells_and_states(wells, states)
-    paged_pbwells = pager.slice_data(pbwells)
-    return PacBioPagedWells(
-            total_number_of_items = len(pbwells),
-            data = pager.pselect_paged_data(paged_wells),
-            qc_flow_status = qc_status,
-            **pager
-        )
+    # Now we slice the list and finalize the object.
+    paged_pbwells.set_page(pbwells)
+    return paged_pbwells  # And return it.
 
 
 @router.get(

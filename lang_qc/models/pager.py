@@ -19,12 +19,12 @@
 
 from typing import List
 
-from pydantic import BaseModel, Field, PositiveInt, ValidationError, validator
+from pydantic import BaseModel, Field, PositiveInt
 
 
-class PagedRequest(BaseModel):
+class PagedResponse(BaseModel):
     """
-    A request model for paged data.
+    A response model for paged data.
     """
 
     page_size: PositiveInt = Field(
@@ -32,43 +32,34 @@ class PagedRequest(BaseModel):
         description="""
         Size of the page, i.e. the number of objects that the client expects
         to receive.
-        """
+        """,
     )
     page_number: PositiveInt = Field(
         title="Page sequential number",
         description="""
         The sequential number of the page that is requested by the client.
         The pages are numbered starting from one.
-        """
+        """,
     )
 
-    def select_paged_data(data: List) -> List:
-        """
-        Given a list of items returns a slice of this list that corresponds
-        to the page specified by this object's attributes. If teh argument
-        lis is empty or shorter that expected, an empty list is returned.
-        """
-        from_number = page_size * page_number
-        to_number = from_number + page_size
-        return data[from_number:to_number]
-
-
-class PagedResponse(PagedRequest):
-    """
-    A response model for paged data.
-    """
-
-    total_number_of_items: Int = Field(
+    total_number_of_items: int = Field(
+        default=0,
         title="Total number of unpaged objects",
         description="""
         Total number of unpaged objects. Needed by the UI in order to display
         correct buttons in the paging widget.
-        """
+        """,
     )
 
-    @validator('total_number_of_items')
-    def check_total_number(cls, value):
-        if value < 0::
-            raise ValueError('total_number_of_items cannot be negative')
-        return value
+    def slice_data(self, data: List) -> List:
+        """
+        A helper method to enable child classes to select pages in a uniform
+        way.
 
+        Given a list of items returns a slice of this list that corresponds
+        to the page specified by this object's attributes. If the argument
+        list is empty or shorter that expected, an empty list is returned.
+        """
+        from_number = self.page_size * (self.page_number - 1)
+        to_number = from_number + self.page_size
+        return data[from_number:to_number]
