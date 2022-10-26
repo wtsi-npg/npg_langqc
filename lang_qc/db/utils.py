@@ -36,7 +36,7 @@ from lang_qc.models.pacbio.well import WellStatusEnum
 
 
 def grab_wells_from_db(db_session: Session) -> List[PacBioRunWellMetrics]:
-    """Get completed wells from the from the database."""
+    """Get completed wells from the database."""
 
     ######
     # It is important not to show aborted wells in the inbox.
