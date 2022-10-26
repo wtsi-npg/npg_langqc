@@ -24,7 +24,7 @@ export default function groupMetrics(metrics) {
     for (const [cat, members] of Object.entries(StatCategories)) {
         let cssClass = CssMapping[cat];
         for (const label of members) {
-            if (! (cssClass in groupedMetrics)) { groupedMetrics[cssClass] = {} };
+            if (! (cssClass in groupedMetrics)) { groupedMetrics[cssClass] = {} }
 
             if (! (label in metrics)) { continue; }
             if (Number.isInteger(metrics[label].value)) {

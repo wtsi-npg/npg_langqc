@@ -35,14 +35,29 @@ from tests.fixtures.inbox_data import inbox_data, test_data_factory, wells_and_s
 def test_incorrect_filter(test_client: TestClient):
     """Expect a 422 response when an incorrect filter is given."""
 
-    response = test_client.get("/pacbio/wells?qc_status=thisdoesntexist")
+    response = test_client.get(
+        "/pacbio/wells?page_size=1&page_number=1&qc_status=thisdoesntexist"
+    )
     assert response.status_code == 422
 
-    response = test_client.get("/pacbio/wells?weeks=-1")
+    response = test_client.get("/pacbio/wells?page_size=1&page_number=-1")
+    assert response.status_code == 422  # positive value is expected
+    response = test_client.get("/pacbio/wells?page_size=-11&page_number=1")
     assert response.status_code == 422  # positive value is expected
 
+    response = test_client.get("/pacbio/wells")
+    assert response.status_code == 422  # page size and number should be given
 
-def assert_filtered_inbox_equals_expected(response, expected_data):
+    response = test_client.get("/pacbio/wells?page_number=1")
+    assert response.status_code == 422  # page size should be given
+
+    response = test_client.get("/pacbio/wells?page_size=1")
+    assert response.status_code == 422  # page number should be given
+
+
+def assert_filtered_inbox_equals_expected(
+    response, expected_data, page_size, page_number, total_number, qc_flow_status
+):
     """Convenience function to test the result of filtered well endpoint.
 
     Args:
@@ -51,13 +66,17 @@ def assert_filtered_inbox_equals_expected(response, expected_data):
     """
 
     assert response.status_code == 200
-    results = response.json()
-    assert type(results) is list
+
+    resp = response.json()
+    assert resp["page_size"] == page_size
+    assert resp["page_number"] == page_number
+    assert resp["total_number_of_items"] == total_number
+    assert resp["qc_flow_status"] == qc_flow_status
+    assert type(resp["wells"]) is list
 
     actual_data = []
 
-    for result in results:
-        assert type(result) is dict
+    for result in resp["wells"]:
         rwell = result["run_name"] + ":" + result["label"]
         qc_state = (
             result["qc_state"]["state"] if result["qc_state"] is not None else None
@@ -75,21 +94,46 @@ def test_qc_complete_filter(test_client: TestClient, test_data_factory):
         "QUARTER-MILE": {"A1": None, "A2": "On hold", "A3": "On hold", "A4": None},
     }
     test_data_factory(desired_wells)
+    status = "qc_complete"
 
-    response = test_client.get("/pacbio/wells?qc_status=qc_complete")
+    response = test_client.get(
+        "/pacbio/wells?page_size=10&page_number=1&qc_status=" + status
+    )
 
     expected_data = [
         {"MARATHON:A1": "Passed"},
         {"MARATHON:A2": "Passed"},
         {"SEMI-MARATHON:A1": "Failed"},
     ]
-    assert_filtered_inbox_equals_expected(response, expected_data)
+    assert_filtered_inbox_equals_expected(response, expected_data, 10, 1, 3, status)
 
-    for well in response.json():
+    for well in response.json()["wells"]:
         assert well["run_start_time"] is not None
         assert well["run_complete_time"] is not None
         assert well["well_start_time"] is not None
         assert well["well_complete_time"] is not None
+
+    response = test_client.get(
+        "/pacbio/wells?page_size=10&page_number=2&qc_status=" + status
+    )
+    resp = response.json()
+    assert resp["wells"] == []  # empty page
+    assert resp["page_size"] == 10
+    assert resp["page_number"] == 2
+    assert resp["qc_flow_status"] == status
+    assert resp["total_number_of_items"] == 3
+
+    response = test_client.get(
+        "/pacbio/wells?page_size=2&page_number=1&qc_status=" + status
+    )
+    ed = expected_data[0:2]
+    assert_filtered_inbox_equals_expected(response, ed, 2, 1, 3, status)
+
+    response = test_client.get(
+        "/pacbio/wells?page_size=2&page_number=2&qc_status=" + status
+    )
+    ed = expected_data[2:]
+    assert_filtered_inbox_equals_expected(response, ed, 2, 2, 3, status)
 
 
 def test_on_hold_filter(test_client: TestClient, test_data_factory):
@@ -101,14 +145,35 @@ def test_on_hold_filter(test_client: TestClient, test_data_factory):
         "QUARTER-MILE": {"A1": None, "A2": "On hold", "A3": "On hold", "A4": None},
     }
     test_data_factory(desired_wells)
-    response = test_client.get("/pacbio/wells?qc_status=on_hold")
+    status = "on_hold"
+
+    response = test_client.get(
+        "/pacbio/wells?page_size=10&page_number=1&qc_status=" + status
+    )
     expected_data = [
         {"MARATHON:A3": "On hold"},
         {"QUARTER-MILE:A2": "On hold"},
         {"QUARTER-MILE:A3": "On hold"},
     ]
 
-    assert_filtered_inbox_equals_expected(response, expected_data)
+    assert_filtered_inbox_equals_expected(response, expected_data, 10, 1, 3, status)
+
+    response = test_client.get(
+        "/pacbio/wells?page_size=10&page_number=2&qc_status=" + status
+    )
+    assert response.json()["wells"] == []  # empty page
+
+    response = test_client.get(
+        "/pacbio/wells?page_size=2&page_number=1&qc_status=" + status
+    )
+    ed = expected_data[0:2]
+    assert_filtered_inbox_equals_expected(response, ed, 2, 1, 3, status)
+
+    response = test_client.get(
+        "/pacbio/wells?page_size=2&page_number=2&qc_status=" + status
+    )
+    ed = expected_data[2:]
+    assert_filtered_inbox_equals_expected(response, ed, 2, 2, 3, status)
 
 
 def test_in_progress_filter(test_client: TestClient, test_data_factory):
@@ -120,13 +185,17 @@ def test_in_progress_filter(test_client: TestClient, test_data_factory):
         "QUARTER-MILE": {"A1": None, "A2": "On hold", "A3": "On hold", "A4": None},
     }
     test_data_factory(desired_wells)
-    response = test_client.get("/pacbio/wells?qc_status=in_progress")
+    response = test_client.get(
+        "/pacbio/wells?qc_status=in_progress&page_size=5&page_number=1"
+    )
     expected_data = [
         {"SEMI-MARATHON:A2": "Claimed"},
         {"SEMI-MARATHON:A3": "Claimed"},
     ]
 
-    assert_filtered_inbox_equals_expected(response, expected_data)
+    assert_filtered_inbox_equals_expected(
+        response, expected_data, 5, 1, 2, "in_progress"
+    )
 
 
 def test_inbox_filter(test_client: TestClient, test_data_factory):
@@ -138,7 +207,8 @@ def test_inbox_filter(test_client: TestClient, test_data_factory):
         "QUARTER-MILE": {"A1": None, "A2": "On hold", "A3": "On hold", "A4": None},
     }
     test_data_factory(desired_wells)
-    response = test_client.get("/pacbio/wells?qc_status=inbox")
+    status = "inbox"
+
     expected_data = [
         {"MARATHON:A4": None},
         {"QUARTER-MILE:A1": None},
@@ -146,44 +216,40 @@ def test_inbox_filter(test_client: TestClient, test_data_factory):
         {"SEMI-MARATHON:A4": None},
     ]
 
-    assert_filtered_inbox_equals_expected(response, expected_data)
+    response = test_client.get("/pacbio/wells?page_size=100&page_number=1")
+    assert_filtered_inbox_equals_expected(response, expected_data, 100, 1, 4, status)
 
-    response = test_client.get("/pacbio/wells?qc_status=inbox&weeks=1")
-    assert_filtered_inbox_equals_expected(response, expected_data)
+    response = test_client.get(
+        "/pacbio/wells?qc_status=inbox&page_size=100&page_number=1"
+    )
+    assert_filtered_inbox_equals_expected(response, expected_data, 100, 1, 4, status)
+
+    response = test_client.get(
+        "/pacbio/wells?page_size=100&page_number=2&qc_status=inbox"
+    )
+    assert response.json()["wells"] == []  # empty page
+
+    response = test_client.get(
+        "/pacbio/wells?page_size=2&page_number=1&qc_status=inbox"
+    )
+    ed = expected_data[0:2]
+    assert_filtered_inbox_equals_expected(response, ed, 2, 1, 4, status)
+
+    response = test_client.get(
+        "/pacbio/wells?page_size=2&page_number=2&qc_status=inbox"
+    )
+    ed = expected_data[2:]
+    assert_filtered_inbox_equals_expected(response, ed, 2, 2, 4, status)
 
 
-def test_multiple_weeks_filter(test_client: TestClient, inbox_data):
+def test_with_more_data(test_client: TestClient, inbox_data):
 
-    wells_list = ["A0", "A1", "A2", "A3", "A4", "A5", "A6"]
-
-    response = test_client.get("/pacbio/wells?qc_status=inbox&weeks=1")
+    wells_list = ["A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8"]
+    response = test_client.get(
+        "/pacbio/wells?qc_status=inbox&&page_size=20&page_number=1"
+    )
     assert response.status_code == 200
-    assert [well_item["label"] for well_item in response.json()] == wells_list
-
-    response = test_client.get("/pacbio/wells?qc_status=inbox&weeks=2")
-    assert response.status_code == 200
-    wells_list.extend(["A7", "A8"])
-    assert [well_item["label"] for well_item in response.json()] == wells_list
-
-
-def test_default_filter(test_client: TestClient, test_data_factory):
-    """Test passing no filter, equivalent to `inbox` filter."""
-
-    desired_wells = {
-        "MARATHON": {"A1": "Passed", "A2": "Passed", "A3": "On hold", "A4": None},
-        "SEMI-MARATHON": {"A1": "Failed", "A2": "Claimed", "A3": "Claimed", "A4": None},
-        "QUARTER-MILE": {"A1": None, "A2": "On hold", "A3": "On hold", "A4": None},
-    }
-    test_data_factory(desired_wells)
-    response = test_client.get("/pacbio/wells")
-    expected_data = [
-        {"MARATHON:A4": None},
-        {"QUARTER-MILE:A1": None},
-        {"QUARTER-MILE:A4": None},
-        {"SEMI-MARATHON:A4": None},
-    ]
-
-    assert_filtered_inbox_equals_expected(response, expected_data)
+    assert [well_item["label"] for well_item in response.json()["wells"]] == wells_list
 
 
 def test_pack_well_and_states(wells_and_states):
