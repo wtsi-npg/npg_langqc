@@ -105,10 +105,10 @@ onMounted(() => {
             <button v-on:click="loadWellDetail(wellObj.run_name, wellObj.label)">{{ wellObj.label }}</button>
           </td>
           <td>{{ wellObj.run_start_time }}</td>
-          <td>{{ wellObj.run_complete_time ? wellObj.run_complete_time : '&nbsp'}}</td>
-          <td>{{ wellObj.qc_state ? wellObj.qc_state.state : '&nbsp'}}</td>
-          <td>{{ wellObj.qc_state ? wellObj.qc_state.date_updated : '&nbsp'}}</td>
-          <td>{{ wellObj.qc_state ? wellObj.qc_state.user : '&nbsp'}}</td>
+          <td>{{ wellObj.run_complete_time ? wellObj.run_complete_time : '&nbsp;'}}</td>
+          <td>{{ wellObj.qc_state ? wellObj.qc_state.state : '&nbsp;'}}</td>
+          <td>{{ wellObj.qc_state ? wellObj.qc_state.date_updated : '&nbsp;'}}</td>
+          <td>{{ wellObj.qc_state ? wellObj.qc_state.user : '&nbsp;'}}</td>
         </tr>
       </table>
     </el-tab-pane>
