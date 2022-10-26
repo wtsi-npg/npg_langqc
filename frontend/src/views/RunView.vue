@@ -16,6 +16,7 @@ let wellCollection = ref(null);
 let activeTab = ref('inbox'); // aka paneName in element-plus
 let activePage = ref(1);
 let pageSize = 10;
+let totalNumberOfWells = ref(0);
 
 let errorMessage = ref(null);
 
@@ -32,8 +33,9 @@ function loadWellDetail(runName, label) {
 }
 
 function loadWells(status, page, pageSize) {
-  serviceClient.getInboxPromise(status, 1, page, pageSize).then(
-    data => wellCollection.value = data
+  serviceClient.getInboxPromise(status, page, pageSize).then(
+    data => {wellCollection.value = data.wells
+             totalNumberOfWells.value = data.total_number_of_items}
   ).catch(
     (error) => {
       // Reset table of wells to prevent desired tab from showing data from another
@@ -113,7 +115,7 @@ onMounted(() => {
     <el-pagination
       v-model:currentPage="activePage"
       layout="prev, pager, next"
-      :total="20"
+      v-bind:total="totalNumberOfWells"
       background
       :pager-count="5"
       :page-size="pageSize"

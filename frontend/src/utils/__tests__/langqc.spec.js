@@ -35,7 +35,7 @@ describe('Example fake remote api call', () => {
         expect(
             fetch.mock.calls[0][0]
         ).toEqual(
-            '/api/pacbio/wells?qc_status=inbox&weeks=1&page_size=10&page_number=1'
+            '/api/pacbio/wells?qc_status=inbox&page_size=10&page_number=1'
         );
 
         // We can also test any custom header setting here
@@ -59,7 +59,8 @@ describe('URL generation' , () => {
 
         expect(client.buildUrl('/wells/stuff')).toEqual('/api/pacbio/wells/stuff');
 
-        expect(client.buildUrl('/wells', ['weeks=1'])).toEqual('/api/pacbio/wells?weeks=1');
+        expect(client.buildUrl('/wells', ['page_size=3', 'page_number=1'])).toEqual(
+	    '/api/pacbio/wells?page_size=3&page_number=1');
 
         expect(client.buildUrl(['run', 'TRACTION-RUN-10', 'well', 'B1'])).toEqual('/api/pacbio/run/TRACTION-RUN-10/well/B1');
     });
