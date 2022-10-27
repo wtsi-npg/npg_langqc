@@ -5,71 +5,71 @@ import { onMounted, ref } from "vue";
 let logout_redirect_url = ref(null);
 
 onMounted(() => {
-  
+
   // Construct a logout url, the url to which the user is redirected must be registered
   // in your OIDC provider application.
   logout_redirect_url.value = "/login-redirect?logout=" + encodeURIComponent(location.origin);
-  
 })
-
 </script>
 
 <template>
-  <header>
-    <img alt="Sanger logo" src="@/assets/sanger-logo.png" height="50" />
-
-    <h1>NPG Long Read QC</h1>
-
-    <div class="wrapper">
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-        <!-- 
-        Using anchors instead of RouterLinks to make the browser fetch the page from the server,
-        triggering the login or logout series of redirects.
-        -->
-        <a href="/ui/login">Login</a>
-        <a :href="logout_redirect_url">Logout</a>
-      </nav>
-    </div>
-  </header>
   <div>
-    <RouterView />
+    <el-container>
+      <el-header direction="horizontal">
+        <img alt="Sanger logo" src="@/assets/sanger-logo.png" height="50" class="logo"/>
+
+        <h1>NPG Long Read QC</h1>
+
+        <nav>
+          <!-- Make these RouterLinks again somehow so we don't reload the whole app for nothing -->
+          <el-link href="/">Home</el-link>
+          <el-link href="about">About</el-link>
+          <!--
+          Using anchors instead of RouterLinks to make the browser fetch the page from the server,
+          triggering the login or logout series of redirects.
+          -->
+          <el-link type="primary" href="/ui/login">Login</el-link>
+          <el-link type="primary" :href="logout_redirect_url">Logout</el-link>
+        </nav>
+
+      </el-header>
+      <el-main>
+        <RouterView />
+      </el-main>
+      <el-footer>Copyright Genome Research Ltd 2022</el-footer>
+    </el-container>
   </div>
 </template>
 
 <style scoped>
-header {
-  width: 100%;
-}
-
 .logo {
   display: inline-block;
-  margin: 0 auto 2rem;
+  margin: 0 auto 1rem;
 }
 
-nav {
-  width: 100%;
-  font-size: 12px;
-  margin-top: 2rem;
+.el-link {
+  margin-right: 8px;
 }
 
-nav a.router-link-exact-active {
-  color: var(--color-text);
+.el-link .el-icon--right.el-icon {
+  vertical-align: text-bottom;
 }
 
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
+.el-header {
+  height: fit-content;
 }
 
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
+.el-footer {
+  vertical-align: bottom;
 }
 
-nav a:first-of-type {
-  border: 0;
+.el-header,
+.el-footer,
+.el-main {
+  display: block;
+  justify-content: normal;
+  align-items: center;
+  text-align: left;
 }
 
 </style>

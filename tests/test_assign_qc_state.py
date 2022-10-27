@@ -2,7 +2,7 @@ import json
 
 from fastapi.testclient import TestClient
 
-from lang_qc.models.qc_state_models import QcStatusAssignmentPostBody
+from lang_qc.models.qc_state import QcStatusAssignmentPostBody
 from tests.fixtures.inbox_data import test_data_factory
 
 
@@ -66,8 +66,7 @@ def test_change_from_passed_to_fail(test_client: TestClient, test_data_factory):
     expected = {
         "user": "zx80@example.com",
         "qc_type": "library",
-        "qc_type_description": "Sample/library evaluation",
-        "qc_state": "Failed",
+        "state": "Failed",
         "is_preliminary": False,
         "created_by": "LangQC",
     }

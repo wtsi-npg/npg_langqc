@@ -17,18 +17,14 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
-class QcStatusAssignmentPostBody(BaseModel):
-    """Body for the qc_assign endpoint"""
+class Study(BaseModel):
 
-    qc_type: str
-    qc_state: str
-    is_preliminary: bool
+    id: str = Field(default=None, title="Study ID.")
 
 
-class QcClaimPostBody(BaseModel):
-    """Body for the qc_claim endpoint."""
+class Sample(BaseModel):
 
-    qc_type: str
+    id: str = Field(default=None, title="Sample ID")

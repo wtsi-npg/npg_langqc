@@ -24,9 +24,9 @@ from npg_id_generation import PacBioEntity
 from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
 
+from lang_qc.db.qc_schema import ProductLayout
+from lang_qc.db.qc_schema import QcState as QcState
 from lang_qc.db.qc_schema import (
-    ProductLayout,
-    QcState,
     SeqPlatform,
     SeqProduct,
     SubProduct,
@@ -34,7 +34,7 @@ from lang_qc.db.qc_schema import (
     User,
 )
 from lang_qc.db.utils import get_qc_state_dict, get_qc_type
-from lang_qc.models.inbox_models import QcStatus
+from lang_qc.models.qc_state import QcState as QcStateModel
 
 
 class NotFoundInDatabaseException(Exception):
@@ -167,7 +167,10 @@ def construct_seq_product_for_well(
 
 
 def update_qc_state(
-    qc_status_post: QcStatus, qc_state_db: QcState, user: User, qcdb_session: Session
+    qc_status_post: QcStateModel,
+    qc_state_db: QcState,
+    user: User,
+    qcdb_session: Session,
 ):
     """Update the properties of the QcState, without pushing the changes.
 
@@ -196,25 +199,3 @@ def update_qc_state(
     qc_state_db.id_qc_type = qc_type.id_qc_type
     qc_state_db.created_by = "LangQC"
     qc_state_db.is_preliminary = qc_status_post.is_preliminary
-
-
-def qc_status_json(db_qc_state: QcState) -> QcStatus:
-    """Convenience function to convert a DB QcState to a Pydantic QcStatus.
-
-    Args:
-        db_qc_state: the DB QcState object
-
-    Returns:
-        A QcStatus object with the properties from the DB QCState record.
-    """
-
-    return QcStatus(
-        user=db_qc_state.user.username,
-        date_created=db_qc_state.date_created,
-        date_updated=db_qc_state.date_updated,
-        qc_type=db_qc_state.qc_type.qc_type,
-        qc_type_description=db_qc_state.qc_type.description,
-        qc_state=db_qc_state.qc_state_dict.state,
-        is_preliminary=db_qc_state.is_preliminary,
-        created_by=db_qc_state.created_by,
-    )
