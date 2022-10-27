@@ -4,6 +4,10 @@ import { onMounted, ref } from "vue";
 import QcView from "@/components/QcView.vue";
 import LangQc from "@/utils/langqc.js";
 
+import useMessageStore from '@/stores/message.js';
+
+const errorBuffer = useMessageStore();
+
 let serviceClient = null;
 
 // Don't try to render much of anything until data arrives
@@ -18,8 +22,6 @@ let activePage = ref(1);
 let pageSize = 10;
 let totalNumberOfWells = ref(0);
 
-let errorMessage = ref(null);
-
 function loadWellDetail(runName, label) {
   // Sets the runWell for the QcView component below
   serviceClient.getRunWellPromise(runName, label)
@@ -27,7 +29,7 @@ function loadWellDetail(runName, label) {
     wells => runWell.value = wells
   ).catch(
     (error) => {
-      errorMessage.value = error.message;
+      errorBuffer.addMessage(error.message);
     }
   );
 }
@@ -40,7 +42,7 @@ function loadWells(status, page, pageSize) {
     (error) => {
       // Reset table of wells to prevent desired tab from showing data from another
       wellCollection.value = null;
-      errorMessage.value = error.message;
+      errorBuffer.addMessage(error.message);
     }
   );
 }
@@ -65,19 +67,13 @@ onMounted(() => {
     );
   } catch (error) {
     console.log("Stuff went wrong getting data from backend: "+error);
+    errorBuffer.addMessage(error.message);
   }
 });
 
 </script>
 
 <template>
-<el-alert
-  v-if="errorMessage !== null"
-  title="Cannot get data"
-  type="error"
-  :description="errorMessage"
-  show-icon
-/>
 <div>
   <h2>Runs</h2>
 </div>

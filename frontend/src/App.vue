@@ -1,6 +1,11 @@
 <script setup>
-import { RouterLink, RouterView } from 'vue-router';
+import { RouterView } from 'vue-router';
 import { onMounted, ref } from "vue";
+
+import useMessageStore from '@/stores/message.js';
+
+const errorBuffer = useMessageStore();
+
 
 let logout_redirect_url = ref(null);
 
@@ -22,8 +27,8 @@ onMounted(() => {
 
         <nav>
           <!-- Make these RouterLinks again somehow so we don't reload the whole app for nothing -->
-          <el-link href="/">Home</el-link>
-          <el-link href="about">About</el-link>
+          <el-link type="primary" href="/">Home</el-link>
+          <el-link type="primary" href="about">About</el-link>
           <!--
           Using anchors instead of RouterLinks to make the browser fetch the page from the server,
           triggering the login or logout series of redirects.
@@ -34,6 +39,15 @@ onMounted(() => {
 
       </el-header>
       <el-main>
+        <el-alert
+          v-if="errorBuffer.errorMessages"
+          v-for="error in errorBuffer.errorMessages"
+          :key="error.id"
+          title="Cannot get data"
+          type="error"
+          :description="error"
+          show-icon
+        />
         <RouterView />
       </el-main>
       <el-footer>Copyright Genome Research Ltd 2022</el-footer>
