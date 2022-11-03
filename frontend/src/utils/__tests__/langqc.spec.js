@@ -41,14 +41,49 @@ describe('Example fake remote api call', () => {
         // We can also test any custom header setting here
     });
 
+    test('Posting', () => {
+        fetch.mockResolvedValue(
+            new Promise( () => {
+                return {
+                    "user": "zx80@example.com",
+                    "qc_type": "library",
+                    "state": "Claimed",
+                    "is_preliminary": true,
+                    "created_by": "qc_user",
+                }
+            })
+        )
+
+        client.claimWell('TRACTION-RUN-299', 'B1');
+
+        let request = fetch.mock.calls[1];
+        expect(
+            request[0]
+        ).toEqual(
+            '/api/pacbio/run/TRACTION-RUN-299/well/B1/qc_claim'
+        );
+
+        expect(
+            request[1].method
+        ).toEqual(
+            'POST'
+        );
+
+        expect(
+            request[1].body
+        ).toEqual(
+            {'qc_type': 'sequencing'}
+        );
+    });
+
     test('Fetch convenience functions send requests to...', () => {
         // Note that the mock remembers all calls until reset
         client.getClientConfig();
-        expect(fetch.mock.calls[1][0]).toEqual('/api/config');
+        expect(fetch.mock.calls[2][0]).toEqual('/api/config');
 
         client.getRunWellPromise('blah', 'A2');
-        expect(fetch.mock.calls[2][0]).toEqual('/api/pacbio/run/blah/well/A2');
-    })
+        expect(fetch.mock.calls[3][0]).toEqual('/api/pacbio/run/blah/well/A2');
+    });
 });
 
 describe('URL generation' , () => {

@@ -38,9 +38,8 @@ onMounted(() => {
         </nav>
 
       </el-header>
-      <el-main>
+      <el-main v-if="errorBuffer.errorMessages">
         <el-alert
-          v-if="errorBuffer.errorMessages"
           v-for="error in errorBuffer.errorMessages"
           :key="error.id"
           title="Cannot get data"

@@ -27,20 +27,32 @@ export default class LangQc {
     return this.urls[alias];
   }
 
-  syncFetch(route) {
+  syncFetch(route, method='GET', body) {
     // Don't use this if you want async efficiency.
     // Returns a promise that ought to contain backend data
+
+    let requestMeta = {
+      headers: this.commonHeaders,
+    }
+
+    if (method == 'POST') {
+      requestMeta.method = method;
+      requestMeta.headers = {
+        'Content-type': 'application/json',
+        'Accept': 'application/json'
+      };
+      requestMeta.body = JSON.stringify(body);
+    }
+
     return fetch(
       route,
-      {
-        headers: this.commonHeaders
-      }
+      requestMeta
     ).then(
       response => {
         if (response.ok) {
           return response.json()
         } else {
-          throw new Error("API fetch error " + response.statusText);
+          throw new Error(`API ${requestMeta.method} error "` + response.statusText);
         }
       }
     )
@@ -64,6 +76,12 @@ export default class LangQc {
   }
 
   claimWell(name, well) {
-    throw Error('Not implemented');
+    return this.syncFetch(
+      this.buildUrl(['run', name, 'well', well, 'qc_claim']),
+      'POST',
+      {
+        "qc_type": "sequencing"
+      }
+    )
   }
 }
