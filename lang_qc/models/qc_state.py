@@ -25,19 +25,32 @@ from pydantic import BaseModel, Field
 from lang_qc.db.qc_schema import QcState as QcStateDB
 
 
-class QcState(BaseModel):
+class QcStateBasic(BaseModel):
     """
-    Represents QC data associated with a QC-able entity.
+    Represents basic QC data associated with a QC-able entity.
     """
 
-    state: str = Field(
+    qc_state: str = Field(
         default=None,
-        title="Current QC state",
+        title="QC state",
         description="""
-        For an entity defined by the `id_seq_product` attribute value, the
-        assigned QC state of the type defined by the `qc_type` attribute.
+        The QC state of the type defined by the `qc_type` attribute.
         """,
     )
+    is_preliminary: bool = Field(default=None, title="Preliminarity of outcome")
+    qc_type: str = Field(default=None, title="Type of QC performed")
+
+
+class QcState(QcStateBasic):
+    """
+    Represents QC data associated with a QC-able entity.
+
+    The definition of the inherited `qc_state` attribute of this class should
+    read as follows:
+        'For an entity defined by the `id_seq_product` attribute value, the
+        assigned QC state of the type defined by the `qc_type` attribute'.
+    """
+
     outcome: Optional[bool] = Field(
         default=None,
         title="Boolean QC outcome",
@@ -48,9 +61,7 @@ class QcState(BaseModel):
         a fail (example - 'on hold').
         """,
     )
-    is_preliminary: bool = Field(default=None, title="Preliminarity of outcome")
-    qc_type: str = Field(default=None, title="Type of QC performed")
-    id_seq_product: str = Field(default=None, title="Unique entity ID")
+    id_product: str = Field(default=None, title="Unique entity ID")
     date_created: datetime = Field(
         default=None,
         title="Date the initial state was assigned",
@@ -92,25 +103,11 @@ class QcState(BaseModel):
             date_created=obj.date_created,
             date_updated=obj.date_updated,
             qc_type=obj.qc_type.qc_type,
-            state=obj.qc_state_dict.state,
+            qc_state=obj.qc_state_dict.state,
             outcome=bool(obj.qc_state_dict.outcome)
             if obj.qc_state_dict.outcome is not None
             else None,
             is_preliminary=bool(obj.is_preliminary),
             created_by=obj.created_by,
-            id_seq_product=obj.id_seq_product,
+            id_product=obj.seq_product.id_product,
         )
-
-
-class QcStatusAssignmentPostBody(BaseModel):
-    """Body for the qc_assign endpoint"""
-
-    qc_type: str
-    qc_state: str
-    is_preliminary: bool
-
-
-class QcClaimPostBody(BaseModel):
-    """Body for the qc_claim endpoint."""
-
-    qc_type: str

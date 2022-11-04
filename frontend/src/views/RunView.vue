@@ -106,7 +106,7 @@ onMounted(() => {
           </td>
           <td>{{ wellObj.run_start_time }}</td>
           <td>{{ wellObj.run_complete_time ? wellObj.run_complete_time : '&nbsp;'}}</td>
-          <td>{{ wellObj.qc_state ? wellObj.qc_state.state : '&nbsp;'}}</td>
+          <td>{{ wellObj.qc_state ? wellObj.qc_state.qc_state : '&nbsp;'}}</td>
           <td>{{ wellObj.qc_state ? wellObj.qc_state.date_updated : '&nbsp;'}}</td>
           <td>{{ wellObj.qc_state ? wellObj.qc_state.user : '&nbsp;'}}</td>
         </tr>

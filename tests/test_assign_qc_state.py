@@ -2,7 +2,7 @@ import json
 
 from fastapi.testclient import TestClient
 
-from lang_qc.models.qc_state import QcStatusAssignmentPostBody
+from lang_qc.models.qc_state import QcStateBasic
 from tests.fixtures.inbox_data import test_data_factory
 
 
@@ -29,10 +29,9 @@ def test_change_non_existent_well(test_client: TestClient, test_data_factory):
         headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
     )
 
-    assert response.status_code == 400
+    assert response.status_code == 409
     assert (
-        response.json()["detail"]
-        == "Cannot assign a state to a well which has not yet been claimed."
+        response.json()["detail"] == "QC state of an unclaimed well cannot be updated"
     )
 
 
@@ -66,7 +65,7 @@ def test_change_from_passed_to_fail(test_client: TestClient, test_data_factory):
     expected = {
         "user": "zx80@example.com",
         "qc_type": "library",
-        "state": "Failed",
+        "qc_state": "Failed",
         "is_preliminary": False,
         "created_by": "LangQC",
     }
@@ -98,9 +97,8 @@ def test_error_on_invalid_state(test_client: TestClient, test_data_factory):
 
     assert response.status_code == 400
     assert (
-        response.json()["detail"] == f"An error occured: "
-        "Desired QC state is not in the QC database. It might not be allowed.\n"
-        f"Request body was: {QcStatusAssignmentPostBody.parse_obj(post_data).json()}"
+        response.json()["detail"]
+        == "Error assigning status: QC state 'NotDoingAnything' is invalid"
     )
 
 
@@ -150,10 +148,9 @@ def test_error_on_unclaimed_well(test_client: TestClient, test_data_factory):
         headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
     )
 
-    assert response.status_code == 400
+    assert response.status_code == 409
     assert (
-        response.json()["detail"]
-        == "Cannot assign a state to a well which has not yet been claimed."
+        response.json()["detail"] == "QC state of an unclaimed well cannot be updated"
     )
 
 
@@ -175,8 +172,5 @@ def test_error_on_preclaimed_well(test_client: TestClient, test_data_factory):
         headers={"OIDC_CLAIM_EMAIL": "cd32@example.com"},
     )
 
-    assert response.status_code == 401
-    assert (
-        response.json()["detail"]
-        == "Cannot assign a state to a well which has been claimed by another user."
-    )
+    assert response.status_code == 403
+    assert response.json()["detail"] == "Unauthorised, QC is performed by another user"

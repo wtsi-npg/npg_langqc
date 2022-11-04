@@ -221,21 +221,6 @@ def get_user(username: str, qcdb_session: Session) -> User | None:
     ).scalar_one_or_none()
 
 
-def get_well_metrics(
-    run_name: str, well_label: str, mlwh_session: Session
-) -> PacBioRunWellMetrics | None:
-    """Get a well from the metrics database."""
-
-    return mlwh_session.execute(
-        select(PacBioRunWellMetrics).where(
-            and_(
-                PacBioRunWellMetrics.pac_bio_run_name == run_name,
-                PacBioRunWellMetrics.well_label == well_label,
-            )
-        )
-    ).scalar_one_or_none()
-
-
 def get_qc_state_dict(state_name: str, qcdb_session: Session) -> QcStateDict | None:
     """Get a QC state variant from a name."""
 
