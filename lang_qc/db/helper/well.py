@@ -157,7 +157,16 @@ class QcDictDB(BaseModel):
         state are keys.
         """
 
-        db_states = self.session.execute(select(QcStateDict)).scalars().all()
+        db_states = (
+            self.session.execute(
+                select(QcStateDict).order_by(
+                    QcStateDict.outcome.desc(), QcStateDict.state
+                )
+            )
+            .scalars()
+            .all()
+        )
+
         return {row.state: row for row in db_states}
 
     def qc_state_dict_row(self, qc_state_name: str) -> QcStateDict:
