@@ -1,4 +1,8 @@
 import { fetch } from 'cross-fetch';
+import createFetchMock from 'vitest-fetch-mock';
+import { vi } from 'vitest';
 
-// Provide a fetch API for when we're not testing in a browser
 global.fetch = fetch;
+const fetchMock = createFetchMock(vi);
+
+fetchMock.enableMocks();

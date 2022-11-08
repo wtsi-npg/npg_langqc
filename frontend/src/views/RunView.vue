@@ -5,16 +5,16 @@ import QcView from "@/components/QcView.vue";
 import LangQc from "@/utils/langqc.js";
 
 import useMessageStore from '@/stores/message.js';
+import useWellStore from '@/stores/focusWell.js';
 
 const errorBuffer = useMessageStore();
+const focusWell = useWellStore();
 
 let serviceClient = null;
 
 // Don't try to render much of anything until data arrives
 // by reacting to these three vars
 let appConfig = ref(null); // cache this I suppose
-
-let runWell = ref(null);
 let wellCollection = ref(null);
 
 let activeTab = ref('inbox'); // aka paneName in element-plus
@@ -26,7 +26,7 @@ function loadWellDetail(runName, label) {
   // Sets the runWell for the QcView component below
   serviceClient.getRunWellPromise(runName, label)
   .then(
-    wells => runWell.value = wells
+    wells => focusWell.runWell = wells
   ).catch(
     (error) => {
       errorBuffer.addMessage(error.message);
@@ -120,9 +120,9 @@ onMounted(() => {
     ></el-pagination>
   </el-tabs>
 </div>
-<div v-if="runWell !== null">
+<div v-if="focusWell.runWell !== null">
   <h2>QC view</h2>
-  <QcView :runWell="runWell"/>
+  <QcView :runWell="focusWell.runWell"/>
 </div>
 <div v-else>QC data will appear here</div>
 </template>

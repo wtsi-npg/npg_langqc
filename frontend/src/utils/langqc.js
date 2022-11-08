@@ -27,10 +27,11 @@ export default class LangQc {
     return this.urls[alias];
   }
 
-  syncFetch(route, method='GET', body) {
+  fetchWrapper(route, method='GET', body) {
     // Don't use this if you want async efficiency.
     // Returns a promise that ought to contain backend data
 
+    console.log(`Fetching from ${route}`);
     let requestMeta = {
       headers: this.commonHeaders,
     }
@@ -49,17 +50,21 @@ export default class LangQc {
       requestMeta
     ).then(
       response => {
+        // console.log(response);
         if (response.ok) {
-          return response.json()
+          // console.log(response.json());
+          return response.json();
         } else {
           throw new Error(`API ${requestMeta.method} error "` + response.statusText);
         }
       }
-    )
+    ).catch(
+      (e) => {console.log(e); throw new Error("It's all gone wrong in the fetch: "+e)}
+    );
   }
 
   getInboxPromise(qc_status='inbox', page_number=1, page_size=10) {
-    return this.syncFetch(
+    return this.fetchWrapper(
       this.buildUrl(
         '/wells',
         [`qc_status=${qc_status}`, `page_size=${page_size}`, `page_number=${page_number}`]
@@ -68,15 +73,15 @@ export default class LangQc {
   }
 
   getRunWellPromise(name, well) {
-    return this.syncFetch(this.buildUrl(['run', name,'well',well]));
+    return this.fetchWrapper(this.buildUrl(['run', name,'well',well]));
   }
 
   getClientConfig() {
-    return this.syncFetch('/api/config');
+    return this.fetchWrapper('/api/config');
   }
 
   claimWell(name, well) {
-    return this.syncFetch(
+    return this.fetchWrapper(
       this.buildUrl(['run', name, 'well', well, 'qc_claim']),
       'POST',
       {

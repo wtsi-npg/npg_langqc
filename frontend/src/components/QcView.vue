@@ -1,5 +1,4 @@
 <script setup>
-    import { provide } from "vue";
     import groupMetrics from "../utils/metrics.js";
     import ClaimWidget from "@/components/ClaimWidget.vue";
 
@@ -12,19 +11,6 @@
     function generateSmrtLink(metric) {
         return `https://${metric.smrt_link.hostname}:${pacBioPort}/sl/run-qc/${metric.smrt_link.run_uuid}`
     }
-
-    function changeQcState(qcState) {
-        // qcState is a QcState model
-        props.runWell.qc_state = qcState;
-        // this.$emit??????? mutating props is forbidden...
-    }
-
-    function getRunWell() {
-        return [props.runWell.run_info.pac_bio_run_name, props.runWell.run_info.well_label];
-    }
-
-    provide('updateRunWellQcState', changeQcState);
-    provide('getRunWell', getRunWell);
 </script>
 
 <template>

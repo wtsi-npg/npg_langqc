@@ -1,6 +1,5 @@
-import { describe, expect, test, vi } from 'vitest';
+import { describe, expect, test } from 'vitest';
 import LangQc from "../langqc.js";
-import createFetchMock from 'vitest-fetch-mock';
 
 describe('Constructing LangQC client', () => {
     test('Check default route setting', () => {
@@ -12,20 +11,18 @@ describe('Constructing LangQC client', () => {
 });
 
 describe('Example fake remote api call', () => {
-    const mockFetch = createFetchMock(vi);
-    mockFetch.enableMocks();
 
-    fetch.mockResolvedValue(
-        new Promise( () => {
-            return {stuff: 'nonsense'}
-        })
+    // fetch.resetMocks();
+    fetch.mockResponse(
+        JSON.stringify({stuff: 'nonsense'})
     );
 
     let client = new LangQc();
     // No internet used!
     test('Data in comes straight out again', () => {
         let response = client.getInboxPromise();
-        expect(response).resolves.toBe({
+        console.log(response);
+        expect(response).resolves.toStrictEqual({
             stuff: 'nonsense'
         });
 
@@ -44,13 +41,13 @@ describe('Example fake remote api call', () => {
     test('Posting', () => {
         fetch.mockResolvedValue(
             new Promise( () => {
-                return {
+                return JSON.stringify({
                     "user": "zx80@example.com",
                     "qc_type": "library",
                     "state": "Claimed",
                     "is_preliminary": true,
                     "created_by": "qc_user",
-                }
+                })
             })
         )
 
@@ -70,9 +67,10 @@ describe('Example fake remote api call', () => {
         );
 
         expect(
-            request[1].body
-        ).toEqual(
-            {'qc_type': 'sequencing'}
+            JSON.parse(request[1].body)
+            // Can we get a JSON response from this mock response?
+        ).toStrictEqual(
+            {qc_type: 'sequencing'}
         );
     });
 
@@ -84,6 +82,7 @@ describe('Example fake remote api call', () => {
         client.getRunWellPromise('blah', 'A2');
         expect(fetch.mock.calls[3][0]).toEqual('/api/pacbio/run/blah/well/A2');
     });
+    // mockFetch.resetMocks();
 });
 
 describe('URL generation' , () => {
