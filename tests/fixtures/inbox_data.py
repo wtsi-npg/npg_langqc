@@ -121,7 +121,12 @@ def test_data_factory(mlwhdb_test_session, qcdb_test_session):
         state_dicts = {}
 
         for state in states:
-            state_dicts[state] = QcStateDict(state=state, outcome=states.index(state))
+            outcome = None
+            if state == "Passed":
+                outcome = True
+            elif state == "Failed":
+                outcome = False
+            state_dicts[state] = QcStateDict(state=state, outcome=outcome)
 
         qcdb_test_session.add_all(state_dicts.values())
         qcdb_test_session.add_all(

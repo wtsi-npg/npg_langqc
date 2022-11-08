@@ -49,9 +49,9 @@ def test_claim_well_simple(test_client: TestClient, test_data_factory):
         "user": "zx80@example.com",
         "qc_type": "sequencing",
         "qc_state": "Claimed",
-        "is_preliminary": False,
+        "is_preliminary": True,
         "created_by": "LangQC",
-        "outcome": True,
+        "outcome": None,
     }
 
     for key, expected_value in expected.items():

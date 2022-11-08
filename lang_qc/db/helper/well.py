@@ -17,13 +17,19 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>
 
+"""
+A module bringing together classes used in QC state assignments for a PacBio
+well. A low-level API for the assignment of QC states, which does not depend on
+teh web framework.
+"""
+
 from datetime import datetime
 from functools import cached_property
 from typing import Dict
 
 from ml_warehouse.schema import PacBioRunWellMetrics
 from npg_id_generation import PacBioEntity
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
 
@@ -40,26 +46,32 @@ from lang_qc.db.qc_schema import (
     User,
 )
 
+APPLICATION_NAME = "LangQC"
+DEFAULT_QC_TYPE = "sequencing"
+DEFAULT_QC_STATE = "Claimed"
+DEFAULT_PRELIMINARITY = True
+
 
 class InvalidDictValueError(Exception):
     """
     Custom exception for failures to validate input that should
-    correspond to database dictionaries values. Example: unknown
-    QC type.
+    correspond to database dictionaries values such as, for example,
+    and unknown QC type.
     """
 
 
 class WellMetrics(BaseModel):
-
     """
     A data access class for routine sqlalchemy operations on well data
     in ml warehouse database.
-    Instantiate with a sqlalchemy Session for the ml warehouse database.
     """
 
-    session: Session
-    run_name: str
-    well_label: str
+    session: Session = Field(
+        title="sqlalchemy Session",
+        description="A sqlalchemy Session for the ml warehouse database",
+    )
+    run_name: str = Field(title="Name of the run as known in LIMS")
+    well_label: str = Field(title="Well label as known in LIMS nd SmrtLink")
 
     class Config:
         allow_mutation = False
@@ -90,29 +102,46 @@ class WellMetrics(BaseModel):
 
 
 class WellQc(BaseModel):
-
     """
     A data access class for routine sqlalchemy operations on well
     QC data in lanqqc database.
-    Instantiate with a sqlalchemy Session for the langqc database.
     """
 
-    session: Session
-    run_name: str
-    well_label: str
+    session: Session = Field(
+        title="sqlalchemy Session",
+        description="A sqlalchemy Session for the LangQC database",
+    )
+    run_name: str = Field(title="Name of the run as known in LIMS")
+    well_label: str = Field(title="Well label as known in LIMS nd SmrtLink")
 
     class Config:
         allow_mutation = False
         arbitrary_types_allowed = True
+        # A walk around a bug in pydantic in order to use the cached_property
+        # decorator.
         keep_untouched = (cached_property,)
 
     @cached_property
     def seq_product(self) -> SeqProduct:
+        """
+        A cached instance of the lang_qc.db.qc_schema.SeqProduct object.
+        If the corresponding database record exists, this object corresponds
+        to this pre-existing record. If at the time of accessing this property
+        the record does not exist, it is created and returned. The property
+        is computed lazily.
+        """
 
         return self._find_or_create_well()
 
     @cached_property
     def product_definition(self) -> Dict:
+        """
+        A cached representation of the well as a dictionary with two keys,
+        `id` - a unique product id and `json` - a json string representing
+        this well, see `npg_id_generation.PacBioEntity` for details. This
+        property is an outcome of a ligh-weight computation that does not
+        involved querying the database. The property is computed lazily.
+        """
 
         pbe = PacBioEntity(run_name=self.run_name, well_label=self.well_label)
         return {"id": pbe.hash_product_id(), "json": pbe.json()}
@@ -187,10 +216,11 @@ class WellQc(BaseModel):
     def assign_qc_state(
         self,
         user: User,
-        qc_state: str = "Claimed",
-        qc_type: str = "sequencing",
-        is_preliminary: bool = False,
-        application: str = "LangQC",
+        qc_state: str = DEFAULT_QC_STATE,
+        qc_type: str = DEFAULT_QC_TYPE,
+        is_preliminary: bool = DEFAULT_PRELIMINARITY,
+        application: str = APPLICATION_NAME,
+        date_updated: datetime = datetime.utcnow(),
     ) -> QcState:
         """
         Tries to assign a new QC state for the QC type defined by the `qc_type`
@@ -224,6 +254,28 @@ class WellQc(BaseModel):
         If a record for the product defined by this instance is not present in the
         `seq_product` table, it is created alongside corresponding records in the
         `sub_product` and `product_layout` tables.
+
+        Arguments:
+
+            user - an instance of the existing in the database lang_qc.db.qc_schema.User,
+            object, required
+
+            qc state - a string description of the QC state to be assigned, defaults
+            to `Claimed`
+
+            qc_type - a string representing QC type, defaults to `sequencing`
+
+            is_preliminary - a boolean value representing the preliminarity of the QC
+            state, defaults to `True`
+
+            application - a string, the name of the application using this API,
+            defaults to `Lang QC`
+
+            date_updated - a `datetime`  object representing the time when the state
+            was updated, defaults to UTC time for this moment in time; if this date
+            is supplied by the caller, it is advised to adjust the value to the UTC
+            time zone.
+
         """
 
         state = self.current_qc_state(qc_type)
@@ -240,13 +292,12 @@ class WellQc(BaseModel):
 
         # TODO: 'Claimed' and 'On hold' states cannot be final - enforce
 
-        time = datetime.utcnow()
         values = {
             "id_qc_state_dict": valid_qc_state.id_qc_state_dict,
             "is_preliminary": is_preliminary,
             "id_user": user.id_user,
             "created_by": application,
-            "date_updated": time,
+            "date_updated": date_updated,
         }
 
         if state is not None:
@@ -256,7 +307,7 @@ class WellQc(BaseModel):
             vaid_qc_type = self.valid_qc_type(qc_type)
             values["id_seq_product"] = self.seq_product.id_seq_product
             values["id_qc_type"] = vaid_qc_type.id_qc_type
-            values["date_created"] = time
+            values["date_created"] = date_updated
             state = QcState(**values)
             self.session.add(state)
 

@@ -1,6 +1,7 @@
 import json
 
 from fastapi.testclient import TestClient
+from npg_id_generation import PacBioEntity
 
 from lang_qc.models.qc_state import QcStateBasic
 from tests.fixtures.inbox_data import test_data_factory
@@ -63,15 +64,21 @@ def test_change_from_passed_to_fail(test_client: TestClient, test_data_factory):
     content = response.json()
 
     expected = {
+        "id_product": PacBioEntity(
+            run_name="MARATHON", well_label="A1"
+        ).hash_product_id(),
         "user": "zx80@example.com",
         "qc_type": "library",
         "qc_state": "Failed",
         "is_preliminary": False,
         "created_by": "LangQC",
+        "outcome": False,
     }
 
     for key, value in expected.items():
         assert content[key] == value
+    for date_key in ("date_created", "date_updated"):
+        assert content[date_key] is not None
 
 
 def test_error_on_invalid_state(test_client: TestClient, test_data_factory):

@@ -98,13 +98,16 @@ class QcState(QcStateBasic):
         A class factory method. Given a database object representing the
         QC state, returns an instance of this class object.
         """
+
+        # TODO: dates should be converted to local time, including DST
+
         return cls(
             user=obj.user.username,
             date_created=obj.date_created,
             date_updated=obj.date_updated,
             qc_type=obj.qc_type.qc_type,
             qc_state=obj.qc_state_dict.state,
-            outcome=bool(obj.qc_state_dict.outcome)
+            outcome=obj.qc_state_dict.outcome
             if obj.qc_state_dict.outcome is not None
             else None,
             is_preliminary=bool(obj.is_preliminary),
