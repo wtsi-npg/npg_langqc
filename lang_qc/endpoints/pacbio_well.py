@@ -26,7 +26,12 @@ from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
 from starlette import status
 
-from lang_qc.db.helper.well import InvalidDictValueError, WellMetrics, WellQc
+from lang_qc.db.helper.well import (
+    InconsistentInputError,
+    InvalidDictValueError,
+    WellMetrics,
+    WellQc,
+)
 from lang_qc.db.mlwh_connection import get_mlwh_db
 from lang_qc.db.qc_connection import get_qc_db
 from lang_qc.db.qc_schema import User
@@ -217,12 +222,13 @@ def assign_qc_state(
         )
 
     qc_state = None
+    message = "Error assigning status: "
     try:
         qc_state = well_qc.assign_qc_state(user=user, **request_body.dict())
-    except InvalidDictValueError as err:
+    except (InvalidDictValueError, InconsistentInputError) as err:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Error assigning status: " + str(err),
+            detail=message + str(err),
         )
 
     return QcState.from_orm(qc_state)

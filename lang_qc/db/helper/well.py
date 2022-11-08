@@ -50,6 +50,7 @@ APPLICATION_NAME = "LangQC"
 DEFAULT_QC_TYPE = "sequencing"
 DEFAULT_QC_STATE = "Claimed"
 DEFAULT_PRELIMINARITY = True
+ONLY_PRELIM_STATES = (DEFAULT_QC_STATE, "On hold")
 
 
 class InvalidDictValueError(Exception):
@@ -57,6 +58,14 @@ class InvalidDictValueError(Exception):
     Custom exception for failures to validate input that should
     correspond to database dictionaries values such as, for example,
     and unknown QC type.
+    """
+
+
+class InconsistentInputError(Exception):
+    """
+    Custom exception for cases when individual values of attributes
+    are valid, but are inconsistent or mutually exlusive in regards
+    of the QC state that has to be assigned.
     """
 
 
@@ -281,7 +290,7 @@ class WellQc(BaseModel):
         state = self.current_qc_state(qc_type)
         if (
             (state is not None)
-            and (state.qc_state.state == qc_state)
+            and (state.qc_state_dict.state == qc_state)
             and (state.qc_state.is_preliminary == is_preliminary)
         ):
             # Do not update the state if it has not changed.
@@ -290,7 +299,12 @@ class WellQc(BaseModel):
 
         valid_qc_state = self.valid_qc_state_dict(qc_state)
 
-        # TODO: 'Claimed' and 'On hold' states cannot be final - enforce
+        # 'Claimed' and 'On hold' states cannot be final.
+        # By enforcing this we simplify rules for assigning QC states
+        # to QC flow statuses.
+        # Two options: either to change is_preliminary to True or error.
+        if (is_preliminary is not True) and (qc_state in ONLY_PRELIM_STATES):
+            raise InconsistentInputError(f"QC state '{qc_state}' cannot be final")
 
         values = {
             "id_qc_state_dict": valid_qc_state.id_qc_state_dict,
@@ -301,7 +315,12 @@ class WellQc(BaseModel):
         }
 
         if state is not None:
-            state.update(values)
+            # TODO: Any way not to hardcode column names?
+            state.id_qc_state_dict = values["id_qc_state_dict"]
+            state.is_preliminary = values["is_preliminary"]
+            state.id_user = values["id_user"]
+            state.created_by = values["created_by"]
+            state.date_updated = values["date_updated"]
         else:
             # TODO: cache all qc types, this is a second call
             vaid_qc_type = self.valid_qc_type(qc_type)
@@ -309,9 +328,8 @@ class WellQc(BaseModel):
             values["id_qc_type"] = vaid_qc_type.id_qc_type
             values["date_created"] = date_updated
             state = QcState(**values)
-            self.session.add(state)
 
-        self.session.add(self._new_state_hist(state))
+        self.session.add_all([state, self._new_state_hist(state)])
         self.session.commit()
 
         return state

@@ -36,7 +36,7 @@ def test_change_non_existent_well(test_client: TestClient, test_data_factory):
     )
 
 
-def test_change_from_passed_to_fail(test_client: TestClient, test_data_factory):
+def test_change_outcome(test_client: TestClient, test_data_factory):
     """Successfully change a state from passed to failed"""
 
     test_data = {
@@ -58,10 +58,9 @@ def test_change_from_passed_to_fail(test_client: TestClient, test_data_factory):
         post_data,
         headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
     )
+    content = response.json()
 
     assert response.status_code == 200
-
-    content = response.json()
 
     expected = {
         "id_product": PacBioEntity(
@@ -79,6 +78,46 @@ def test_change_from_passed_to_fail(test_client: TestClient, test_data_factory):
         assert content[key] == value
     for date_key in ("date_created", "date_updated"):
         assert content[date_key] is not None
+
+    post_data = """
+        {
+          "qc_type": "library",
+          "qc_state": "On hold",
+          "is_preliminary": false
+        }
+    """
+    response = test_client.post(
+        "/pacbio/run/MARATHON/well/A1/qc_assign",
+        post_data,
+        headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
+    )
+    assert response.status_code == 400
+    assert (
+        response.json()["detail"]
+        == "Error assigning status: QC state 'On hold' cannot be final"
+    )
+
+    post_data = """
+        {
+          "qc_type": "library",
+          "qc_state": "On hold",
+          "is_preliminary": true
+        }
+    """
+    response = test_client.post(
+        "/pacbio/run/MARATHON/well/A1/qc_assign",
+        post_data,
+        headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
+    )
+    content = response.json()
+
+    expected["is_preliminary"] = True
+    expected["outcome"] = None
+    expected["qc_state"] = "On hold"
+
+    assert response.status_code == 200
+    for key, value in expected.items():
+        assert content[key] == value
 
 
 def test_error_on_invalid_state(test_client: TestClient, test_data_factory):
