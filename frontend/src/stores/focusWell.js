@@ -1,7 +1,7 @@
 import { isNull } from 'lodash';
 import { defineStore } from 'pinia';
 
-const useWellStore = defineStore('focusWell', {
+export const useWellStore = defineStore('focusWell', {
     state: () => ({runWell: null}),
     getters: {
         getRunAndLabel(state) {
@@ -35,5 +35,3 @@ const useWellStore = defineStore('focusWell', {
         }
     }
 });
-
-export default useWellStore;

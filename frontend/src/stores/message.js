@@ -1,15 +1,17 @@
 import { defineStore } from 'pinia';
 
-const useMessageStore = defineStore('messageList', {
+export const useMessageStore = defineStore('messageList', {
   state: () => ({
     errorMessages: []
   }),
   getters: {
-
+    allMessages(state) {
+      return state.errorMessages;
+    }
   },
   actions: {
     removeMessage() {
-      this.errorMessages.shift
+      return this.errorMessages.shift;
     },
     addMessage(message) {
       this.errorMessages.push(message)
@@ -17,5 +19,3 @@ const useMessageStore = defineStore('messageList', {
   }
 
 });
-
-export default useMessageStore;

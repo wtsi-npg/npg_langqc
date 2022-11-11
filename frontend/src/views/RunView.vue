@@ -4,8 +4,8 @@ import { onMounted, ref } from "vue";
 import QcView from "@/components/QcView.vue";
 import LangQc from "@/utils/langqc.js";
 
-import useMessageStore from '@/stores/message.js';
-import useWellStore from '@/stores/focusWell.js';
+import { useMessageStore } from '@/stores/message.js';
+import { useWellStore } from '@/stores/focusWell.js';
 
 const errorBuffer = useMessageStore();
 const focusWell = useWellStore();

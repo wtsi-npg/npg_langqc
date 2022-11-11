@@ -1,7 +1,7 @@
 <script setup>
     import LangQc from "../utils/langqc.js";
-    import useMessageStore from "@/stores/message.js";
-    import useWellStore from "@/stores/focusWell.js";
+    import { useMessageStore } from "@/stores/message.js";
+    import { useWellStore } from "@/stores/focusWell.js";
 
     const errorBuffer = useMessageStore();
     const focusWell = useWellStore();
@@ -10,13 +10,15 @@
 
     function claimHandler() {
         const [runName, wellLabel] = focusWell.getRunAndLabel;
+        if (! (runName && wellLabel) ) {
+            throw new Error('Claim environment misconfigured, no run name or well label');
+        }
 
         client.claimWell(runName, wellLabel)
         .then(
             response => { focusWell.updateWellQcState(response) }
         ).catch(
             (error) => {
-                console.log(error);
                 errorBuffer.addMessage(error);
             }
         );

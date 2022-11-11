@@ -31,7 +31,6 @@ export default class LangQc {
     // Don't use this if you want async efficiency.
     // Returns a promise that ought to contain backend data
 
-    console.log(`Fetching from ${route}`);
     let requestMeta = {
       headers: this.commonHeaders,
     }
@@ -50,9 +49,7 @@ export default class LangQc {
       requestMeta
     ).then(
       response => {
-        // console.log(response);
         if (response.ok) {
-          // console.log(response.json());
           return response.json();
         } else {
           throw new Error(`API ${requestMeta.method} error "` + response.statusText);

@@ -1,7 +1,7 @@
 import { setActivePinia, createPinia } from 'pinia';
 import { describe, expect, beforeEach, test } from "vitest";
 
-import useWellStore from "../focusWell";
+import { useWellStore } from "../focusWell";
 
 describe('Check the getters', () => {
     beforeEach(() => {

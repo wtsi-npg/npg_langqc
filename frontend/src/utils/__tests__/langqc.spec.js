@@ -21,7 +21,6 @@ describe('Example fake remote api call', () => {
     // No internet used!
     test('Data in comes straight out again', () => {
         let response = client.getInboxPromise();
-        console.log(response);
         expect(response).resolves.toStrictEqual({
             stuff: 'nonsense'
         });

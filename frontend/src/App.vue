@@ -2,7 +2,7 @@
 import { RouterView } from 'vue-router';
 import { onMounted, ref } from "vue";
 
-import useMessageStore from '@/stores/message.js';
+import { useMessageStore } from '@/stores/message.js';
 
 const errorBuffer = useMessageStore();
 
