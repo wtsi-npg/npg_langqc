@@ -88,7 +88,7 @@ def get_wells_filtered_by_status(
         page_size=page_size, page_number=page_number, qc_flow_status=qc_status
     )
     # Now we are getting all results for a status.
-    # Ideally we'd like to get the relevant page straignt away.
+    # Ideally we'd like to get the relevant page straight away.
     wells, states = grab_wells_with_status(qc_status, qcdb_session, mlwh_session)
     pbwells = pack_wells_and_states(wells, states)
     # Now we slice the list and finalize the object.
@@ -114,7 +114,7 @@ def get_pacbio_well(
     if len(results) == 0:
         raise HTTPException(404, detail="No PacBio well found matching criteria.")
     if len(results) > 1:
-        print("WARNING! THERE IS MORE THAN ONE RESULT! RETURING THE FIRST ONE")
+        print("WARNING! THERE IS MORE THAN ONE RESULT! RETURNING THE FIRST ONE")
 
     run: PacBioRun = results[0]
 
@@ -184,11 +184,11 @@ def claim_qc(
     summary="Assign QC state to a well",
     description="""
     Enables the user to assign a new QC state to a well. The well QC should
-    have been already claimed. The user performing the opration should
-    be the use who assigned the current QC state of the well.
+    have been already claimed. The user performing the operation should
+    be the user who assigned the current QC state of the well.
     """,
     responses={
-        status.HTTP_201_CREATED: {"description": "Well qc state updated"},
+        status.HTTP_201_CREATED: {"description": "Well QC state updated"},
         status.HTTP_400_BAD_REQUEST: {"description": "Request details are incorrect"},
         status.HTTP_403_FORBIDDEN: {"description": "User cannot perform QC"},
         status.HTTP_422_UNPROCESSABLE_ENTITY: {

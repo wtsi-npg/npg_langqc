@@ -37,7 +37,7 @@ class QcStateBasic(BaseModel):
         The QC state of the type defined by the `qc_type` attribute.
         """,
     )
-    is_preliminary: bool = Field(default=None, title="Preliminarity of outcome")
+    is_preliminary: bool = Field(default=None, title="Preliminary state of the outcome")
     qc_type: str = Field(default=None, title="Type of QC performed")
 
 
@@ -98,8 +98,6 @@ class QcState(QcStateBasic):
         A class factory method. Given a database object representing the
         QC state, returns an instance of this class object.
         """
-
-        # TODO: dates should be converted to local time, including DST
 
         return cls(
             user=obj.user.username,

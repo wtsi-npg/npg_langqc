@@ -49,7 +49,7 @@ from lang_qc.db.qc_schema import (
 APPLICATION_NAME = "LangQC"
 DEFAULT_QC_TYPE = "sequencing"
 DEFAULT_QC_STATE = "Claimed"
-DEFAULT_PRELIMINARITY = True
+DEFAULT_PRELIMINARILY = True
 ONLY_PRELIM_STATES = (DEFAULT_QC_STATE, "On hold")
 
 
@@ -64,23 +64,23 @@ class InvalidDictValueError(Exception):
 class InconsistentInputError(Exception):
     """
     Custom exception for cases when individual values of attributes
-    are valid, but are inconsistent or mutually exlusive in regards
+    are valid, but are inconsistent or mutually exclusive in regards
     of the QC state that has to be assigned.
     """
 
 
 class WellMetrics(BaseModel):
     """
-    A data access class for routine sqlalchemy operations on well data
+    A data access class for routine SQLAlchemy operations on well data
     in ml warehouse database.
     """
 
     session: Session = Field(
-        title="sqlalchemy Session",
-        description="A sqlalchemy Session for the ml warehouse database",
+        title="SQLAlchemy Session",
+        description="A SQLAlchemy Session for the ml warehouse database",
     )
     run_name: str = Field(title="Name of the run as known in LIMS")
-    well_label: str = Field(title="Well label as known in LIMS nd SmrtLink")
+    well_label: str = Field(title="Well label as known in LIMS and SMRT Link")
 
     class Config:
         allow_mutation = False
@@ -112,21 +112,21 @@ class WellMetrics(BaseModel):
 
 class WellQc(BaseModel):
     """
-    A data access class for routine sqlalchemy operations on well
-    QC data in lanqqc database.
+    A data access class for routine SQLAlchemy operations on well
+    QC data in LangQC database.
     """
 
     session: Session = Field(
-        title="sqlalchemy Session",
-        description="A sqlalchemy Session for the LangQC database",
+        title="SQLAlchemy Session",
+        description="A SQLAlchemy Session for the LangQC database",
     )
     run_name: str = Field(title="Name of the run as known in LIMS")
-    well_label: str = Field(title="Well label as known in LIMS nd SmrtLink")
+    well_label: str = Field(title="Well label as known in LIMS and SmrtLink")
 
     class Config:
         allow_mutation = False
         arbitrary_types_allowed = True
-        # A walk around a bug in pydantic in order to use the cached_property
+        # A workaround for a bug in pydantic in order to use the cached_property
         # decorator.
         keep_untouched = (cached_property,)
 
@@ -148,8 +148,8 @@ class WellQc(BaseModel):
         A cached representation of the well as a dictionary with two keys,
         `id` - a unique product id and `json` - a json string representing
         this well, see `npg_id_generation.PacBioEntity` for details. This
-        property is an outcome of a ligh-weight computation that does not
-        involved querying the database. The property is computed lazily.
+        property is an outcome of a light-weight computation that does not
+        involve querying the database. The property is computed lazily.
         """
 
         pbe = PacBioEntity(run_name=self.run_name, well_label=self.well_label)
@@ -190,14 +190,14 @@ class WellQc(BaseModel):
         )
 
         if valid is None:
-            raise InvalidDictValueError(f"QC type '{qc_type}' is invalidxs")
+            raise InvalidDictValueError(f"QC type '{qc_type}' is invalid")
 
         return valid
 
     def current_qc_state(self, qc_type: str = "sequencing") -> QcState | None:
         """
-        Returns a current record for the product assosioted with this
-        instance in the `qc_state` table for QC. The type of OC is defined
+        Returns a current record for the product associated with this
+        instance in the `qc_state` table for QC. The type of QC is defined
         by the `qc_type` argument.
 
         Validates the `qc_type` argument and raises a `ValidationError` if
@@ -227,7 +227,7 @@ class WellQc(BaseModel):
         user: User,
         qc_state: str = DEFAULT_QC_STATE,
         qc_type: str = DEFAULT_QC_TYPE,
-        is_preliminary: bool = DEFAULT_PRELIMINARITY,
+        is_preliminary: bool = DEFAULT_PRELIMINARILY,
         application: str = APPLICATION_NAME,
         date_updated: datetime = datetime.utcnow(),
     ) -> QcState:
@@ -247,7 +247,7 @@ class WellQc(BaseModel):
         The method does not perform a conversion of one type of QC record into another.
         It allows for records for different types of QC for the same entity to co-exist.
         For example, if a sequencing QC record exists for the entity and the library QC
-        record does not exist and the `qc_type` attribure of this method defines the
+        record does not exist and the `qc_type` attribute of this method defines the
         library QC type, a new database record is created.
 
         The method does not enforce any particular order of assigning QC states,
@@ -255,7 +255,7 @@ class WellQc(BaseModel):
         performed by the same user.
 
         A `ValidationError` is raised if the values of either `qc_state` or `qc_type`
-        atributes are invalid.
+        attributes are invalid.
 
         For each new or updated record in the `qc_state` row table a new record is
         created in the `qc_state_hist` table.
@@ -274,8 +274,8 @@ class WellQc(BaseModel):
 
             qc_type - a string representing QC type, defaults to `sequencing`
 
-            is_preliminary - a boolean value representing the preliminarity of the QC
-            state, defaults to `True`
+            is_preliminary - a boolean value representing the preliminary nature of the
+            QC state, defaults to `True`
 
             application - a string, the name of the application using this API,
             defaults to `Lang QC`
@@ -323,9 +323,9 @@ class WellQc(BaseModel):
             state.date_updated = values["date_updated"]
         else:
             # TODO: cache all qc types, this is a second call
-            vaid_qc_type = self.valid_qc_type(qc_type)
+            valid_qc_type = self.valid_qc_type(qc_type)
             values["id_seq_product"] = self.seq_product.id_seq_product
-            values["id_qc_type"] = vaid_qc_type.id_qc_type
+            values["id_qc_type"] = valid_qc_type.id_qc_type
             values["date_created"] = date_updated
             state = QcState(**values)
 
