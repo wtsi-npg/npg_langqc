@@ -168,7 +168,7 @@ def claim_qc(
         )
 
     well_qc = WellQc(session=qcdb_session, run_name=run_name, well_label=well_label)
-    if well_qc.current_qc_state() is not None:
+    if well_qc.current_qc_state():
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"Well {well_label} run {run_name} has already been claimed",

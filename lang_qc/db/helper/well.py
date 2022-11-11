@@ -20,7 +20,7 @@
 """
 A module bringing together classes used in QC state assignments for a PacBio
 well. A low-level API for the assignment of QC states, which does not depend on
-teh web framework.
+the web framework.
 """
 
 from datetime import datetime
@@ -155,7 +155,7 @@ class WellQc(BaseModel):
         pbe = PacBioEntity(run_name=self.run_name, well_label=self.well_label)
         return {"id": pbe.hash_product_id(), "json": pbe.json()}
 
-    def valid_qc_state_dict(self, qc_state: str) -> QcStateDict:
+    def qc_state_dict_row(self, qc_state_description: str) -> QcStateDict:
         """
         Given a description of the QC state, returns an object that
         corresponds to a relevant row in the `qc_state_dict` table.
@@ -165,18 +165,18 @@ class WellQc(BaseModel):
 
         valid = (
             self.session.execute(
-                select(QcStateDict).where(QcStateDict.state == qc_state)
+                select(QcStateDict).where(QcStateDict.state == qc_state_description)
             )
             .scalars()
             .one_or_none()
         )
 
         if valid is None:
-            raise InvalidDictValueError(f"QC state '{qc_state}' is invalid")
+            raise InvalidDictValueError(f"QC state '{qc_state_description}' is invalid")
 
         return valid
 
-    def valid_qc_type(self, qc_type: str) -> QcType:
+    def qc_type_dict_row(self, qc_type_description: str) -> QcType:
         """
         Given a description of the QC type, returns an object that
         corresponds to a relevant row in the `qc_type` table.
@@ -184,13 +184,15 @@ class WellQc(BaseModel):
         """
 
         valid = (
-            self.session.execute(select(QcType).where(QcType.qc_type == qc_type))
+            self.session.execute(
+                select(QcType).where(QcType.qc_type == qc_type_description)
+            )
             .scalars()
             .one_or_none()
         )
 
         if valid is None:
-            raise InvalidDictValueError(f"QC type '{qc_type}' is invalid")
+            raise InvalidDictValueError(f"QC type '{qc_type_description}' is invalid")
 
         return valid
 
@@ -214,7 +216,7 @@ class WellQc(BaseModel):
                 .where(
                     and_(
                         SeqProduct.id_product == self.product_definition["id"],
-                        QcState.id_qc_type == self.valid_qc_type(qc_type).id_qc_type,
+                        QcState.qc_type == self.qc_type_dict_row(qc_type),
                     )
                 )
             )
@@ -269,7 +271,7 @@ class WellQc(BaseModel):
             user - an instance of the existing in the database lang_qc.db.qc_schema.User,
             object, required
 
-            qc state - a string description of the QC state to be assigned, defaults
+            new_qc_state - a string description of the QC state to be assigned, defaults
             to `Claimed`
 
             qc_type - a string representing QC type, defaults to `sequencing`
@@ -287,52 +289,51 @@ class WellQc(BaseModel):
 
         """
 
-        state = self.current_qc_state(qc_type)
+        db_state = self.current_qc_state(qc_type)
         if (
-            (state is not None)
-            and (state.qc_state_dict.state == qc_state)
-            and (state.qc_state.is_preliminary == is_preliminary)
+            (db_state is not None)
+            and (db_state.qc_state_dict.state == qc_state)
+            and (db_state.qc_state.is_preliminary == is_preliminary)
         ):
             # Do not update the state if it has not changed.
             # Return early, nothing more to do.
-            return state
+            return db_state
 
-        valid_qc_state = self.valid_qc_state_dict(qc_state)
+        qc_state_dict_row = self.qc_state_dict_row(qc_state)
 
         # 'Claimed' and 'On hold' states cannot be final.
         # By enforcing this we simplify rules for assigning QC states
         # to QC flow statuses.
         # Two options: either to change is_preliminary to True or error.
-        if (is_preliminary is not True) and (qc_state in ONLY_PRELIM_STATES):
+        if (is_preliminary is False) and (qc_state in ONLY_PRELIM_STATES):
             raise InconsistentInputError(f"QC state '{qc_state}' cannot be final")
 
         values = {
-            "id_qc_state_dict": valid_qc_state.id_qc_state_dict,
+            "qc_state_dict": qc_state_dict_row,
             "is_preliminary": is_preliminary,
-            "id_user": user.id_user,
+            "user": user,
             "created_by": application,
             "date_updated": date_updated,
         }
 
-        if state is not None:
+        if db_state is not None:
             # TODO: Any way not to hardcode column names?
-            state.id_qc_state_dict = values["id_qc_state_dict"]
-            state.is_preliminary = values["is_preliminary"]
-            state.id_user = values["id_user"]
-            state.created_by = values["created_by"]
-            state.date_updated = values["date_updated"]
+            db_state.qc_state_dict = values["qc_state_dict"]
+            db_state.is_preliminary = values["is_preliminary"]
+            db_state.user = values["user"]
+            db_state.created_by = values["created_by"]
+            db_state.date_updated = values["date_updated"]
         else:
             # TODO: cache all qc types, this is a second call
-            valid_qc_type = self.valid_qc_type(qc_type)
-            values["id_seq_product"] = self.seq_product.id_seq_product
-            values["id_qc_type"] = valid_qc_type.id_qc_type
+            values["qc_type"] = self.qc_type_dict_row(qc_type)
+            values["seq_product"] = self.seq_product
             values["date_created"] = date_updated
-            state = QcState(**values)
+            db_state = QcState(**values)
 
-        self.session.add_all([state, self._new_state_hist(state)])
+        self.session.add_all([db_state, self._new_db_state_hist(db_state)])
         self.session.commit()
 
-        return state
+        return db_state
 
     def _find_or_create_well(self) -> SeqProduct:
 
@@ -404,13 +405,13 @@ class WellQc(BaseModel):
 
         return well_product
 
-    def _new_state_hist(self, qc_state: QcState) -> QcStateHist:
+    def _new_db_state_hist(self, db_qc_state: QcState) -> QcStateHist:
 
         data = {}
-        for column_name in qc_state.__dict__:
+        for column_name in db_qc_state.__dict__:
             if (column_name.startswith("_") is False) and (
                 column_name != "id_qc_state"
             ):
-                data[column_name] = qc_state.__getattribute__(column_name)
+                data[column_name] = db_qc_state.__getattribute__(column_name)
 
         return QcStateHist(**data)
