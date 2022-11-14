@@ -149,9 +149,8 @@ def get_pacbio_well(
         status.HTTP_409_CONFLICT: {"description": "Well has already been claimed"},
     },
     response_model=QcState,
+    status_code=status.HTTP_201_CREATED,
 )
-# TODO: Can we pass langqc session to check_user, so that it does not have to
-# use its own session? The same for assign_qc_state.
 def claim_qc(
     run_name: str,
     well_label: str,
@@ -188,7 +187,7 @@ def claim_qc(
     be the user who assigned the current QC state of the well.
     """,
     responses={
-        status.HTTP_201_CREATED: {"description": "Well QC state updated"},
+        status.HTTP_200_OK: {"description": "Well QC state updated"},
         status.HTTP_400_BAD_REQUEST: {"description": "Request details are incorrect"},
         status.HTTP_403_FORBIDDEN: {"description": "User cannot perform QC"},
         status.HTTP_422_UNPROCESSABLE_ENTITY: {

@@ -38,7 +38,7 @@ def test_claim_well_simple(test_client: TestClient, test_data_factory):
         headers={"oidc_claim_email": "zx80@example.com"},
     )
 
-    assert response.status_code == 200
+    assert response.status_code == 201
 
     actual_content = response.json()
 
