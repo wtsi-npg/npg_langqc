@@ -49,7 +49,7 @@ from lang_qc.db.qc_schema import (
 APPLICATION_NAME = "LangQC"
 DEFAULT_QC_TYPE = "sequencing"
 DEFAULT_QC_STATE = "Claimed"
-DEFAULT_PRELIMINARILY = True
+DEFAULT_FINALITY = False
 ONLY_PRELIM_STATES = (DEFAULT_QC_STATE, "On hold")
 
 
@@ -130,7 +130,7 @@ class QcDictDB(BaseModel):
     def qc_types(self) -> Dict:
         """
         A cached dictionary of QC type dictionary rows, where the QcType objects
-        representing the database rows are values abd the string descriptions of the
+        representing the database rows are values and the string descriptions of the
         QC types are keys.
         """
 
@@ -192,11 +192,8 @@ class WellQc(QcDictDB):
     @cached_property
     def seq_product(self) -> SeqProduct:
         """
-        A cached instance of the lang_qc.db.qc_schema.SeqProduct object.
-        If the corresponding database record exists, this object corresponds
-        to this pre-existing record. If at the time of accessing this property
-        the record does not exist, it is created and returned. The property
-        is computed lazily.
+        Returns a pre-existing `lang_qc.db.qc_schema.SeqProduct`, or creates
+        a new one. The property is computed lazily.
         """
 
         return self._find_or_create_well()
@@ -247,7 +244,7 @@ class WellQc(QcDictDB):
         user: User,
         qc_state: str = DEFAULT_QC_STATE,
         qc_type: str = DEFAULT_QC_TYPE,
-        is_preliminary: bool = DEFAULT_PRELIMINARILY,
+        is_preliminary: bool = not DEFAULT_FINALITY,
         application: str = APPLICATION_NAME,
         date_updated: datetime = datetime.utcnow(),
     ) -> QcState:
