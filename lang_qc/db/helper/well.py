@@ -110,22 +110,81 @@ class WellMetrics(BaseModel):
         return bool(self.get_metrics())
 
 
-class WellQc(BaseModel):
+class QcDictDB(BaseModel):
     """
-    A data access class for routine SQLAlchemy operations on well
-    QC data in LangQC database.
+    A cache layer for LangQC database dictionary entries.
     """
 
     session: Session = Field(
         title="SQLAlchemy Session",
         description="A SQLAlchemy Session for the LangQC database",
     )
+
+    class Config:
+        arbitrary_types_allowed = True
+        # A workaround for a bug in pydantic in order to use the cached_property
+        # decorator.
+        keep_untouched = (cached_property,)
+
+    @cached_property
+    def qc_types(self) -> Dict:
+        """
+        A cached dictionary of QC type dictionary rows, where the QcType objects
+        representing the database rows are values abd the string descriptions of the
+        QC types are keys.
+        """
+
+        db_types = self.session.execute(select(QcType)).scalars().all()
+        return {row.qc_type: row for row in db_types}
+
+    def qc_type_dict_row(self, qc_type_name: str) -> QcType:
+        """
+        Given a description of the QC type, returns an object that
+        corresponds to a relevant row in the `qc_type` table.
+        Raises a `ValidationError` if no corresponding record is found.
+        """
+
+        if qc_type_name not in self.qc_types.keys():
+            raise InvalidDictValueError(f"QC type '{qc_type_name}' is invalid")
+
+        return self.qc_types[qc_type_name]
+
+    @cached_property
+    def qc_states(self) -> Dict:
+        """
+        A cached dictionary of QC state dictionary rows, where the QcStateDict objects
+        representing the database rows are values abd the string descriptions of the
+        state are keys.
+        """
+
+        db_states = self.session.execute(select(QcStateDict)).scalars().all()
+        return {row.state: row for row in db_states}
+
+    def qc_state_dict_row(self, qc_state_name: str) -> QcStateDict:
+        """
+        Given a description of the QC state, returns an object that
+        corresponds to a relevant row in the `qc_state_dict` table.
+        Raises a `ValidationError` if no corresponding dictionary record
+        is found.
+        """
+
+        if qc_state_name not in self.qc_states.keys():
+            raise InvalidDictValueError(f"QC state '{qc_state_name}' is invalid")
+
+        return self.qc_states[qc_state_name]
+
+
+class WellQc(QcDictDB):
+    """
+    A data access class for routine SQLAlchemy operations on PacBio well
+    QC data in LangQC database.
+    """
+
     run_name: str = Field(title="Name of the run as known in LIMS")
     well_label: str = Field(title="Well label as known in LIMS and SmrtLink")
 
     class Config:
         allow_mutation = False
-        arbitrary_types_allowed = True
         # A workaround for a bug in pydantic in order to use the cached_property
         # decorator.
         keep_untouched = (cached_property,)
@@ -154,47 +213,6 @@ class WellQc(BaseModel):
 
         pbe = PacBioEntity(run_name=self.run_name, well_label=self.well_label)
         return {"id": pbe.hash_product_id(), "json": pbe.json()}
-
-    def qc_state_dict_row(self, qc_state_description: str) -> QcStateDict:
-        """
-        Given a description of the QC state, returns an object that
-        corresponds to a relevant row in the `qc_state_dict` table.
-        Raises a `ValidationError` if no corresponding dictionary record
-        is found.
-        """
-
-        valid = (
-            self.session.execute(
-                select(QcStateDict).where(QcStateDict.state == qc_state_description)
-            )
-            .scalars()
-            .one_or_none()
-        )
-
-        if valid is None:
-            raise InvalidDictValueError(f"QC state '{qc_state_description}' is invalid")
-
-        return valid
-
-    def qc_type_dict_row(self, qc_type_description: str) -> QcType:
-        """
-        Given a description of the QC type, returns an object that
-        corresponds to a relevant row in the `qc_type` table.
-        Raises a `ValidationError` if no corresponding record is found.
-        """
-
-        valid = (
-            self.session.execute(
-                select(QcType).where(QcType.qc_type == qc_type_description)
-            )
-            .scalars()
-            .one_or_none()
-        )
-
-        if valid is None:
-            raise InvalidDictValueError(f"QC type '{qc_type_description}' is invalid")
-
-        return valid
 
     def current_qc_state(self, qc_type: str = "sequencing") -> QcState | None:
         """
@@ -324,8 +342,7 @@ class WellQc(BaseModel):
             db_state.created_by = values["created_by"]
             db_state.date_updated = values["date_updated"]
         else:
-            # TODO: cache all qc types, this is a second call
-            values["qc_type"] = self.qc_type_dict_row(qc_type)
+            values["qc_type"] = self.qc_types[qc_type]
             values["seq_product"] = self.seq_product
             values["date_created"] = date_updated
             db_state = QcState(**values)
