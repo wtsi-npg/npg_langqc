@@ -28,7 +28,7 @@ from functools import cached_property
 from typing import Dict
 
 from ml_warehouse.schema import PacBioRunWellMetrics
-from npg_id_generation import PacBioEntity
+from npg_id_generation.pac_bio import PacBioEntity
 from pydantic import BaseModel, Field
 from sqlalchemy import and_, select
 from sqlalchemy.orm import Session

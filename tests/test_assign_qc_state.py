@@ -1,7 +1,7 @@
 import json
 
 from fastapi.testclient import TestClient
-from npg_id_generation import PacBioEntity
+from npg_id_generation.pac_bio import PacBioEntity
 
 from lang_qc.models.qc_state import QcStateBasic
 from tests.fixtures.inbox_data import test_data_factory

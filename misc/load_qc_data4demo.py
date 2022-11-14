@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from npg_id_generation import PacBioEntity
+from npg_id_generation.pac_bio import PacBioEntity
 from sqlalchemy import select
 
 import lang_qc.util.qc_state_helpers as qsh
