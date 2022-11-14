@@ -6,6 +6,8 @@
     const errorBuffer = useMessageStore();
     const focusWell = useWellStore();
 
+    const emit = defineEmits(['wellClaimed']);
+
     let client = new LangQc();
 
     function claimHandler() {
@@ -22,12 +24,14 @@
                 errorBuffer.addMessage(error);
             }
         );
+
+        emit('wellClaimed');
     }
 </script>
 
 <template>
     <div id="ClaimButton">
-        <el-button type="primary" @click="claimHandler">Claim for QC</el-button>
+        <el-button type="primary" @click.once="claimHandler">Claim for QC</el-button>
     </div>
 </template>
 

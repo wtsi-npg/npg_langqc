@@ -13,7 +13,7 @@ const focusWell = useWellStore();
 let serviceClient = null;
 
 // Don't try to render much of anything until data arrives
-// by reacting to these three vars
+// by reacting to these two vars
 let appConfig = ref(null); // cache this I suppose
 let wellCollection = ref(null);
 
@@ -51,6 +51,8 @@ function changeTab(selectedTab) {
   // To be triggered from Tab elements to load different data sets
   // Reset page to 1 on tab change
   activePage.value = 1;
+  activeTab.value = selectedTab;
+  console.log("Changing tab to " + selectedTab);
   loadWells(selectedTab, activePage.value, pageSize);
 }
 
@@ -122,7 +124,7 @@ onMounted(() => {
 </div>
 <div v-if="focusWell.runWell !== null">
   <h2>QC view</h2>
-  <QcView :runWell="focusWell.runWell"/>
+  <QcView :runWell="focusWell.runWell" @wellChanged="changeTab"/>
 </div>
 <div v-else>QC data will appear here</div>
 </template>
