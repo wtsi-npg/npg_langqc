@@ -1,4 +1,4 @@
-import { describe, expect, test, vi } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
 import { createTestingPinia } from '@pinia/testing';
 import ElementPlus from 'element-plus';
@@ -19,33 +19,37 @@ describe('Clicking triggers POST and side-effects', () => {
             user: 'loggedInUser'
         })
     );
+    let { widget, wellStore, messageStore }  = [null, null, null];
 
-    const widget = mount(ClaimWidget, {
-        global: {
-            plugins: [
-                ElementPlus,
-                createTestingPinia({
-                    createSpy: vi.fn,
-                    initialState: {
-                        focusWell: {
-                            runWell: {
-                                run_info: {
-                                    pac_bio_run_name: 'TEST',
-                                    well_label: 'A1',
+    beforeEach(() => {
+        widget = mount(ClaimWidget, {
+            global: {
+                plugins: [
+                    ElementPlus,
+                    createTestingPinia({
+                        createSpy: vi.fn,
+                        initialState: {
+                            focusWell: {
+                                runWell: {
+                                    run_info: {
+                                        pac_bio_run_name: 'TEST',
+                                        well_label: 'A1',
+                                    }
                                 }
-                            }
+                            },
                         },
-                    },
-                    // This is the important bit!
-                    // PiniaTesting doesn't run actual code by default
-                    stubActions: false
-                })
-            ]
-        }
+                        // This is the important bit!
+                        // PiniaTesting doesn't run actual code by default
+                        stubActions: false
+                    })
+                ]
+            }
+        });
+        wellStore = useWellStore();
+        messageStore = useMessageStore();
     });
 
-    const wellStore = useWellStore();
-    const messageStore = useMessageStore();
+
 
     test('Click normally', async () => {
         await widget.get('button').trigger('click');
@@ -56,6 +60,13 @@ describe('Clicking triggers POST and side-effects', () => {
 
         let request = fetch.mock.calls[0];
         expect(request[0]).toEqual('/api/pacbio/run/TEST/well/A1/qc_claim');
+
+        let emits = widget.emitted();
+        expect(emits.wellClaimed).toBeTruthy();
+
+        // Click again - should do nothing
+        await widget.get('button').trigger('click');
+        expect(widget.emitted().wellClaimed).toStrictEqual(emits.wellClaimed);
     });
 
     test('Click with a failed API call', async () => {
@@ -65,5 +76,7 @@ describe('Clicking triggers POST and side-effects', () => {
         await flushPromises();
         expect(messageStore.errorMessages).toHaveLength(1);
         expect(messageStore.errorMessages).toEqual([new Error("It's all gone wrong in the fetch: API says no")]);
+
+        expect(widget.emits).not.toBeDefined();
     });
 });
