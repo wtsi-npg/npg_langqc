@@ -26,33 +26,28 @@ from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
 from starlette import status
 
+from lang_qc.db.helper.well import (
+    InconsistentInputError,
+    InvalidDictValueError,
+    WellMetrics,
+    WellQc,
+)
 from lang_qc.db.mlwh_connection import get_mlwh_db
 from lang_qc.db.qc_connection import get_qc_db
-from lang_qc.db.qc_schema import QcState as QcStateDB
-from lang_qc.db.qc_schema import QcStateHist as QcStateDBHist
+from lang_qc.db.qc_schema import User
 from lang_qc.db.utils import (
     extract_well_label_and_run_name_from_state,
     get_in_progress_wells_and_states,
     get_inbox_wells_and_states,
     get_on_hold_wells_and_states,
     get_qc_complete_wells_and_states,
-    get_qc_state_dict,
-    get_qc_type,
-    get_well_metrics,
 )
 from lang_qc.models.lims import Sample, Study
 from lang_qc.models.pacbio.run import PacBioRunResponse
 from lang_qc.models.pacbio.well import PacBioPagedWells, PacBioWell
 from lang_qc.models.qc_flow_status import QcFlowStatusEnum
-from lang_qc.models.qc_state import QcClaimPostBody, QcState, QcStatusAssignmentPostBody
+from lang_qc.models.qc_state import QcState, QcStateBasic
 from lang_qc.util.auth import check_user
-from lang_qc.util.qc_state_helpers import (
-    NotFoundInDatabaseException,
-    construct_seq_product_for_well,
-    get_qc_state_for_well,
-    get_seq_product_for_well,
-    update_qc_state,
-)
 
 router = APIRouter(
     prefix="/pacbio",
@@ -93,7 +88,7 @@ def get_wells_filtered_by_status(
         page_size=page_size, page_number=page_number, qc_flow_status=qc_status
     )
     # Now we are getting all results for a status.
-    # Ideally we'd like to get the relevant page straignt away.
+    # Ideally we'd like to get the relevant page straight away.
     wells, states = grab_wells_with_status(qc_status, qcdb_session, mlwh_session)
     pbwells = pack_wells_and_states(wells, states)
     # Now we slice the list and finalize the object.
@@ -119,7 +114,7 @@ def get_pacbio_well(
     if len(results) == 0:
         raise HTTPException(404, detail="No PacBio well found matching criteria.")
     if len(results) > 1:
-        print("WARNING! THERE IS MORE THAN ONE RESULT! RETURING THE FIRST ONE")
+        print("WARNING! THERE IS MORE THAN ONE RESULT! RETURNING THE FIRST ONE")
 
     run: PacBioRun = results[0]
 
@@ -134,121 +129,106 @@ def get_pacbio_well(
 
 @router.post(
     "/run/{run_name}/well/{well_label}/qc_claim",
-    summary="Well level QC operation - claim the well to start QC",
+    summary="Claim the well to start QC",
+    description="""
+    Enables the user to initiate manual QC of the well. The resulting QC state
+    is flagged as preliminary. Not every authenticated user is allowed to perform QC.
+
+    A prerequisite to starting manual QC is existence of the well record
+    in the ml warehouse database.
+
+    Initiating manual QC on a well that already has been claimed or has any
+    other QC state is not allowed.
+    """,
+    responses={
+        status.HTTP_201_CREATED: {"description": "Well successfully claimed"},
+        status.HTTP_422_UNPROCESSABLE_ENTITY: {
+            "description": "Invalid query parameter value"
+        },
+        status.HTTP_404_NOT_FOUND: {"description": "Well does not exist"},
+        status.HTTP_409_CONFLICT: {"description": "Well has already been claimed"},
+    },
     response_model=QcState,
+    status_code=status.HTTP_201_CREATED,
 )
-def claim_well(
+def claim_qc(
     run_name: str,
     well_label: str,
-    body: QcClaimPostBody,
-    user=Depends(check_user),
+    user: User = Depends(check_user),
     qcdb_session: Session = Depends(get_qc_db),
     mlwhdb_session: Session = Depends(get_mlwh_db),
 ) -> QcState:
 
-    # Fetch "static" data first.
-
-    qc_type = get_qc_type(body.qc_type, qcdb_session)
-    if qc_type is None:
+    wm = WellMetrics(session=mlwhdb_session, run_name=run_name, well_label=well_label)
+    if wm.exists() is False:
         raise HTTPException(
-            status_code=400, detail="QC type is not in the QC database."
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Well {well_label} run {run_name} does not exist",
         )
 
-    qc_state_dict = get_qc_state_dict("Claimed", qcdb_session)
-    if qc_state_dict is None:
+    well_qc = WellQc(session=qcdb_session, run_name=run_name, well_label=well_label)
+    if well_qc.current_qc_state():
         raise HTTPException(
-            status_code=400, detail="QC state dict is not in the QC database."
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Well {well_label} run {run_name} has already been claimed",
         )
 
-    seq_product = get_seq_product_for_well(run_name, well_label, qcdb_session)
-
-    if seq_product is None:
-        # Check that well exists in mlwh
-        mlwh_well = get_well_metrics(run_name, well_label, mlwhdb_session)
-        if mlwh_well is None:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Well {well_label} from run {run_name} is"
-                " not in the MLWH database.",
-            )
-
-        # Create a SeqProduct and related things for the well.
-        seq_product = construct_seq_product_for_well(run_name, well_label, qcdb_session)
-
-    else:
-        qc_state = get_qc_state_for_well(run_name, well_label, qcdb_session)
-
-        if qc_state is not None:
-            raise HTTPException(
-                status_code=400, detail="The well has already been claimed."
-            )
-
-    qc_state = QcStateDB(
-        created_by="LangQC",
-        is_preliminary=True,
-        qc_state_dict=qc_state_dict,
-        qc_type=qc_type,
-        seq_product=seq_product,
-        user=user,
-    )
-
-    qcdb_session.add(qc_state)
-    qcdb_session.commit()
-
-    return QcState.from_orm(qc_state)
+    # Using default attributes for almost all arguments.
+    # The new QC state will be set as preliminary.
+    return QcState.from_orm(well_qc.assign_qc_state(user=user))
 
 
 @router.post(
     "/run/{run_name}/well/{well_label}/qc_assign",
-    summary=["Well level QC operation - assign QC state"],
+    summary="Assign QC state to a well",
+    description="""
+    Enables the user to assign a new QC state to a well. The well QC should
+    have been already claimed. The user performing the operation should
+    be the user who assigned the current QC state of the well.
+    """,
+    responses={
+        status.HTTP_200_OK: {"description": "Well QC state updated"},
+        status.HTTP_400_BAD_REQUEST: {"description": "Request details are incorrect"},
+        status.HTTP_403_FORBIDDEN: {"description": "User cannot perform QC"},
+        status.HTTP_422_UNPROCESSABLE_ENTITY: {
+            "description": "Invalid query parameter value"
+        },
+        status.HTTP_409_CONFLICT: {"description": "Requested operation is not allowed"},
+    },
     response_model=QcState,
 )
-def assign_qc_status(
+def assign_qc_state(
     run_name: str,
     well_label: str,
-    request_body: QcStatusAssignmentPostBody,
-    user=Depends(check_user),
+    request_body: QcStateBasic,
+    user: User = Depends(check_user),
     qcdb_session: Session = Depends(get_qc_db),
 ) -> QcState:
 
-    qc_state = get_qc_state_for_well(run_name, well_label, qcdb_session)
+    well_qc = WellQc(session=qcdb_session, run_name=run_name, well_label=well_label)
+    qc_state = well_qc.current_qc_state()
 
     if qc_state is None:
         raise HTTPException(
-            status_code=400,
-            detail="Cannot assign a state to a well which has not yet been claimed.",
+            status_code=status.HTTP_409_CONFLICT,
+            detail="QC state of an unclaimed well cannot be updated",
         )
 
-    # Check if well has been claimed by another user.
-    if qc_state.user != user:
+    if qc_state.user.username != user.username:
         raise HTTPException(
-            status_code=401,
-            detail="Cannot assign a state to a well which has been claimed by another user.",
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Unauthorised, QC is performed by another user",
         )
 
-    # time to add a historical entry
-    qcdb_session.add(
-        QcStateDBHist(
-            id_seq_product=qc_state.id_seq_product,
-            id_user=qc_state.id_user,
-            id_qc_state_dict=qc_state.id_qc_state_dict,
-            id_qc_type=qc_state.id_qc_type,
-            created_by=qc_state.created_by,
-            date_created=qc_state.date_created,
-            date_updated=qc_state.date_updated,
-            is_preliminary=qc_state.is_preliminary,
-        )
-    )
-
+    qc_state = None
+    message = "Error assigning status: "
     try:
-        update_qc_state(request_body, qc_state, user, qcdb_session)
-    except NotFoundInDatabaseException as e:
+        qc_state = well_qc.assign_qc_state(user=user, **request_body.dict())
+    except (InvalidDictValueError, InconsistentInputError) as err:
         raise HTTPException(
-            status_code=400,
-            detail=f"An error occured: {str(e)}\nRequest body was: {request_body.json()}",
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=message + str(err),
         )
-
-    qcdb_session.commit()
 
     return QcState.from_orm(qc_state)
 

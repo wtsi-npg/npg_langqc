@@ -9,6 +9,7 @@ from ml_warehouse.schema import (
     Sample,
     Study,
 )
+from npg_id_generation import PacBioEntity
 
 from lang_qc.db.qc_schema import (
     ProductLayout,
@@ -103,6 +104,9 @@ def test_data_factory(mlwhdb_test_session, qcdb_test_session):
         library_qc_type = QcType(
             qc_type="library", description="Sample/library evaluation"
         )
+        seq_qc_type = QcType(
+            qc_type="sequencing", description="Sequencing process evaluation"
+        )
 
         run_name_attr = SubProductAttr(
             attr_name="run_name", description="PacBio run name."
@@ -117,12 +121,18 @@ def test_data_factory(mlwhdb_test_session, qcdb_test_session):
         state_dicts = {}
 
         for state in states:
-            state_dicts[state] = QcStateDict(state=state, outcome=states.index(state))
+            outcome = None
+            if state == "Passed":
+                outcome = True
+            elif state == "Failed":
+                outcome = False
+            state_dicts[state] = QcStateDict(state=state, outcome=outcome)
 
         qcdb_test_session.add_all(state_dicts.values())
         qcdb_test_session.add_all(
             [
                 library_qc_type,
+                seq_qc_type,
                 run_name_attr,
                 well_label_attr,
                 seq_platform,
@@ -153,14 +163,17 @@ def test_data_factory(mlwhdb_test_session, qcdb_test_session):
                     )
                 )
                 if state is not None:
+                    pbe = PacBioEntity(run_name=run_name, well_label=well_label)
+                    id = pbe.hash_product_id()
+                    json = pbe.json()
                     states.append(
                         QcState(
                             created_by="me",
                             is_preliminary=state in ["On hold", "Claimed"],
                             qc_state_dict=state_dicts[state],
-                            qc_type=library_qc_type,
+                            qc_type=seq_qc_type,
                             seq_product=SeqProduct(
-                                id_product=run_name + well_label,
+                                id_product=id,
                                 seq_platform=seq_platform,
                                 product_layout=[
                                     ProductLayout(
@@ -169,9 +182,8 @@ def test_data_factory(mlwhdb_test_session, qcdb_test_session):
                                             sub_product_attr_=well_label_attr,
                                             value_attr_one=run_name,
                                             value_attr_two=well_label,
-                                            properties={run_name: well_label},
-                                            properties_digest=run_name
-                                            + well_label,  # dummy digest
+                                            properties=json,
+                                            properties_digest=id,
                                         ),
                                     )
                                 ],
@@ -210,12 +222,16 @@ def wells_and_states() -> Tuple[List[PacBioRunWellMetrics], List[QcState]]:
                     instrument_type="PacBio",
                 )
             )
+            pbe = PacBioEntity(run_name=run_name, well_label=well_label)
+            id = pbe.hash_product_id()
+            json = pbe.json()
             states.append(
                 QcState(
                     id_qc_state_dict=1,
                     created_by="me",
                     seq_product=SeqProduct(
                         id_seq_platform="PacBio",
+                        id_product=id,
                         product_layout=[
                             ProductLayout(
                                 sub_product=SubProduct(
@@ -223,6 +239,8 @@ def wells_and_states() -> Tuple[List[PacBioRunWellMetrics], List[QcState]]:
                                     value_attr_one=run_name,
                                     id_attr_two=2,
                                     value_attr_two=well_label,
+                                    properties=json,
+                                    properties_digest=id,
                                 )
                             )
                         ],
