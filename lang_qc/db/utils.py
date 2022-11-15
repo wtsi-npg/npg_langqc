@@ -27,10 +27,8 @@ from lang_qc.db.qc_schema import (
     ProductLayout,
     QcState,
     QcStateDict,
-    QcType,
     SeqProduct,
     SubProduct,
-    User,
 )
 from lang_qc.models.pacbio.well import WellStatusEnum
 
@@ -211,26 +209,3 @@ def get_qc_complete_wells_and_states(
     wells = get_well_metrics_from_qc_states(states, mlwh_session)
 
     return (wells, states)
-
-
-def get_user(username: str, qcdb_session: Session) -> User | None:
-    """Get a user from the database."""
-
-    return qcdb_session.execute(
-        select(User).filter(User.username == username)
-    ).scalar_one_or_none()
-
-
-def get_qc_state_dict(state_name: str, qcdb_session: Session) -> QcStateDict | None:
-    """Get a QC state variant from a name."""
-
-    return qcdb_session.execute(
-        select(QcStateDict).where(QcStateDict.state == state_name)
-    ).scalar_one_or_none()
-
-
-def get_qc_type(type_name: str, qcdb_session: Session) -> QcType | None:
-    """Get a QC type from a name."""
-    return qcdb_session.execute(
-        select(QcType).where(QcType.qc_type == type_name)
-    ).scalar_one_or_none()
