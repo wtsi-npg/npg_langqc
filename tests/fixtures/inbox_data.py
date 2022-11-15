@@ -9,7 +9,7 @@ from ml_warehouse.schema import (
     Sample,
     Study,
 )
-from npg_id_generation import PacBioEntity
+from npg_id_generation.pac_bio import PacBioEntity
 
 from lang_qc.db.qc_schema import (
     ProductLayout,
