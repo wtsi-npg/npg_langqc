@@ -17,10 +17,13 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Dict
+from typing import Dict, List
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
 
+from lang_qc.db.helper.well import QcDictDB
+from lang_qc.db.qc_connection import get_qc_db
 from lang_qc.models.qc_flow_status import QcFlowStatusEnum
 
 router = APIRouter(
@@ -35,13 +38,33 @@ router = APIRouter(
     description="""
     Returns a dictionary with configuration options.
 
-    Under the 'qc_flow_states' key returns a list of QcFlowStatus objects,
+    Under the `qc_flow_states` key returns a list of QcFlowStatus objects,
     which correspond to known QC flow states. The list is sorted in the temporal
     order of the manual QC process. To ensure that the UI is in synch with the
     back end, this list can be used by the frontend code.
+
+    Under the `qc_states` key returns a list of QC states, which should be
+    possible to assign via the UI. Each QC state is a dictionary with two entries,
+    a `description` and a boolean flag `only_prelim`. This flag is set to `True`
+    for QC dictionary states, which are always preliminary.
     """,
     response_model=Dict,
 )
-def get_config():
+def get_config(
+    session: Session = Depends(get_qc_db),
+):
 
-    return {"qc_flow_statuses": QcFlowStatusEnum.qc_flow_statuses()}
+    return {
+        "qc_flow_statuses": QcFlowStatusEnum.qc_flow_statuses(),
+        "qc_states": _states_for_update(session),
+    }
+
+
+def _states_for_update(session) -> List:
+
+    states = []
+    for (name, row) in QcDictDB(session=session).qc_states.items():
+        if name not in ["Aborted", "Claimed"]:
+            states.append({"description": name, "only_prelim": row.state == "On hold"})
+
+    return states

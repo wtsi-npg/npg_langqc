@@ -117,7 +117,7 @@ def test_data_factory(mlwhdb_test_session, qcdb_test_session):
         seq_platform = SeqPlatform(name="PacBio", description="Pacific Biosciences.")
         user = User(username="zx80@example.com")
         other_user = User(username="cd32@example.com")
-        states = ["Passed", "Failed", "Claimed", "On hold"]
+        states = ["Passed", "Failed", "Claimed", "On hold", "Aborted"]
         state_dicts = {}
 
         for state in states:
