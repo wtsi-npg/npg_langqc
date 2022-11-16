@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from "vue";
+import { onMounted, ref, provide } from "vue";
 
 import QcView from "@/components/QcView.vue";
 import LangQc from "@/utils/langqc.js";
@@ -21,6 +21,8 @@ let activeTab = ref('inbox'); // aka paneName in element-plus
 let activePage = ref(1);
 let pageSize = 10;
 let totalNumberOfWells = ref(0);
+
+provide('activeTab', activeTab);
 
 function loadWellDetail(runName, label) {
   // Sets the runWell for the QcView component below

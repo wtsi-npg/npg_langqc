@@ -1,4 +1,5 @@
 <script setup>
+    import { inject } from "vue";
     import LangQc from "../utils/langqc.js";
     import { useMessageStore } from "@/stores/message.js";
     import { useWellStore } from "@/stores/focusWell.js";
@@ -7,6 +8,8 @@
     const focusWell = useWellStore();
 
     const emit = defineEmits(['wellClaimed']);
+
+    const tabGetter = inject('activeTab');
 
     let client = new LangQc();
 
@@ -31,7 +34,7 @@
 
 <template>
     <div id="ClaimButton">
-        <el-button type="primary" @click.once="claimHandler">Claim for QC</el-button>
+        <el-button type="primary" @click.once="claimHandler" :disabled="tabGetter != 'inbox'">Claim for QC</el-button>
     </div>
 </template>
 
