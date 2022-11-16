@@ -15,67 +15,37 @@ database.
 QCDB_URL environment variable should be set to point to the dev database.
 """
 
-flat_list = [
-    "TRACTION-RUN-125",
-    "A1",
-    "TRACTION-RUN-125",
-    "B1",
-    "TRACTION-RUN-125",
-    "C1",
-    "TRACTION-RUN-125",
-    "D1",
-    "TRACTION-RUN-126",
-    "A1",
-    "TRACTION-RUN-126",
-    "B1",
-    "TRACTION-RUN-126",
-    "C1",
-    "TRACTION-RUN-126",
-    "D1",
-    "TRACTION-RUN-128",
-    "B1",
-    "TRACTION-RUN-128",
-    "A1",
-    "TRACTION-RUN-128",
-    "C1",
-    "TRACTION-RUN-128",
-    "D1",
-    "TRACTION-RUN-129",
-    "B1",
-    "TRACTION-RUN-129",
-    "A1",
-    "TRACTION-RUN-129",
-    "D1",
-    "TRACTION-RUN-129",
-    "C1",
-    "TRACTION-RUN-131",
-    "B1",
-    "TRACTION-RUN-131",
-    "C1",
-    "TRACTION-RUN-131",
-    "D1",
-    "TRACTION-RUN-132",
-    "C1",
-    "TRACTION-RUN-132",
-    "D1",
-    "TRACTION-RUN-132",
-    "A1",
-    "TRACTION-RUN-132",
-    "B1",
-    "TRACTION-RUN-133",
-    "A1",
-    "TRACTION-RUN-133",
-    "D1",
-    "TRACTION-RUN-133",
-    "C1",
-    "TRACTION-RUN-133",
-    "B1",
-    "TRACTION-RUN-134",
-    "A1",
-    "TRACTION-RUN-134",
-    "B1",
-    "TRACTION-RUN-134",
-    "C1",
+run_wells = [
+    ("TRACTION-RUN-125", "A1"),
+    ("TRACTION-RUN-125", "B1"),
+    ("TRACTION-RUN-125", "C1"),
+    ("TRACTION-RUN-125", "D1"),
+    ("TRACTION-RUN-126", "A1"),
+    ("TRACTION-RUN-126", "B1"),
+    ("TRACTION-RUN-126", "C1"),
+    ("TRACTION-RUN-126", "D1"),
+    ("TRACTION-RUN-128", "B1"),
+    ("TRACTION-RUN-128", "A1"),
+    ("TRACTION-RUN-128", "C1"),
+    ("TRACTION-RUN-128", "D1"),
+    ("TRACTION-RUN-129", "B1"),
+    ("TRACTION-RUN-129", "A1"),
+    ("TRACTION-RUN-129", "D1"),
+    ("TRACTION-RUN-129", "C1"),
+    ("TRACTION-RUN-131", "B1"),
+    ("TRACTION-RUN-131", "C1"),
+    ("TRACTION-RUN-131", "D1"),
+    ("TRACTION-RUN-132", "C1"),
+    ("TRACTION-RUN-132", "D1"),
+    ("TRACTION-RUN-132", "A1"),
+    ("TRACTION-RUN-132", "B1"),
+    ("TRACTION-RUN-133", "A1"),
+    ("TRACTION-RUN-133", "D1"),
+    ("TRACTION-RUN-133", "C1"),
+    ("TRACTION-RUN-133", "B1"),
+    ("TRACTION-RUN-134", "A1"),
+    ("TRACTION-RUN-134", "B1"),
+    ("TRACTION-RUN-134", "C1"),
 ]
 
 application = "DB LOADER"
@@ -87,10 +57,6 @@ if user_obj is None:
     user_obj = User(username=user_name)
     session.add(user_obj)
 
-states = []
-
-num_wells = int(len(flat_list) / 2)
-
 dict_states = [
     "Passed",
     "Failed",
@@ -100,20 +66,17 @@ dict_states = [
     "On hold",
 ]
 
-for i in range(num_wells):
-    index = 2 * i
-    run = flat_list[index]
-    label = flat_list[index + 1]
+for (run, label) in run_wells:
     helper = WellQc(run_name=run, well_label=label, session=session)
-    helper.assign_qc_state(user=user_obj, application=application)
+    helper.assign_qc_state(user=user_obj, application=application)  # Claim
     index = random.randint(0, len(dict_states) - 1)
     state_name = dict_states[index]
     prelim = True
-    if state_name != "On hold" and i / 2 == 0:
+    if state_name != "On hold" and index / 2 == 0:
         prelim = False
     helper.assign_qc_state(
         user=user_obj,
         qc_state=state_name,
         is_preliminary=prelim,
         application=application,
-    )
+    )  # Assign some other state
