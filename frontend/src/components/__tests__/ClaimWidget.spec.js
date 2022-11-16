@@ -75,7 +75,7 @@ describe('Clicking triggers POST and side-effects', () => {
         await widget.get('button').trigger('click');
         await flushPromises();
         expect(messageStore.errorMessages).toHaveLength(1);
-        expect(messageStore.errorMessages).toEqual([new Error("It's all gone wrong in the fetch: API says no")]);
+        expect(messageStore.errorMessages).toEqual(["API says no"]);
 
         expect(widget.emits).not.toBeDefined();
     });

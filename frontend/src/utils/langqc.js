@@ -54,11 +54,9 @@ export default class LangQc {
         if (response.ok) {
           return response.json();
         } else {
-          throw new Error(`API ${requestMeta.method} error "` + response.statusText);
+          throw new Error(`API ${requestMeta.method} error "${response.statusText}"`);
         }
       }
-    ).catch(
-      (e) => {console.log(e); throw new Error("It's all gone wrong in the fetch: "+e)}
     );
   }
 
