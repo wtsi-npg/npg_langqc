@@ -41,7 +41,9 @@ export default class LangQc {
         'Content-type': 'application/json',
         'Accept': 'application/json'
       };
-      requestMeta.body = JSON.stringify(body);
+      if (body != null) {
+        requestMeta.body = JSON.stringify(body);
+      }
     }
 
     return fetch(
@@ -80,10 +82,7 @@ export default class LangQc {
   claimWell(name, well) {
     return this.fetchWrapper(
       this.buildUrl(['run', name, 'well', well, 'qc_claim']),
-      'POST',
-      {
-        "qc_type": "sequencing"
-      }
+      'POST'
     )
   }
 }

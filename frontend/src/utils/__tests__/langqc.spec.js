@@ -64,13 +64,6 @@ describe('Example fake remote api call', () => {
         ).toEqual(
             'POST'
         );
-
-        expect(
-            JSON.parse(request[1].body)
-            // Can we get a JSON response from this mock response?
-        ).toStrictEqual(
-            {qc_type: 'sequencing'}
-        );
     });
 
     test('Fetch convenience functions send requests to...', () => {
