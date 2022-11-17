@@ -83,4 +83,16 @@ export default class LangQc {
       'POST'
     )
   }
+
+  setWellQcState(name, well, state, final=false) {
+    return this.fetchWrapper(
+      this.buildUrl(['run', name, 'well', well, 'qc_assign']),
+      'POST',
+      {
+        qc_state: state,
+        is_prelimary: !final,
+        qc_type: 'sequencing'
+      }
+    )
+  }
 }
