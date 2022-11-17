@@ -62,6 +62,11 @@ function changePage(pageNumber) {
   loadWells(activeTab.value, pageNumber, pageSize);
 }
 
+function externalTabChange(tabName) {
+  // Triggered in response to events from other components
+  activeTab.value = tabName;
+}
+
 onMounted(() => {
   serviceClient = new LangQc();
   try {
@@ -126,7 +131,7 @@ onMounted(() => {
 </div>
 <div v-if="focusWell.runWell !== null">
   <h2>QC view</h2>
-  <QcView :runWell="focusWell.runWell" @wellChanged="changeTab"/>
+  <QcView :runWell="focusWell.runWell" @wellChanged="externalTabChange"/>
 </div>
 <div v-else>QC data will appear here</div>
 </template>
