@@ -1,6 +1,7 @@
 import json
 
 from fastapi.testclient import TestClient
+from npg_id_generation.pac_bio import PacBioEntity
 
 from tests.fixtures.inbox_data import test_data_factory
 
@@ -14,21 +15,13 @@ def test_claim_nonexistent_well(test_client: TestClient, test_data_factory):
     }
     test_data_factory(test_data)
 
-    post_data = {
-        "qc_type": "library",
-    }
-
     response = test_client.post(
         "/pacbio/run/NONEXISTENT/well/A0/qc_claim",
-        json.dumps(post_data),
         headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
     )
 
     assert response.status_code == 404
-    assert (
-        response.json()["detail"]
-        == "Well A0 from run NONEXISTENT is not in the MLWH database."
-    )
+    assert response.json()["detail"] == "Well A0 run NONEXISTENT does not exist"
 
 
 def test_claim_well_simple(test_client: TestClient, test_data_factory):
@@ -40,28 +33,31 @@ def test_claim_well_simple(test_client: TestClient, test_data_factory):
     }
     test_data_factory(test_data)
 
-    post_data = {"qc_type": "library"}
-
     response = test_client.post(
         "/pacbio/run/MARATHON/well/B1/qc_claim",
-        data=json.dumps(post_data),
         headers={"oidc_claim_email": "zx80@example.com"},
     )
 
-    assert response.status_code == 200
+    assert response.status_code == 201
 
     actual_content = response.json()
 
     expected = {
+        "id_product": PacBioEntity(
+            run_name="MARATHON", well_label="B1"
+        ).hash_product_id(),
         "user": "zx80@example.com",
-        "qc_type": "library",
-        "state": "Claimed",
+        "qc_type": "sequencing",
+        "qc_state": "Claimed",
         "is_preliminary": True,
         "created_by": "LangQC",
+        "outcome": None,
     }
 
     for key, expected_value in expected.items():
         assert actual_content[key] == expected_value
+    for date_key in ("date_created", "date_updated"):
+        assert actual_content[date_key] is not None
 
 
 def test_claim_well_unknown_user(test_client: TestClient, test_data_factory):
@@ -73,11 +69,8 @@ def test_claim_well_unknown_user(test_client: TestClient, test_data_factory):
     }
     test_data_factory(test_data)
 
-    post_data = {"qc_type": "library"}
-
     response = test_client.post(
         "/pacbio/run/MARATHON/well/B1/qc_claim",
-        json.dumps(post_data),
         headers={"OIDC_CLAIM_EMAIL": "intruder@example.com"},
     )
 
@@ -95,13 +88,9 @@ def test_error_on_no_user(test_client: TestClient, test_data_factory):
 
     test_data_factory(test_data)
 
-    post_data = {"qc_type": "sequencing"}
-
     for well_label in "A1", "B1":
 
-        response = test_client.post(
-            f"/pacbio/run/MARATHON/well/{well_label}/qc_claim", json.dumps(post_data)
-        )
+        response = test_client.post(f"/pacbio/run/MARATHON/well/{well_label}/qc_claim")
 
         assert response.status_code == 401
         assert response.json()["detail"] == "No user provided, is the user logged in?"
@@ -116,15 +105,15 @@ def test_error_on_already_claimed(test_client: TestClient, test_data_factory):
     }
     test_data_factory(test_data)
 
-    post_data = {"qc_type": "library"}
-
     for run_name in test_data:
         for well_label in test_data[run_name]:
 
             response = test_client.post(
                 f"/pacbio/run/{run_name}/well/{well_label}/qc_claim",
-                json.dumps(post_data),
                 headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
             )
-            assert response.status_code == 400
-            assert response.json()["detail"] == "The well has already been claimed."
+            assert response.status_code == 409
+            assert (
+                response.json()["detail"]
+                == f"Well {well_label} run {run_name} has already been claimed"
+            )

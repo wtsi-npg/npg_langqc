@@ -4,8 +4,6 @@ import { onMounted, ref } from "vue";
 let user_email = ref(null);
 
 onMounted(() => {
-  
-  
   // Get the user information from the apache OIDC module
   // see https://github.com/zmartzone/mod_auth_openidc/wiki/Single-Page-Applications#session-info
   fetch(location.origin + "/login-redirect?info=json")
@@ -17,12 +15,9 @@ onMounted(() => {
           })
       }
     })
-  
 })
 
-
 </script>
-
 
 <template>
   <div class="about">
@@ -36,11 +31,4 @@ onMounted(() => {
 </template>
 
 <style>
-@media (min-width: 1024px) {
-  .about {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-  }
-}
 </style>

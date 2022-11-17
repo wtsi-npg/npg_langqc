@@ -79,7 +79,7 @@ def assert_filtered_inbox_equals_expected(
     for result in resp["wells"]:
         rwell = result["run_name"] + ":" + result["label"]
         qc_state = (
-            result["qc_state"]["state"] if result["qc_state"] is not None else None
+            result["qc_state"]["qc_state"] if result["qc_state"] is not None else None
         )
         actual_data.append({rwell: qc_state})
     assert actual_data == expected_data

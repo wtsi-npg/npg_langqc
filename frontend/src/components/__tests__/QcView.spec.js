@@ -1,5 +1,8 @@
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import { render } from '@testing-library/vue';
+// Pinia and ElementPlus required by ClaimWidget
+import { createTestingPinia } from '@pinia/testing';
+import ElementPlus from 'element-plus';
 
 import QcView from '../QcView.vue';
 
@@ -26,6 +29,12 @@ describe('Component renders', () => {
             metric1: {value: 9000, label: 'metric_one'},
             metric2: {value: 'VeryBad', label: 'metric_two'}
           }
+        }
+      },
+      global: {
+        plugins: [ElementPlus, createTestingPinia({ createSpy: vi.fn})],
+        provide: {
+          activeTab: 'inbox'
         }
       }
     });
