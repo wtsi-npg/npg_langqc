@@ -1,16 +1,20 @@
 <script setup>
-import { onMounted, ref } from "vue";
+import { onMounted, ref, provide } from "vue";
 
 import QcView from "@/components/QcView.vue";
 import LangQc from "@/utils/langqc.js";
 
+import { useMessageStore } from '@/stores/message.js';
+import { useWellStore } from '@/stores/focusWell.js';
+
+const errorBuffer = useMessageStore();
+const focusWell = useWellStore();
+
 let serviceClient = null;
 
 // Don't try to render much of anything until data arrives
-// by reacting to these three vars
+// by reacting to these two vars
 let appConfig = ref(null); // cache this I suppose
-
-let runWell = ref(null);
 let wellCollection = ref(null);
 
 let activeTab = ref('inbox'); // aka paneName in element-plus
@@ -18,16 +22,16 @@ let activePage = ref(1);
 let pageSize = 10;
 let totalNumberOfWells = ref(0);
 
-let errorMessage = ref(null);
+provide('activeTab', activeTab);
 
 function loadWellDetail(runName, label) {
   // Sets the runWell for the QcView component below
   serviceClient.getRunWellPromise(runName, label)
   .then(
-    wells => runWell.value = wells
+    wells => focusWell.runWell = wells
   ).catch(
     (error) => {
-      errorMessage.value = error.message;
+      errorBuffer.addMessage(error.message);
     }
   );
 }
@@ -40,7 +44,7 @@ function loadWells(status, page, pageSize) {
     (error) => {
       // Reset table of wells to prevent desired tab from showing data from another
       wellCollection.value = null;
-      errorMessage.value = error.message;
+      errorBuffer.addMessage(error.message);
     }
   );
 }
@@ -49,11 +53,18 @@ function changeTab(selectedTab) {
   // To be triggered from Tab elements to load different data sets
   // Reset page to 1 on tab change
   activePage.value = 1;
+  activeTab.value = selectedTab;
+  console.log("Changing tab to " + selectedTab);
   loadWells(selectedTab, activePage.value, pageSize);
 }
 
 function changePage(pageNumber) {
   loadWells(activeTab.value, pageNumber, pageSize);
+}
+
+function externalTabChange(tabName) {
+  // Triggered in response to events from other components
+  activeTab.value = tabName;
 }
 
 onMounted(() => {
@@ -65,19 +76,13 @@ onMounted(() => {
     );
   } catch (error) {
     console.log("Stuff went wrong getting data from backend: "+error);
+    errorBuffer.addMessage(error.message);
   }
 });
 
 </script>
 
 <template>
-<el-alert
-  v-if="errorMessage !== null"
-  title="Cannot get data"
-  type="error"
-  :description="errorMessage"
-  show-icon
-/>
 <div>
   <h2>Runs</h2>
 </div>
@@ -124,9 +129,9 @@ onMounted(() => {
     ></el-pagination>
   </el-tabs>
 </div>
-<div v-if="runWell !== null">
+<div v-if="focusWell.runWell !== null">
   <h2>QC view</h2>
-  <QcView :runWell="runWell"/>
+  <QcView :runWell="focusWell.runWell" @wellChanged="externalTabChange"/>
 </div>
 <div v-else>QC data will appear here</div>
 </template>

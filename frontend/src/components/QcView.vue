@@ -1,14 +1,20 @@
 <script setup>
     import groupMetrics from "../utils/metrics.js";
+    import ClaimWidget from "@/components/ClaimWidget.vue";
 
     const props = defineProps({
         runWell: Object, // PacBioRunResult
     });
+    const emit = defineEmits(['wellChanged'])
 
     const pacBioPort = "8243";
 
     function generateSmrtLink(metric) {
         return `https://${metric.smrt_link.hostname}:${pacBioPort}/sl/run-qc/${metric.smrt_link.run_uuid}`
+    }
+
+    function wellChanged() {
+        emit('wellChanged', 'in_progress');
     }
 </script>
 
@@ -34,6 +40,10 @@
             <td>Last updated</td><td>{{runWell.run_info.last_updated}}</td>
         </tr>
     </table>
+</div>
+
+<div id="QCcontrols">
+    <ClaimWidget @wellClaimed="wellChanged"/>
 </div>
 
 <a :href="generateSmrtLink(runWell.metrics)">View in SMRT&reg; Link</a>
