@@ -32,7 +32,10 @@ describe('Component renders', () => {
         }
       },
       global: {
-        plugins: [ElementPlus, createTestingPinia({ createSpy: vi.fn})]
+        plugins: [ElementPlus, createTestingPinia({ createSpy: vi.fn})],
+        provide: {
+          activeTab: 'inbox'
+        }
       }
     });
 

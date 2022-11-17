@@ -42,7 +42,10 @@ describe('Clicking triggers POST and side-effects', () => {
                         // PiniaTesting doesn't run actual code by default
                         stubActions: false
                     })
-                ]
+                ],
+                provide: {
+                    activeTab: 'inbox'
+                }
             }
         });
         wellStore = useWellStore();
