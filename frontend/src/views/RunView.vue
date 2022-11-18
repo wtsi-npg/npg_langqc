@@ -3,6 +3,7 @@ import { onMounted, ref, provide } from "vue";
 
 import QcView from "@/components/QcView.vue";
 import LangQc from "@/utils/langqc.js";
+import QcControls from "@/components/QcControls.vue";
 
 import { useMessageStore } from '@/stores/message.js';
 import { useWellStore } from '@/stores/focusWell.js';
@@ -131,11 +132,21 @@ onMounted(() => {
 </div>
 <div v-if="focusWell.runWell !== null">
   <h2>QC view</h2>
-  <QcView :runWell="focusWell.runWell" @wellChanged="externalTabChange"/>
+  <div class="data">
+    <QcView :runWell="focusWell.runWell"/>
+  </div>
+  <div class="controls">
+    <QcControls @wellChanged="externalTabChange"/>
+  </div>
 </div>
 <div v-else>QC data will appear here</div>
 </template>
 
 <style>
+/* .controls {
+  float: right;
+}
+.data {
 
+} */
 </style>
