@@ -317,7 +317,7 @@ class WellQc(QcDictDB):
         if (
             (db_state is not None)
             and (db_state.qc_state_dict.state == qc_state)
-            and (db_state.qc_state.is_preliminary == is_preliminary)
+            and (bool(db_state.is_preliminary) == is_preliminary)
         ):
             # Do not update the state if it has not changed.
             # Return early, nothing more to do.
