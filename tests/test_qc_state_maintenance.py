@@ -64,7 +64,9 @@ def test_well_state_helper(load_dicts_and_users):
     assert state_obj.created_by == "LangQC"
     assert state_obj.is_preliminary == 1
 
-    state_obj.seq_product.seq_platform.name == "PacBio"
+    assert state_obj.seq_product.seq_platform.name == "PacBio"
+    assert state_obj.seq_product.id_product == id
+    assert len(state_obj.seq_product.product_layout) == 1
     sub_product = state_obj.seq_product.product_layout[0].sub_product
     assert sub_product.properties == json
     assert sub_product.properties_digest == id
@@ -72,14 +74,9 @@ def test_well_state_helper(load_dicts_and_users):
     assert sub_product.value_attr_two == "A"
 
     id_seq_product = state_obj.id_seq_product
-    hist_obj = (
-        session.execute(
-            select(QcStateHist).filter(QcStateHist.id_seq_product == id_seq_product)
-        )
-        .scalars()
-        .one()
-    )
-    _test_hist_object(state_obj, hist_obj)
+    hist_objs = _hist_objects(session, id_seq_product)
+    assert len(hist_objs) == 1
+    _test_hist_object(state_obj, hist_objs[0])
 
     # Current QC state is defined now
     assert helper.current_qc_state() == state_obj
@@ -95,25 +92,14 @@ def test_well_state_helper(load_dicts_and_users):
     }
 
     state_obj = helper.assign_qc_state(**args)
-    session.execute(
-        select(QcState).filter(QcState.id_seq_product == id_seq_product)
-    ).scalars().one()  # will error if multiple rows
-
+    assert _num_qc_state_objects(session, id_seq_product) == 1
     assert state_obj.user.username == user2
     assert state_obj.qc_type.qc_type == "sequencing"
     assert state_obj.qc_state_dict.state == "Passed"
     assert state_obj.created_by == "MyScript"
     assert state_obj.is_preliminary == 1
     assert state_obj.id_seq_product == id_seq_product
-
-    hist_objs = (
-        session.execute(
-            select(QcStateHist).filter(QcStateHist.id_seq_product == id_seq_product)
-        )
-        .scalars()
-        .all()
-    )
-
+    hist_objs = _hist_objects(session, id_seq_product)
     assert len(hist_objs) == 2
     _test_hist_object(state_obj, hist_objs[1])
 
@@ -121,37 +107,16 @@ def test_well_state_helper(load_dicts_and_users):
     args["user"] = users[0]
     state_obj_the_same = helper.assign_qc_state(**args)
     assert state_obj == state_obj_the_same
-    session.execute(
-        select(QcState).filter(QcState.id_seq_product == id_seq_product)
-    ).scalars().one()  # will error if multiple rows
-    hist_objs = (
-        session.execute(
-            select(QcStateHist).filter(QcStateHist.id_seq_product == id_seq_product)
-        )
-        .scalars()
-        .all()
-    )
+    assert _num_qc_state_objects(session, id_seq_product) == 1
+    hist_objs = _hist_objects(session, id_seq_product)
     assert len(hist_objs) == 2
 
     # Expect a new QC state for a different QC type
     args["qc_type"] = "library"
     state_obj = helper.assign_qc_state(**args)
     assert state_obj.qc_type.qc_type == "library"
-    qc_states = (
-        session.execute(
-            select(QcState).filter(QcState.id_seq_product == id_seq_product)
-        )
-        .scalars()
-        .all()
-    )
-    assert len(qc_states) == 2
-    hist_objs = (
-        session.execute(
-            select(QcStateHist).filter(QcStateHist.id_seq_product == id_seq_product)
-        )
-        .scalars()
-        .all()
-    )
+    assert _num_qc_state_objects(session, id_seq_product) == 2
+    hist_objs = _hist_objects(session, id_seq_product)
     assert len(hist_objs) == 3
     _test_hist_object(state_obj, hist_objs[2])
 
@@ -162,14 +127,8 @@ def test_well_state_helper(load_dicts_and_users):
 
     args["is_preliminary"] = False
     state_obj = helper.assign_qc_state(**args)
-    state_obj.is_preliminary == 0
-    hist_objs = (
-        session.execute(
-            select(QcStateHist).filter(QcStateHist.id_seq_product == id_seq_product)
-        )
-        .scalars()
-        .all()
-    )
+    assert state_obj.is_preliminary == 0
+    hist_objs = _hist_objects(session, id_seq_product)
     assert len(hist_objs) == 4
     _test_hist_object(state_obj, hist_objs[3])
 
@@ -183,3 +142,27 @@ def _test_hist_object(state_obj, hist_obj):
     assert state_obj.id_qc_state_dict == hist_obj.id_qc_state_dict
     assert state_obj.created_by == hist_obj.created_by
     assert state_obj.is_preliminary == hist_obj.is_preliminary
+
+
+def _num_qc_state_objects(session, id_seq_product):
+
+    objs = (
+        session.execute(
+            select(QcState).filter(QcState.id_seq_product == id_seq_product)
+        )
+        .scalars()
+        .all()
+    )
+    return len(objs)
+
+
+def _hist_objects(session, id_seq_product):
+
+    hist_objs = (
+        session.execute(
+            select(QcStateHist).filter(QcStateHist.id_seq_product == id_seq_product)
+        )
+        .scalars()
+        .all()
+    )
+    return hist_objs
