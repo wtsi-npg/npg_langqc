@@ -284,7 +284,7 @@ class WellQc(QcDictDB):
         attributes are invalid.
 
         For each new or updated record in the `qc_state` row table a new record is
-        created in the `qc_state_hist` table.
+        created in the `qc_state_hist` table. All database changes are committed.
 
         If a record for the product defined by this instance is not present in the
         `seq_product` table, it is created alongside corresponding records in the
@@ -317,7 +317,7 @@ class WellQc(QcDictDB):
         if (
             (db_state is not None)
             and (db_state.qc_state_dict.state == qc_state)
-            and (db_state.qc_state.is_preliminary == is_preliminary)
+            and (bool(db_state.is_preliminary) == is_preliminary)
         ):
             # Do not update the state if it has not changed.
             # Return early, nothing more to do.
@@ -338,22 +338,24 @@ class WellQc(QcDictDB):
             "user": user,
             "created_by": application,
             "date_updated": date_updated,
+            "qc_type": self.qc_types[qc_type],
+            "seq_product": self.seq_product,
         }
 
         if db_state is not None:
-            # TODO: Any way not to hardcode column names?
+            # Update some of the values of the existing record.
+            # No need to update the QC type, it stays the same.
             db_state.qc_state_dict = values["qc_state_dict"]
             db_state.is_preliminary = values["is_preliminary"]
             db_state.user = values["user"]
             db_state.created_by = values["created_by"]
             db_state.date_updated = values["date_updated"]
+            values["date_created"] = db_state.date_created  # Save for historic.
         else:
-            values["qc_type"] = self.qc_types[qc_type]
-            values["seq_product"] = self.seq_product
             values["date_created"] = date_updated
-            db_state = QcState(**values)
+            db_state = QcState(**values)  # Create a new record.
 
-        self.session.add_all([db_state, self._new_db_state_hist(db_state)])
+        self.session.add_all([db_state, QcStateHist(**values)])
         self.session.commit()
 
         return db_state
@@ -427,14 +429,3 @@ class WellQc(QcDictDB):
         self.session.commit()
 
         return well_product
-
-    def _new_db_state_hist(self, db_qc_state: QcState) -> QcStateHist:
-
-        data = {}
-        for column_name in db_qc_state.__dict__:
-            if (column_name.startswith("_") is False) and (
-                column_name != "id_qc_state"
-            ):
-                data[column_name] = db_qc_state.__getattribute__(column_name)
-
-        return QcStateHist(**data)
