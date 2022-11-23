@@ -32,15 +32,17 @@ describe('Check the getters', () => {
             run_info: {
                 nothing: 'to',
                 see: 'here'
-            },
-            qcState: {
-                state: 'Pass'
             }
         });
+        wellStore.updateWellQcState({
+            qc_state: 'Pass',
+            user: 'test'
+        });
 
-        expect(wellStore.getQcState).toEqual('Pass');
+        expect(wellStore.hasQcState).toBe(true);
+        expect(wellStore.getQcValue).toEqual('Pass');
 
-        wellStore.updateWellQcState({state: 'Fail'});
-        expect(wellStore.getQcState).toEqual('Fail');
+        wellStore.updateWellQcState({qc_state: 'Fail'});
+        expect(wellStore.getQcValue).toEqual('Fail');
     });
 });
