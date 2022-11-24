@@ -1,5 +1,6 @@
 <script setup>
     import ClaimWidget from "@/components/ClaimWidget.vue";
+    import QcWidget from "@/components/QcWidget.vue";
 
     const emit = defineEmits(['wellChanged']);
 
@@ -11,6 +12,7 @@
 <template>
     <div id="QCcontrols">
         <ClaimWidget @wellClaimed="changeTab"/>
+        <QcWidget />
     </div>
 </template>
 

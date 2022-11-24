@@ -24,17 +24,35 @@ let pageSize = 10;
 let totalNumberOfWells = ref(0);
 
 provide('activeTab', activeTab);
+provide('config', appConfig);
 
 function loadWellDetail(runName, label) {
-  // Sets the runWell for the QcView component below
+  // Sets the runWell and QC state for the QcView components below
+
+  let qcState = getQcFromWellCollection(runName, label);
+  console.log(qcState);
   serviceClient.getRunWellPromise(runName, label)
   .then(
-    wells => focusWell.runWell = wells
+    well => focusWell.runWell = well
   ).catch(
     (error) => {
       errorBuffer.addMessage(error.message);
     }
   );
+  focusWell.updateWellQcState(qcState);
+}
+
+function getQcFromWellCollection(name, well_label) {
+  for (let well of wellCollection.value) {
+    if (
+      well.run_name == name
+      && well.label == well_label
+      ) {
+        console.log('Found relevant thing');
+        return well.qc_state;
+    }
+    console.log(`Did not find qc for ${name}: ${well_label}`);
+  }
 }
 
 function loadWells(status, page, pageSize) {
@@ -55,7 +73,6 @@ function changeTab(selectedTab) {
   // Reset page to 1 on tab change
   activePage.value = 1;
   activeTab.value = selectedTab;
-  console.log("Changing tab to " + selectedTab);
   loadWells(selectedTab, activePage.value, pageSize);
 }
 

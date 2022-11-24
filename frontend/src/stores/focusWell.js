@@ -29,7 +29,6 @@ export const useWellStore = defineStore('focusWell', {
             }
         },
         getQcState(state) {
-            console.log(state);
             if (
                 !isNull(state.runWell)
                 && state.qcState != null
