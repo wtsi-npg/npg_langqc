@@ -2,7 +2,12 @@ import pytest
 from npg_id_generation.pac_bio import PacBioEntity
 from sqlalchemy import select
 
-from lang_qc.db.helper.well import InvalidDictValueError, QcDictDB, WellQc
+from lang_qc.db.helper.well import (
+    InconsistentInputError,
+    InvalidDictValueError,
+    QcDictDB,
+    WellQc,
+)
 from lang_qc.db.qc_schema import QcState, QcStateHist, User
 from tests.fixtures.qc_db_basic_data import load_dicts_and_users
 
@@ -131,6 +136,23 @@ def test_well_state_helper(load_dicts_and_users):
     hist_objs = _hist_objects(session, id_seq_product)
     assert len(hist_objs) == 4
     _test_hist_object(state_obj, hist_objs[3])
+
+    args = {
+        "user": users[1],
+        "qc_state": "Claimed",
+        "qc_type": "sequencing",
+        "is_preliminary": False,
+        "application": "MyScript",
+    }
+    with pytest.raises(
+        InconsistentInputError, match=r"QC state 'Claimed' cannot be final"
+    ):
+        helper.assign_qc_state(**args)
+    args["qc_state"] = "On hold"
+    with pytest.raises(
+        InconsistentInputError, match=r"QC state 'On hold' cannot be final"
+    ):
+        helper.assign_qc_state(**args)
 
 
 def _test_hist_object(state_obj, hist_obj):
