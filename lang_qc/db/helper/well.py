@@ -334,7 +334,7 @@ class WellQc(QcDictDB):
 
         values = {
             "qc_state_dict": qc_state_dict_row,
-            "is_preliminary": is_preliminary,
+            "is_preliminary": 1 if is_preliminary is True else 0,
             "user": user,
             "created_by": application,
             "date_updated": date_updated,
