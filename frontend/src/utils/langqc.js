@@ -54,8 +54,12 @@ export default class LangQc {
         if (response.ok) {
           return response.json();
         } else {
-          let body = await response.json();
-          throw new Error(`API ${requestMeta.method} error "${response.statusText}", "${body.detail}"`);
+          let error = `API ${requestMeta.method} error "${response.statusText}"`;
+          if (response.headers.get("content-type") == "application/json") {
+            let body = await response.json();
+            error += `, "${body.detail}"`;
+          }
+          throw new Error(error);
         }
       }
     );
