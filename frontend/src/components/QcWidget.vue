@@ -18,13 +18,13 @@ onMounted( () => {
         options.push({
             'value': setting.description,
             'label': setting.description
-        })
+        });
     }
     if (focusWell.hasQcState) {
         qcSetting.value = focusWell.getQcValue;
         finality.value = focusWell.getQcState.is_preliminary;
     }
-})
+});
 
 function submitQcState() {
     let [ name, well ] = focusWell.getRunAndLabel;
@@ -33,17 +33,23 @@ function submitQcState() {
     .then(
         response => focusWell.updateWellQcState(response)
     ).catch(
-        (error) => errorBuffer.addMessage(error)
+        (error) => errorBuffer.addMessage(error.message)
     )
 }
 </script>
 
 <template>
-    <div>Current QC state: "{{focusWell.getQcValue}}" set by "{{focusWell.getQcState.user}}"</div>
+    <div :data-testId="'previousSetting'" v-if="focusWell.hasQcState">Current QC state: "{{focusWell.getQcValue}}" set by "{{focusWell.getQcState.user}}"</div>
+    <div :data-testId="'notHere'" v-else>No QC setting</div>
     <div>
-        <el-select v-model="qcSetting" :placeholder="focusWell.getQcValue" :disabled="qcSetting ? false : true">
+        <el-select
+            v-model="qcSetting"
+            :placeholder="focusWell.getQcValue"
+            :disabled="qcSetting ? false : true"
+            :data-testId="'QC state selector'"
+        >
             <el-option
-                v-for="item of options"
+                v-for="item in options"
                 :key="item.value"
                 :label="item.label"
                 :value="item.value"
@@ -51,13 +57,13 @@ function submitQcState() {
         </el-select>
         <el-switch
             v-model="finality"
-            inline-prompt
             active-text="Final"
             inactive-text="Preliminary"
             size="large"
             style="--el-switch-off-color: #131313"
+            :data-testId="'QC finality selector'"
         />
-        <el-button type="primary" @click="submitQcState">Submit</el-button>
+        <el-button type="primary" @click="submitQcState" :data-testId="'QC submit'">Submit</el-button>
     </div>
 </template>
 
