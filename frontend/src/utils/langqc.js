@@ -95,7 +95,7 @@ export default class LangQc {
       'POST',
       {
         qc_state: state,
-        is_prelimary: !final,
+        is_preliminary: !final,
         qc_type: 'sequencing'
       }
     )
