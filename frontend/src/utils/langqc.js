@@ -50,11 +50,12 @@ export default class LangQc {
       route,
       requestMeta
     ).then(
-      response => {
+      async (response) => {
         if (response.ok) {
           return response.json();
         } else {
-          throw new Error(`API ${requestMeta.method} error "${response.statusText}"`);
+          let body = await response.json();
+          throw new Error(`API ${requestMeta.method} error "${response.statusText}", "${body.detail}"`);
         }
       }
     );

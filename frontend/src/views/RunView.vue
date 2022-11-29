@@ -48,10 +48,8 @@ function getQcFromWellCollection(name, well_label) {
       well.run_name == name
       && well.label == well_label
       ) {
-        console.log('Found relevant thing');
         return well.qc_state;
     }
-    console.log(`Did not find qc for ${name}: ${well_label}`);
   }
 }
 
