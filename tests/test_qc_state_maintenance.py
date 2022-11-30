@@ -1,8 +1,15 @@
+from datetime import datetime
+
 import pytest
 from npg_id_generation.pac_bio import PacBioEntity
 from sqlalchemy import select
 
-from lang_qc.db.helper.well import InvalidDictValueError, QcDictDB, WellQc
+from lang_qc.db.helper.well import (
+    InconsistentInputError,
+    InvalidDictValueError,
+    QcDictDB,
+    WellQc,
+)
 from lang_qc.db.qc_schema import QcState, QcStateHist, User
 from tests.fixtures.qc_db_basic_data import load_dicts_and_users
 
@@ -50,6 +57,7 @@ def test_well_state_helper(load_dicts_and_users):
     pbi = PacBioEntity(run_name="Run 1", well_label="A")
     id = pbi.hash_product_id()
     json = pbi.json()
+    time_now = datetime.utcnow()
 
     helper = WellQc(session=session, run_name="Run 1", well_label="A")
 
@@ -79,9 +87,13 @@ def test_well_state_helper(load_dicts_and_users):
     _test_hist_object(state_obj, hist_objs[0])
 
     # Current QC state is defined now
-    assert helper.current_qc_state() == state_obj
+    current_qc_state = helper.current_qc_state()
+    assert current_qc_state == state_obj
     # ... but not for a library
     assert helper.current_qc_state("library") is None
+    # Check that the date is very recent
+    delta = current_qc_state.date_created - time_now
+    assert delta.total_seconds() <= 1
 
     args = {
         "user": users[1],
@@ -131,6 +143,55 @@ def test_well_state_helper(load_dicts_and_users):
     hist_objs = _hist_objects(session, id_seq_product)
     assert len(hist_objs) == 4
     _test_hist_object(state_obj, hist_objs[3])
+
+    args = {
+        "user": users[1],
+        "qc_state": "Claimed",
+        "qc_type": "sequencing",
+        "is_preliminary": False,
+        "application": "MyScript",
+    }
+    with pytest.raises(
+        InconsistentInputError, match=r"QC state 'Claimed' cannot be final"
+    ):
+        helper.assign_qc_state(**args)
+    args["qc_state"] = "On hold"
+    with pytest.raises(
+        InconsistentInputError, match=r"QC state 'On hold' cannot be final"
+    ):
+        helper.assign_qc_state(**args)
+
+    # Test setting time explicitly on update
+    past_date = datetime(year=2021, month=4, day=7, hour=11, minute=56, second=6)
+    args["is_preliminary"] = "True"
+    args["date_updated"] = past_date
+    state_obj = helper.assign_qc_state(**args)
+    date_updated = state_obj.date_updated
+    assert date_updated.year == past_date.year
+    assert date_updated.month == past_date.month
+    assert date_updated.day == past_date.day
+    assert date_updated.hour == past_date.hour
+    assert date_updated.minute == past_date.minute
+    assert date_updated.second == past_date.second
+    assert state_obj.date_created.year == time_now.year
+
+    # ... and on creating a new record.
+    helper = WellQc(session=session, run_name="Run 1", well_label="B")
+    state_obj = helper.assign_qc_state(**args)
+    date_updated = state_obj.date_updated
+    assert date_updated.year == past_date.year
+    assert date_updated.month == past_date.month
+    assert date_updated.day == past_date.day
+    assert date_updated.hour == past_date.hour
+    assert date_updated.minute == past_date.minute
+    assert date_updated.second == past_date.second
+    date_created = state_obj.date_updated
+    assert date_created.year == past_date.year
+    assert date_created.month == past_date.month
+    assert date_created.day == past_date.day
+    assert date_created.hour == past_date.hour
+    assert date_created.minute == past_date.minute
+    assert date_created.second == past_date.second
 
 
 def _test_hist_object(state_obj, hist_obj):
