@@ -39,7 +39,10 @@ function submitQcState() {
 </script>
 
 <template>
-    <div :data-testId="'previousSetting'" v-if="focusWell.hasQcState">Current QC state: "{{focusWell.getQcValue}}" set by "{{focusWell.getQcState.user}}"</div>
+    <div :data-testId="'previousSetting'"
+        v-if="focusWell.hasQcState">
+        Current QC state: {{focusWell.getQcState.is_preliminary ? "Preliminary":"Final"}} "{{focusWell.getQcValue}}" set by "{{focusWell.getQcState.user}}"
+    </div>
     <div :data-testId="'notHere'" v-else>No QC setting</div>
     <div>
         <el-select
