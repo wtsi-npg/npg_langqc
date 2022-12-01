@@ -1,5 +1,6 @@
 <script setup>
 import { inject, ref, computed, watch, onMounted } from "vue";
+import { Check, Close } from '@element-plus/icons-vue'
 import LangQc from "../utils/langqc.js";
 import { useMessageStore } from '@/stores/message.js';
 import { useWellStore } from '@/stores/focusWell.js';
@@ -97,10 +98,11 @@ function submitQcState() {
                 :value="item.value"
             />
         </el-select>
-        <el-switch
+        Final: <el-switch
             v-model="widgetFinality"
-            active-text="Final"
-            inactive-text="Preliminary"
+            :active-icon="Check"
+            :inactive-icon="Close"
+            inline-prompt
             size="large"
             style="--el-switch-off-color: #131313"
             :data-testId="'QC finality selector'"
