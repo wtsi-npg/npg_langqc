@@ -56,7 +56,7 @@ export const useWellStore = defineStore('focusWell', {
         },
         getFinality(state) {
             if (state.qcState != null) {
-                return !!state.qcState.is_preliminary;
+                return !state.qcState.is_preliminary;
             }
             return null;
         }

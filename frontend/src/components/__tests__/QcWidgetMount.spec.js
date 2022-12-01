@@ -33,6 +33,10 @@ describe('QC widgets render with no prior QC state, i.e. pending/ready', () => {
                         {description: "Failed", only_prelim: false},
                         {description: "On hold", only_prelim: true}
                     ]
+                }),
+                activeWell: ref({
+                    runName: "TEST",
+                    label: "A1"
                 })
             }
         },
@@ -114,6 +118,10 @@ describe('QC widget acquires state from prior outcome in run-table', () => {
                         {description: "Failed", only_prelim: false},
                         {description: "On hold", only_prelim: true}
                     ]
+                }),
+                activeWell: ref({
+                    runName: "TEST",
+                    label: "A1"
                 })
             }
         },
@@ -121,7 +129,7 @@ describe('QC widget acquires state from prior outcome in run-table', () => {
 
     test('Message shown of previous state', () => {
         let div = wrapper.get('[data-testid="previousSetting"]');
-        expect(div.text()).toEqual('Current QC state: "Claimed" set by "user@test.com"');
+        expect(div.text()).toEqual('Current QC state: Preliminary "Claimed" set by "user@test.com"');
     });
 
     test('Selector is preset to Claimed', () => {

@@ -4,13 +4,13 @@ import { describe, expect, beforeEach, test } from "vitest";
 import { useWellStore } from "../focusWell";
 
 describe('Check the getters', () => {
+    let wellStore = null;
     beforeEach(() => {
         setActivePinia(createPinia())
+        wellStore = useWellStore();
     })
 
     test('Get run name name and well label', () => {
-        const wellStore = useWellStore();
-
         expect(wellStore.getRunAndLabel).toStrictEqual([null, null]);
 
         wellStore.setFocusWell({
@@ -24,8 +24,6 @@ describe('Check the getters', () => {
     });
 
     test('getQcState', () => {
-        const wellStore = useWellStore();
-
         expect(wellStore.getQcState).toBeNull();
 
         wellStore.setFocusWell({
@@ -44,5 +42,25 @@ describe('Check the getters', () => {
 
         wellStore.updateWellQcState({qc_state: 'Fail'});
         expect(wellStore.getQcValue).toEqual('Fail');
+    });
+
+    test('getFinality', () => {
+        expect(wellStore.getFinality).toEqual(null);
+
+        wellStore.updateWellQcState({
+            qc_state: 'Pass',
+            user: 'test',
+            is_preliminary: true
+        });
+
+        expect(wellStore.getFinality).toBe(false);
+
+        wellStore.updateWellQcState({
+            qc_state: 'Pass',
+            user: 'test',
+            is_preliminary: false
+        });
+
+        expect(wellStore.getFinality).toBe(true);
     });
 });
