@@ -255,7 +255,7 @@ class WellQc(QcDictDB):
         qc_type: str = DEFAULT_QC_TYPE,
         is_preliminary: bool = not DEFAULT_FINALITY,
         application: str = APPLICATION_NAME,
-        date_updated: datetime = datetime.utcnow(),
+        date_updated: datetime = None,
     ) -> QcState:
         """
         Tries to assign a new QC state for the QC type defined by the `qc_type`
@@ -306,10 +306,11 @@ class WellQc(QcDictDB):
             application - a string, the name of the application using this API,
             defaults to `Lang QC`
 
-            date_updated - a `datetime`  object representing the time when the state
-            was updated, defaults to UTC time for this moment in time; if this date
-            is supplied by the caller, it is advised to adjust the value to the UTC
-            time zone.
+            date_updated - a `datetime` object representing the time when the state
+            was updated, defaults to None. If this date is supplied by the caller, it is
+            advised to adjust the value to the UTC time zone. If the value is not given,
+            the UTC timestamp for 'now' is used. If the QC outcome for this entity does
+            not exist, the value of this argument is used for the `date_created` column.
 
         """
 
@@ -337,7 +338,7 @@ class WellQc(QcDictDB):
             "is_preliminary": 1 if is_preliminary is True else 0,
             "user": user,
             "created_by": application,
-            "date_updated": date_updated,
+            "date_updated": datetime.utcnow() if date_updated is None else date_updated,
             "qc_type": self.qc_types[qc_type],
             "seq_product": self.seq_product,
         }
@@ -352,7 +353,7 @@ class WellQc(QcDictDB):
             db_state.date_updated = values["date_updated"]
             values["date_created"] = db_state.date_created  # Save for historic.
         else:
-            values["date_created"] = date_updated
+            values["date_created"] = values["date_updated"]
             db_state = QcState(**values)  # Create a new record.
 
         self.session.add_all([db_state, QcStateHist(**values)])
