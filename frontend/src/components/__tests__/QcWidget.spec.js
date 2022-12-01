@@ -32,10 +32,6 @@ describe('QC widgets render with no prior QC state, i.e. pending/ready', () => {
                         {description: "On hold", only_prelim: true}
                     ]
                 }),
-                activeWell: ref({
-                    runName: "TEST",
-                    label: "A1"
-                })
             }
         },
     });
@@ -119,10 +115,6 @@ describe('QC widget acquires state from prior outcome in run-table', () => {
                         {description: "On hold", only_prelim: true}
                     ]
                 }),
-                activeWell: ref({
-                    runName: "TEST",
-                    label: "A1"
-                })
             }
         },
     });
