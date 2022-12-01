@@ -1,10 +1,8 @@
 import { describe, expect, test, vi } from 'vitest';
-// import { render } from '@testing-library/vue';
-import { flushPromises, mount, shallowMount } from '@vue/test-utils';
+import { mount } from '@vue/test-utils';
 import { ref } from 'vue';
 import { createTestingPinia } from '@pinia/testing';
 import ElementPlus from 'element-plus';
-import { zip } from 'lodash';
 
 import QcWidget from '@/components/QcWidget.vue';
 
@@ -72,7 +70,7 @@ describe('QC widgets render with no prior QC state, i.e. pending/ready', () => {
         // el-select content divs
         // let choices = wrapper.findAll('.el-select-dropdown__item');
         // expect(choices).toHaveLength(3);
-        // for(const [element, value] of zip(choices, expectedValues)) {
+        // for(const [element, value] of _.zip(choices, expectedValues)) {
         //     console.log(element);
         //     console.log(value);
         //     expect(element.text()).toEqual(value);
@@ -82,10 +80,12 @@ describe('QC widgets render with no prior QC state, i.e. pending/ready', () => {
     test('Radio button defaults to preliminary', () => {
         let button = wrapper.get('[role=switch]');
         expect(button.attributes('aria-checked')).toEqual('false');
+        expect(button.attributes('aria-disabled')).toEqual('true');
     });
 
-    test('Submit button does nothing', () => {
-
+    test('Submit button is disabled', () => {
+        let button = wrapper.get('button');
+        expect(button.attributes('aria-disabled')).toEqual('true');
     });
 });
 
