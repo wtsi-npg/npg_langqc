@@ -1,37 +1,76 @@
 <script setup>
-import { inject, onMounted, ref } from "vue";
+import { inject, ref, computed, watch, onMounted } from "vue";
 import LangQc from "../utils/langqc.js";
 import { useMessageStore } from '@/stores/message.js';
 import { useWellStore } from '@/stores/focusWell.js';
 
 const appConfig = inject('config');
+const activeWell = inject('activeWell');
 const errorBuffer = useMessageStore();
 const focusWell = useWellStore();
 
 let client = new LangQc();
+
+// The state at time of last QC update
 let qcSetting = ref(null);
 let finality = ref(false);
-let options = [];
+let user = ref(null);
 
-onMounted( () => {
+// Vars representing the current state of the form until submission
+// updates the focusWell store and the backend API
+let widgetQcSetting = ref(null);
+let widgetFinality = ref(false);
+
+// When the selected QC view changes, we need to reset this component
+// to whatever is now in focusWell
+watch(activeWell, () => {
+    syncLastQcState();
+    syncWidgetToQcState();
+});
+
+onMounted(() => {
+    syncLastQcState();
+    syncWidgetToQcState();
+});
+
+// Nicer than using onMounted() trigger?
+const options = computed(() => {
+    let opts = [];
     for (const setting of appConfig.value.qc_states) {
-        options.push({
+        opts.push({
             'value': setting.description,
             'label': setting.description
         });
     }
+    return opts;
+});
+
+function syncWidgetToQcState() {
+    if (focusWell.hasQcState) {
+        widgetQcSetting.value = focusWell.getQcValue;
+        widgetFinality.value = focusWell.getFinality;
+    }
+}
+
+function syncLastQcState() {
     if (focusWell.hasQcState) {
         qcSetting.value = focusWell.getQcValue;
-        finality.value = focusWell.getQcState.is_preliminary;
+        finality.value = focusWell.getFinality;
+        user.value = focusWell.getQcState.user;
     }
-});
+}
 
 function submitQcState() {
     let [ name, well ] = focusWell.getRunAndLabel;
 
-    client.setWellQcState(name, well, qcSetting.value, finality.value)
+    client.setWellQcState(name, well, widgetQcSetting.value, widgetFinality.value)
     .then(
-        response => focusWell.updateWellQcState(response)
+        (response) => {
+            focusWell.updateWellQcState(response);
+            // Set new "old" settings for the widgets
+            syncLastQcState();
+            syncWidgetToQcState();
+        }
     ).catch(
         (error) => errorBuffer.addMessage(error.message)
     )
@@ -41,13 +80,13 @@ function submitQcState() {
 <template>
     <div :data-testId="'previousSetting'"
         v-if="focusWell.hasQcState">
-        Current QC state: {{focusWell.getQcState.is_preliminary ? "Preliminary":"Final"}} "{{focusWell.getQcValue}}" set by "{{focusWell.getQcState.user}}"
+        Current QC state: {{finality ? "Final": "Preliminary"}} "{{qcSetting}}" set by "{{user}}"
     </div>
     <div :data-testId="'notHere'" v-else>No QC setting</div>
     <div>
         <el-select
-            v-model="qcSetting"
-            :placeholder="focusWell.getQcValue"
+            v-model="widgetQcSetting"
+            :placeholder="widgetQcSetting"
             :disabled="qcSetting ? false : true"
             :data-testId="'QC state selector'"
         >
@@ -59,14 +98,20 @@ function submitQcState() {
             />
         </el-select>
         <el-switch
-            v-model="finality"
+            v-model="widgetFinality"
             active-text="Final"
             inactive-text="Preliminary"
             size="large"
             style="--el-switch-off-color: #131313"
             :data-testId="'QC finality selector'"
+            :disabled="qcSetting ? false : true"
         />
-        <el-button type="primary" @click="submitQcState" :data-testId="'QC submit'">Submit</el-button>
+        <el-button
+            type="primary"
+            @click="submitQcState"
+            :data-testId="'QC submit'"
+            :disabled="qcSetting ? false : true"
+        >Submit</el-button>
     </div>
 </template>
 

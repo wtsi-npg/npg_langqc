@@ -53,6 +53,12 @@ export const useWellStore = defineStore('focusWell', {
                 return true
             }
             return false;
+        },
+        getFinality(state) {
+            if (state.qcState != null) {
+                return !!state.qcState.is_preliminary;
+            }
+            return null;
         }
     },
     actions: {

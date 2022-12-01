@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, provide } from "vue";
+import { onMounted, ref, provide, reactive, readonly} from "vue";
 
 import QcView from "@/components/QcView.vue";
 import LangQc from "@/utils/langqc.js";
@@ -22,15 +22,23 @@ let activeTab = ref('inbox'); // aka paneName in element-plus
 let activePage = ref(1);
 let pageSize = 10;
 let totalNumberOfWells = ref(0);
+// Inform app-wide elements when focus has changed.
+// Perhaps we can watch the store instead? We're not transmitting the data
+// this way
+let activeWell = reactive({
+  runName: null,
+  label: null
+});
 
 provide('activeTab', activeTab);
 provide('config', appConfig);
+provide('activeWell', readonly(activeWell));
+
 
 function loadWellDetail(runName, label) {
   // Sets the runWell and QC state for the QcView components below
 
   let qcState = getQcFromWellCollection(runName, label);
-  console.log(qcState);
   serviceClient.getRunWellPromise(runName, label)
   .then(
     well => focusWell.runWell = well
@@ -40,6 +48,8 @@ function loadWellDetail(runName, label) {
     }
   );
   focusWell.updateWellQcState(qcState);
+  activeWell.runName = runName;
+  activeWell.label = label;
 }
 
 function getQcFromWellCollection(name, well_label) {
