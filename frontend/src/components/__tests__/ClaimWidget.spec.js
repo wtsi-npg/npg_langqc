@@ -11,7 +11,7 @@ describe('Clicking triggers POST and side-effects', () => {
     // A typical claim success
     fetch.mockResponse(
         JSON.stringify({
-            state: 'Claimed',
+            qc_state: 'Claimed',
             outcome: null,
             is_preliminary: true,
             qc_type: 'sequencing',
@@ -59,7 +59,7 @@ describe('Clicking triggers POST and side-effects', () => {
         await flushPromises(); // Forces reactivity to shake out
 
         expect(messageStore.errorMessages).toHaveLength(0);
-        expect(wellStore.getQcState).toEqual('Claimed');
+        expect(wellStore.getQcValue).toEqual('Claimed');
 
         let request = fetch.mock.calls[0];
         expect(request[0]).toEqual('/api/pacbio/run/TEST/well/A1/qc_claim');

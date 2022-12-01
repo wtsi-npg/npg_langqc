@@ -50,11 +50,16 @@ export default class LangQc {
       route,
       requestMeta
     ).then(
-      response => {
+      async (response) => {
         if (response.ok) {
           return response.json();
         } else {
-          throw new Error(`API ${requestMeta.method} error "${response.statusText}"`);
+          let error = `API ${requestMeta.method} error "${response.statusText}"`;
+          if (response.headers.get("content-type") == "application/json") {
+            let body = await response.json();
+            error += `, "${body.detail}"`;
+          }
+          throw new Error(error);
         }
       }
     );
@@ -81,6 +86,18 @@ export default class LangQc {
     return this.fetchWrapper(
       this.buildUrl(['run', name, 'well', well, 'qc_claim']),
       'POST'
+    )
+  }
+
+  setWellQcState(name, well, state, final=false) {
+    return this.fetchWrapper(
+      this.buildUrl(['run', name, 'well', well, 'qc_assign']),
+      'POST',
+      {
+        qc_state: state,
+        is_preliminary: !final,
+        qc_type: 'sequencing'
+      }
     )
   }
 }

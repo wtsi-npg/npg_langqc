@@ -34,7 +34,7 @@
 
 <template>
     <div id="ClaimButton">
-        <el-button type="primary" @click.once="claimHandler" :disabled="tabGetter != 'inbox'">Claim for QC</el-button>
+        <el-button type="primary" @click="claimHandler" :disabled="tabGetter != 'inbox'">Claim for QC</el-button>
     </div>
 </template>
 

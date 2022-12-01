@@ -1,8 +1,9 @@
 <script setup>
-import { onMounted, ref, provide } from "vue";
+import { onMounted, ref, provide, reactive, readonly} from "vue";
 
 import QcView from "@/components/QcView.vue";
 import LangQc from "@/utils/langqc.js";
+import QcControls from "@/components/QcControls.vue";
 
 import { useMessageStore } from '@/stores/message.js';
 import { useWellStore } from '@/stores/focusWell.js';
@@ -21,19 +22,45 @@ let activeTab = ref('inbox'); // aka paneName in element-plus
 let activePage = ref(1);
 let pageSize = 10;
 let totalNumberOfWells = ref(0);
+// Inform app-wide elements when focus has changed.
+// Perhaps we can watch the store instead? We're not transmitting the data
+// this way
+let activeWell = reactive({
+  runName: null,
+  label: null
+});
 
 provide('activeTab', activeTab);
+provide('config', appConfig);
+provide('activeWell', readonly(activeWell));
+
 
 function loadWellDetail(runName, label) {
-  // Sets the runWell for the QcView component below
+  // Sets the runWell and QC state for the QcView components below
+
+  let qcState = getQcFromWellCollection(runName, label);
   serviceClient.getRunWellPromise(runName, label)
   .then(
-    wells => focusWell.runWell = wells
+    well => focusWell.runWell = well
   ).catch(
     (error) => {
       errorBuffer.addMessage(error.message);
     }
   );
+  focusWell.updateWellQcState(qcState);
+  activeWell.runName = runName;
+  activeWell.label = label;
+}
+
+function getQcFromWellCollection(name, well_label) {
+  for (let well of wellCollection.value) {
+    if (
+      well.run_name == name
+      && well.label == well_label
+      ) {
+        return well.qc_state;
+    }
+  }
 }
 
 function loadWells(status, page, pageSize) {
@@ -54,7 +81,6 @@ function changeTab(selectedTab) {
   // Reset page to 1 on tab change
   activePage.value = 1;
   activeTab.value = selectedTab;
-  console.log("Changing tab to " + selectedTab);
   loadWells(selectedTab, activePage.value, pageSize);
 }
 
@@ -131,11 +157,21 @@ onMounted(() => {
 </div>
 <div v-if="focusWell.runWell !== null">
   <h2>QC view</h2>
-  <QcView :runWell="focusWell.runWell" @wellChanged="externalTabChange"/>
+  <div class="data">
+    <QcView :runWell="focusWell.runWell"/>
+  </div>
+  <div class="controls">
+    <QcControls @wellChanged="externalTabChange"/>
+  </div>
 </div>
 <div v-else>QC data will appear here</div>
 </template>
 
 <style>
+/* .controls {
+  float: right;
+}
+.data {
 
+} */
 </style>
