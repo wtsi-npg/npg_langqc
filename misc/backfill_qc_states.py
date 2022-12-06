@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import sys
 from datetime import datetime
 
 import numpy
@@ -11,10 +12,23 @@ from lang_qc.db.qc_connection import get_qc_db
 from lang_qc.util.auth import get_user
 
 
-def _check_df_shape(df, message):
+def check_df_shape(df, message):
     print(message)
     print(df.shape)
     assert df.empty is False, "Dataframe is empty"
+
+
+def convert_well_label(well_label):
+    if type(well_label) == str and well_label:
+        # Drop zero from labels like D01
+        return well_label.replace("0", "")
+    return well_label
+
+
+def convert_date(date_string):
+    if type(date_string) == str and date_string:
+        datetime.strptime(date_string, "%d/%m/%Y")
+    return numpy.nan
 
 
 file = "misc/data2export-well_data.tsv"
@@ -28,17 +42,20 @@ columns = [
     "QC Complete date",
 ]
 
+converters = {"Well Location": convert_well_label, "QC Complete date": convert_date}
+
 df = pandas.read_csv(
     filepath_or_buffer=file,
     sep="\t",
     on_bad_lines="warn",
     index_col=False,
     usecols=columns,
+    skipinitialspace=True,
+    converters=converters,
 )
-_check_df_shape(df, 'Parsed the file')
+check_df_shape(df, "Parsed the file")
 df.replace(to_replace="#REF!", value=numpy.nan, inplace=True)
-df.dropna(how="all", inplace=True)
-_check_df_shape(df, 'Dropped empty rows')
+# df.dropna(how="all", inplace=True)
 
 for index, row in df.isnull().iterrows():
     # Iterating over a dataframe where True values replaced the NaNs,
@@ -53,13 +70,12 @@ for index, row in df.isnull().iterrows():
     ):
         df.drop(axis=0, index=index, inplace=True)
 
-_check_df_shape(df, 'Removed rows with missing data')
+check_df_shape(df, "Removed rows with missing data")
 
 # Get mlwh db connection.
 session = next(get_mlwh_db())
 df_nulls = df.isnull()
 to_drop = []
-date_col_name = "QC Complete date"
 
 df["Run ID"].str.strip()
 df["Well Location"].str.strip()
@@ -79,22 +95,21 @@ for index, row in df.iterrows():
         # If the row does not have 'QC Complete date', fill it in from the mlwh data.
         # Ideally we want UTC timestamps, but will use whatever we have for now.
         qc_date = None
-        if bool(df_nulls.at[index, date_col_name]) is True:
+        if type(row["QC Complete date"]) != "datetime.datetime":
             qc_date = well_metrics.run_complete
             if qc_date is None:
                 qc_date = well_metrics.run_start
             if qc_date is None:
-                raise Exception(f"Both run complete and start dates are missing for {run} {well}")
-        else:
-            qc_date = datetime.strftime(df.at[index, date_col_name], "%d/%m/%Y")
-
-        df.at[index, date_col_name] = qc_date
+                raise Exception(
+                    f"Both run complete and start dates are missing for {run} {well}"
+                )
+            df.at[index, "QC Complete date"] = qc_date
 
 # Delete the rows which have been marked for deletion.
 for index in to_drop:
     df.drop(axis=0, index=index, inplace=True)
 
-_check_df_shape(df, 'Validated data against mlwh')
+check_df_shape(df, "Validated data against mlwh")
 
 # What are distinct values in the 'Status' column and how do they map to the
 # db dictionary values?
@@ -111,7 +126,7 @@ for outcome in df["Status"].unique():
     assert outcome in QC_OUTCOMES_MAP, f"Unmapped QC outcome '{outcome}'"
 
 print(df)
-
+# sys.exit()
 # Now we have a complete set of data and can assign QC outcomes.
 # We do not know the user who assigned the outcomes in the spreadsheet, so we will use
 # one of known users.
@@ -125,16 +140,15 @@ for index, row in df.iterrows():
     well_qc = WellQc(
         run_name=row["Run ID"], well_label=row["Well Location"], session=session
     )
-    if well_qc.current_qc_state() is None:
-        (qc_state, is_preliminary) = QC_OUTCOMES_MAP[row["Status"]]
-        try:
-            well_qc.assign_qc_state(
-                user=user_obj,
-                qc_state=qc_state,
-                qc_type="sequencing",
-                is_preliminary=is_preliminary,
-                application="BACKFILLING",
-                date_updated=row["QC Complete date"],
-            )
-        except Exception as e:
-            print(e)
+    (qc_state, is_preliminary) = QC_OUTCOMES_MAP[row["Status"]]
+    try:
+        well_qc.assign_qc_state(
+            user=user_obj,
+            qc_state=qc_state,
+            qc_type="sequencing",
+            is_preliminary=is_preliminary,
+            application="BACKFILLING",
+            date_updated=row["QC Complete date"],
+        )
+    except Exception as e:
+        print(e)
