@@ -1,10 +1,9 @@
 <script setup>
     import { inject } from "vue";
+    import { ElMessage } from "element-plus";
     import LangQc from "../utils/langqc.js";
-    import { useMessageStore } from "@/stores/message.js";
     import { useWellStore } from "@/stores/focusWell.js";
 
-    const errorBuffer = useMessageStore();
     const focusWell = useWellStore();
 
     const emit = defineEmits(['wellClaimed']);
@@ -24,10 +23,16 @@
             response => { focusWell.updateWellQcState(response) }
         ).catch(
             (error) => {
-                errorBuffer.addMessage(error);
+                ElMessage({
+                    message: error
+                })
             }
         );
-
+        ElMessage({
+            message: 'Claimed',
+            type: 'success',
+            duration: 2000
+        });
         emit('wellClaimed');
     }
 </script>

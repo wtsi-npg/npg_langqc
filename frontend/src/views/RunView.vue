@@ -1,14 +1,12 @@
 <script setup>
 import { onMounted, ref, provide, reactive, readonly} from "vue";
+import { ElMessage } from 'element-plus';
 
 import QcView from "@/components/QcView.vue";
 import LangQc from "@/utils/langqc.js";
 import QcControls from "@/components/QcControls.vue";
-
-import { useMessageStore } from '@/stores/message.js';
 import { useWellStore } from '@/stores/focusWell.js';
 
-const errorBuffer = useMessageStore();
 const focusWell = useWellStore();
 
 let serviceClient = null;
@@ -44,7 +42,11 @@ function loadWellDetail(runName, label) {
     well => focusWell.runWell = well
   ).catch(
     (error) => {
-      errorBuffer.addMessage(error.message);
+      ElMessage({
+        message: error.message,
+        type: error,
+        duration: 5000
+      })
     }
   );
   focusWell.updateWellQcState(qcState);
@@ -71,7 +73,11 @@ function loadWells(status, page, pageSize) {
     (error) => {
       // Reset table of wells to prevent desired tab from showing data from another
       wellCollection.value = null;
-      errorBuffer.addMessage(error.message);
+      ElMessage({
+        message: error.message,
+        type: "warning",
+        duration: 5000
+      })
     }
   );
 }
@@ -102,7 +108,9 @@ onMounted(() => {
     );
   } catch (error) {
     console.log("Stuff went wrong getting data from backend: "+error);
-    errorBuffer.addMessage(error.message);
+    ElMessage({
+      message: error.message
+    })
   }
 });
 

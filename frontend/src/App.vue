@@ -2,11 +2,6 @@
 import { RouterView } from 'vue-router';
 import { onMounted, ref } from "vue";
 
-import { useMessageStore } from '@/stores/message.js';
-
-const errorBuffer = useMessageStore();
-
-
 let logout_redirect_url = ref(null);
 
 onMounted(() => {
@@ -38,16 +33,8 @@ onMounted(() => {
         </nav>
 
       </el-header>
-      <el-main v-if="errorBuffer.errorMessages" style="overflow:visible">
+      <el-main style="overflow:visible">
       <!-- Setting overflow style here required to unblock an unhelpful default in Element Plus layout container -->
-        <el-alert
-          v-for="error in errorBuffer.errorMessages"
-          :key="error.id"
-          title="Cannot get data"
-          type="error"
-          :description="error"
-          show-icon
-        />
         <RouterView />
       </el-main>
       <el-footer>Copyright Genome Research Ltd 2022</el-footer>

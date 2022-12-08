@@ -1,12 +1,11 @@
 <script setup>
 import { inject, ref, computed, watch, onMounted } from "vue";
-import { Check, Close } from '@element-plus/icons-vue'
+import { Check, Close } from '@element-plus/icons-vue';
+import { ElMessage } from "element-plus";
 import LangQc from "../utils/langqc.js";
-import { useMessageStore } from '@/stores/message.js';
 import { useWellStore } from '@/stores/focusWell.js';
 
 const appConfig = inject('config');
-const errorBuffer = useMessageStore();
 const focusWell = useWellStore();
 
 let client = new LangQc();
@@ -54,9 +53,20 @@ function submitQcState() {
             focusWell.updateWellQcState(response);
             // Set new "old" settings for the widgets
             syncWidgetToQcState();
+            ElMessage({
+                message: `Changed QC state to ${widgetQcSetting.value} : ${widgetFinality.value? "Final": "Preliminary"}`,
+                type: 'success',
+                duration: 3000
+            });
         }
     ).catch(
-        (error) => errorBuffer.addMessage(error.message)
+        (error) => {
+            ElMessage({
+                message: error.message,
+                type: 'error',
+                duration: 5000
+            })
+        }
     )
 }
 </script>
