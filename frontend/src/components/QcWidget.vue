@@ -62,43 +62,48 @@ function submitQcState() {
 </script>
 
 <template>
-    <div :data-testId="'previousSetting'"
+    <div :data-testId="'previousSetting'" class="item"
         v-if="focusWell.hasQcState">
         Current QC state: {{focusWell.getFinality ? "Final": "Preliminary"}} "{{focusWell.getQcValue}}" set by "{{focusWell.getQcState.user}}"
     </div>
-    <div :data-testId="'notHere'" v-else>No QC setting</div>
-    <div>
-        <el-select
-            v-model="widgetQcSetting"
-            :placeholder="widgetQcSetting"
-            :disabled="focusWell.hasQcState ? false : true"
-            :data-testId="'QC state selector'"
-        >
-            <el-option
-                v-for="item in options"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
-            />
-        </el-select>
-        Final: <el-switch
-            v-model="widgetFinality"
-            :active-icon="Check"
-            :inactive-icon="Close"
-            inline-prompt
-            size="large"
-            style="--el-switch-off-color: #131313"
-            :data-testId="'QC finality selector'"
-            :disabled="focusWell.hasQcState ? false : true"
+    <div :data-testId="'notHere'" v-else class="item">No QC setting</div>
+    <el-select
+        v-model="widgetQcSetting"
+        :placeholder="widgetQcSetting"
+        :disabled="focusWell.hasQcState ? false : true"
+        :data-testId="'QC state selector'"
+        class="item"
+    >
+        <el-option
+            v-for="item in options"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
         />
-        <el-button
-            type="primary"
-            @click="submitQcState"
-            :data-testId="'QC submit'"
-            :disabled="focusWell.hasQcState ? false : true"
-        >Submit</el-button>
+    </el-select>
+    <div class="item">
+    Final: <el-switch
+        v-model="widgetFinality"
+        :active-icon="Check"
+        :inactive-icon="Close"
+        inline-prompt
+        size="large"
+        style="--el-switch-off-color: #131313"
+        :data-testId="'QC finality selector'"
+        :disabled="focusWell.hasQcState ? false : true"
+    />
     </div>
+    <el-button
+        type="primary"
+        @click="submitQcState"
+        :data-testId="'QC submit'"
+        :disabled="focusWell.hasQcState ? false : true"
+        class="item"
+    >Submit</el-button>
 </template>
 
 <style>
+.item {
+    padding: 5px;
+}
 </style>

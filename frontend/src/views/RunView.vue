@@ -112,66 +112,75 @@ onMounted(() => {
 <div>
   <h2>Runs</h2>
 </div>
-<div v-if="appConfig !== null">
-  <el-tabs v-model="activeTab" type="border-card" @tab-change="changeTab">
-    <el-tab-pane
-      v-for="tab in appConfig.qc_flow_statuses"
-      :key="tab.param"
-      :label="tab.label"
-      :name="tab.param"
-    >
-      <table>
-        <tr>
-          <th>Run name</th>
-          <th>Well label</th>
-          <th>Time started</th>
-          <th>Time completed</th>
-          <th>QC state</th>
-          <th>QC date</th>
-          <th>Assessor</th>
-        </tr>
-        <tr :key="wellObj.run_name + ':' + wellObj.label" v-for="wellObj in wellCollection" >
-          <td>{{ wellObj.run_name }}</td>
-          <td>
-            <button v-on:click="loadWellDetail(wellObj.run_name, wellObj.label)">{{ wellObj.label }}</button>
-          </td>
-          <td>{{ wellObj.run_start_time }}</td>
-          <td>{{ wellObj.run_complete_time ? wellObj.run_complete_time : '&nbsp;'}}</td>
-          <td>{{ wellObj.qc_state ? wellObj.qc_state.qc_state : '&nbsp;'}}</td>
-          <td>{{ wellObj.qc_state ? wellObj.qc_state.date_updated : '&nbsp;'}}</td>
-          <td>{{ wellObj.qc_state ? wellObj.qc_state.user : '&nbsp;'}}</td>
-        </tr>
-      </table>
-    </el-tab-pane>
-    <el-pagination
-      v-model:currentPage="activePage"
-      layout="prev, pager, next"
-      v-bind:total="totalNumberOfWells"
-      background
-      :pager-count="5"
-      :page-size="pageSize"
-      :hide-on-single-page="true"
-      @current-change="changePage"
-    ></el-pagination>
-  </el-tabs>
-</div>
-<div v-if="focusWell.runWell !== null">
+  <div v-if="appConfig !== null">
+    <el-tabs v-model="activeTab" type="border-card" @tab-change="changeTab" >
+      <el-tab-pane
+        v-for="tab in appConfig.qc_flow_statuses"
+        :key="tab.param"
+        :label="tab.label"
+        :name="tab.param"
+      >
+        <table>
+          <tr>
+            <th>Run name</th>
+            <th>Well label</th>
+            <th>Time started</th>
+            <th>Time completed</th>
+            <th>QC state</th>
+            <th>QC date</th>
+            <th>Assessor</th>
+          </tr>
+          <tr :key="wellObj.run_name + ':' + wellObj.label" v-for="wellObj in wellCollection" >
+            <td>{{ wellObj.run_name }}</td>
+            <td>
+              <button v-on:click="loadWellDetail(wellObj.run_name, wellObj.label)">{{ wellObj.label }}</button>
+            </td>
+            <td>{{ wellObj.run_start_time }}</td>
+            <td>{{ wellObj.run_complete_time ? wellObj.run_complete_time : '&nbsp;'}}</td>
+            <td>{{ wellObj.qc_state ? wellObj.qc_state.qc_state : '&nbsp;'}}</td>
+            <td>{{ wellObj.qc_state ? wellObj.qc_state.date_updated : '&nbsp;'}}</td>
+            <td>{{ wellObj.qc_state ? wellObj.qc_state.user : '&nbsp;'}}</td>
+          </tr>
+        </table>
+      </el-tab-pane>
+      <el-pagination
+        v-model:currentPage="activePage"
+        layout="prev, pager, next"
+        v-bind:total="totalNumberOfWells"
+        background
+        :pager-count="5"
+        :page-size="pageSize"
+        :hide-on-single-page="true"
+        @current-change="changePage"
+      ></el-pagination>
+    </el-tabs>
+  </div>
   <h2>QC view</h2>
-  <div class="data">
-    <QcView :runWell="focusWell.runWell"/>
+  <div class="qcview" v-if="focusWell.runWell !== null">
+    <div class="data">
+      <QcView :runWell="focusWell.runWell"/>
+    </div>
+    <aside class="controls">
+      <QcControls @wellChanged="externalTabChange"/>
+    </aside>
   </div>
-  <div class="controls">
-    <QcControls @wellChanged="externalTabChange"/>
+  <div v-else>
+    <p>QC data will appear here</p>
   </div>
-</div>
-<div v-else>QC data will appear here</div>
 </template>
 
 <style>
-/* .controls {
-  float: right;
+.qcview {
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  grid-template-areas:
+    "metric control";
+  grid-column-gap: 10px;
+}
+.controls {
+  grid-area: control;
 }
 .data {
-
-} */
+  grid-area: metric;
+}
 </style>

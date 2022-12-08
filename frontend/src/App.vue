@@ -38,7 +38,8 @@ onMounted(() => {
         </nav>
 
       </el-header>
-      <el-main v-if="errorBuffer.errorMessages">
+      <el-main v-if="errorBuffer.errorMessages" style="overflow:visible">
+      <!-- Setting overflow style here required to unblock an unhelpful default in Element Plus layout container -->
         <el-alert
           v-for="error in errorBuffer.errorMessages"
           :key="error.id"
@@ -84,5 +85,4 @@ onMounted(() => {
   align-items: center;
   text-align: left;
 }
-
 </style>
