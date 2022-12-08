@@ -10,11 +10,18 @@
 </script>
 
 <template>
-    <div id="QCcontrols">
-        <ClaimWidget @wellClaimed="changeTab"/>
-        <QcWidget />
+    <div id="QCcontrols" class="widget-box">
+        <el-card shadow="always" >
+            <ClaimWidget @wellClaimed="changeTab"/>
+            <QcWidget />
+        </el-card>
     </div>
 </template>
 
 <style>
+.widget-box {
+    width: max-content;
+    position: sticky;
+    top: 0;
+}
 </style>

@@ -14,47 +14,47 @@
 </script>
 
 <template>
-<div id="Top tier attributes of run">
-    <table class="summary">
-        <tr>
-            <td>Run</td><td>{{runWell.run_info.pac_bio_run_name}}</td>
-        </tr>
-        <tr>
-            <td>Well</td><td>{{runWell.run_info.well_label}}</td>
-        </tr>
-        <tr>
-            <td>Library type</td><td>{{runWell.run_info.library_type}}</td>
-        </tr>
-        <tr>
-            <td>Study</td><td>{{runWell.study.id}}</td>
-        </tr>
-        <tr>
-            <td>Sample</td><td>{{runWell.sample.id}}</td>
-        </tr>
-        <tr>
-            <td>Last updated</td><td>{{runWell.run_info.last_updated}}</td>
-        </tr>
-    </table>
-</div>
+    <div id="Top tier attributes of run">
+        <table class="summary">
+            <tr>
+                <td>Run</td><td>{{runWell.run_info.pac_bio_run_name}}</td>
+            </tr>
+            <tr>
+                <td>Well</td><td>{{runWell.run_info.well_label}}</td>
+            </tr>
+            <tr>
+                <td>Library type</td><td>{{runWell.run_info.library_type}}</td>
+            </tr>
+            <tr>
+                <td>Study</td><td>{{runWell.study.id}}</td>
+            </tr>
+            <tr>
+                <td>Sample</td><td>{{runWell.sample.id}}</td>
+            </tr>
+            <tr>
+                <td>Last updated</td><td>{{runWell.run_info.last_updated}}</td>
+            </tr>
+        </table>
+    </div>
 
-<a :href="generateSmrtLink(runWell.metrics)">View in SMRT&reg; Link</a>
+    <a :href="generateSmrtLink(runWell.metrics)">View in SMRT&reg; Link</a>
 
-<div id="Metrics">
-    <table>
-        <tr>
-            <th>QC property</th>
-            <th>Value</th>
-        </tr>
-        <template :key="name" v-for="(sectionClass, name) in groupMetrics(runWell.metrics)">
-            <template :key="niceName" v-for="[niceName, metric], dbName in sectionClass">
-                <tr :class=name>
-                    <td :title="dbName">{{niceName}}</td>
-                    <td>{{metric}}</td>
-                </tr>
+    <div id="Metrics">
+        <table>
+            <tr>
+                <th>QC property</th>
+                <th>Value</th>
+            </tr>
+            <template :key="name" v-for="(sectionClass, name) in groupMetrics(runWell.metrics)">
+                <template :key="niceName" v-for="[niceName, metric], dbName in sectionClass">
+                    <tr :class=name>
+                        <td :title="dbName">{{niceName}}</td>
+                        <td>{{metric}}</td>
+                    </tr>
+                </template>
             </template>
-        </template>
-    </table>
-</div>
+        </table>
+    </div>
 </template>
 
 <style>
