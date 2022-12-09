@@ -37,7 +37,10 @@
         </table>
     </div>
 
-    <a :href="generateSmrtLink(runWell.metrics)">View in SMRT&reg; Link</a>
+    <p v-if="runWell.metrics.smrt_link.hostname">
+        <a :href="generateSmrtLink(runWell.metrics)">View in SMRT&reg; Link</a>
+    </p>
+    <p v-else>No link to SMRT&reg; Link possible</p>
 
     <div id="Metrics">
         <table>
