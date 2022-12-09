@@ -20,7 +20,15 @@
 
         client.claimWell(runName, wellLabel)
         .then(
-            response => { focusWell.updateWellQcState(response) }
+            (response) => {
+                focusWell.updateWellQcState(response);
+                ElMessage({
+                    message: 'Claimed',
+                    type: 'success',
+                    duration: 2000
+                });
+                emit('wellClaimed');
+            }
         ).catch(
             (error) => {
                 ElMessage({
@@ -28,12 +36,6 @@
                 })
             }
         );
-        ElMessage({
-            message: 'Claimed',
-            type: 'success',
-            duration: 2000
-        });
-        emit('wellClaimed');
     }
 </script>
 
