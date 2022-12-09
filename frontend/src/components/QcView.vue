@@ -2,7 +2,7 @@
     import { defineProps } from "vue";
     import groupMetrics from "../utils/metrics.js";
 
-    const props = defineProps({
+    defineProps({
         runWell: Object, // PacBioRunResult
     });
 
