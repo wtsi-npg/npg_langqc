@@ -109,8 +109,9 @@ onMounted(() => {
   } catch (error) {
     console.log("Stuff went wrong getting data from backend: "+error);
     ElMessage({
-      message: error.message
-    })
+      message: error.message,
+      type: "error"
+    });
   }
 });
 
