@@ -48,6 +48,7 @@
     OIDCCryptoPassphrase ${OIDCCryptoPassphrase}
     OIDCScope "openid email"
     OIDCInfoHook userinfo
+    OIDCSessionInactivityTimeout 1200
 
     # Redirect from root to the root of the web app.
     RedirectMatch 301 ^/$ /ui/
