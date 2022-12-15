@@ -5,6 +5,8 @@ from datetime import datetime
 
 import numpy
 import pandas
+from ml_warehouse.schema import PacBioRunWellMetrics
+from sqlalchemy import select
 
 from lang_qc.db.helper.well import WellMetrics, WellQc
 from lang_qc.db.mlwh_connection import get_mlwh_db
@@ -31,6 +33,18 @@ def convert_date(date_string):
     return numpy.nan
 
 
+def convert_run_name(run_name):
+    return run_name.replace('TRAC-', 'TRACTION-')
+
+
+def well_metrics_from_movie(session, movie_id):
+    return session.execute(
+        select(PacBioRunWellMetrics).where(
+            PacBioRunWellMetrics.movie_name == movie_id,
+        )
+    ).scalar_one_or_none()
+
+
 file = "misc/data2export-well_data.tsv"
 # For now not reading columns with comments, ie
 # 'Run Comments', 'Complex Comments', 'Reason for Failure'
@@ -40,9 +54,14 @@ columns = [
     "Run Date",
     "Status",
     "QC Complete date",
+    "Movie ID",
 ]
 
-converters = {"Well Location": convert_well_label, "QC Complete date": convert_date}
+converters = {
+    "Run ID": convert_run_name,
+    "Well Location": convert_well_label, 
+    "QC Complete date": convert_date
+}
 
 df = pandas.read_csv(
     filepath_or_buffer=file,
@@ -63,11 +82,7 @@ for index, row in df.isnull().iterrows():
     # which is a subtype of Python bool. These values cannot be compared to Python
     # True or False directly.
     # Are any of these values missing? Yes - delete the row from the master dataframe.
-    if (
-        (bool(row["Run ID"]) is True)
-        or (bool(row["Well Location"]) is True)
-        or (bool(row["Status"]) is True)
-    ):
+    if bool(row["Run ID"]) is True or bool(row["Status"]) is True:
         df.drop(axis=0, index=index, inplace=True)
 
 check_df_shape(df, "Removed rows with missing data")
@@ -77,15 +92,27 @@ session = next(get_mlwh_db())
 df_nulls = df.isnull()
 to_drop = []
 
-df["Run ID"].str.strip()
-df["Well Location"].str.strip()
-
+for col_name in ("Run ID", "Well Location", "Movie ID"):
+    df[col_name].str.strip()
+count = 0
 for index, row in df.iterrows():
+
     run = row["Run ID"]
     well = row["Well Location"]
-    well_metrics = WellMetrics(
-        run_name=run, well_label=well, session=session
-    ).get_metrics()
+    well_metrics = None
+
+    if isinstance(well, str) and well != "":
+        well_metrics = WellMetrics(
+            run_name=run, well_label=well, session=session
+        ).get_metrics()
+    else:
+        movie_id = row["Movie ID"]
+        if isinstance(movie_id, str):
+            well_metrics = well_metrics_from_movie(session, movie_id)
+            if well_metrics:
+                # Save well label, which we will need later.
+                df.at[index, "Well Location"] = well_metrics.well_label
+
     # Do this run and well exist in mlwh?
     if well_metrics is None:
         # No - mark the row for deletion.
@@ -94,8 +121,8 @@ for index, row in df.iterrows():
         # Yes - deal with dates.
         # If the row does not have 'QC Complete date', fill it in from the mlwh data.
         # Ideally we want UTC timestamps, but will use whatever we have for now.
-        qc_date = None
-        if type(row["QC Complete date"]) != "datetime.datetime":
+        print(row["QC Complete date"])
+        if isinstance(row["QC Complete date"], datetime) == False:
             qc_date = well_metrics.run_complete
             if qc_date is None:
                 qc_date = well_metrics.run_start
@@ -103,8 +130,10 @@ for index, row in df.iterrows():
                 raise Exception(
                     f"Both run complete and start dates are missing for {run} {well}"
                 )
+            # Save the date.
             df.at[index, "QC Complete date"] = qc_date
-
+            count += 1
+print(f"COUNT {count}")
 # Delete the rows which have been marked for deletion.
 for index in to_drop:
     df.drop(axis=0, index=index, inplace=True)
@@ -126,7 +155,9 @@ for outcome in df["Status"].unique():
     assert outcome in QC_OUTCOMES_MAP, f"Unmapped QC outcome '{outcome}'"
 
 print(df)
-# sys.exit()
+
+sys.exit()
+
 # Now we have a complete set of data and can assign QC outcomes.
 # We do not know the user who assigned the outcomes in the spreadsheet, so we will use
 # one of known users.
