@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import sys
 from datetime import datetime
 
 import numpy
@@ -21,20 +20,33 @@ def check_df_shape(df, message):
 
 
 def convert_well_label(well_label):
-    if type(well_label) == str and well_label:
+    if isinstance(well_label, str) and well_label:
         # Drop zero from labels like D01
         return well_label.replace("0", "")
     return well_label
 
 
-def convert_date(date_string):
-    if type(date_string) == str and date_string:
-        datetime.strptime(date_string, "%d/%m/%Y")
-    return numpy.nan
+def get_date(date_string, well_metrics):
+
+    # If the row does not have 'QC Complete date', fill it in from the mlwh data.
+    # Ideally we want UTC timestamps, but will use whatever we have for now.
+
+    qc_date = None
+    if isinstance(date_string, str) and date_string:
+        qc_date = datetime.strptime(date_string, "%d/%m/%Y")
+    else:
+        qc_date = well_metrics.run_complete
+        if qc_date is None:
+            qc_date = well_metrics.run_start
+        if qc_date is None:
+            raise Exception(
+                f"Both run complete and start dates are missing for {run} {well}"
+            )
+    return qc_date
 
 
 def convert_run_name(run_name):
-    return run_name.replace('TRAC-', 'TRACTION-')
+    return run_name.replace("TRAC-", "TRACTION-")
 
 
 def well_metrics_from_movie(session, movie_id):
@@ -59,9 +71,9 @@ columns = [
 
 converters = {
     "Run ID": convert_run_name,
-    "Well Location": convert_well_label, 
-    "QC Complete date": convert_date
+    "Well Location": convert_well_label,
 }
+# "QC Complete date": convert_date
 
 df = pandas.read_csv(
     filepath_or_buffer=file,
@@ -94,7 +106,7 @@ to_drop = []
 
 for col_name in ("Run ID", "Well Location", "Movie ID"):
     df[col_name].str.strip()
-count = 0
+
 for index, row in df.iterrows():
 
     run = row["Run ID"]
@@ -119,21 +131,10 @@ for index, row in df.iterrows():
         to_drop.append(index)
     else:
         # Yes - deal with dates.
-        # If the row does not have 'QC Complete date', fill it in from the mlwh data.
-        # Ideally we want UTC timestamps, but will use whatever we have for now.
-        print(row["QC Complete date"])
-        if isinstance(row["QC Complete date"], datetime) == False:
-            qc_date = well_metrics.run_complete
-            if qc_date is None:
-                qc_date = well_metrics.run_start
-            if qc_date is None:
-                raise Exception(
-                    f"Both run complete and start dates are missing for {run} {well}"
-                )
-            # Save the date.
-            df.at[index, "QC Complete date"] = qc_date
-            count += 1
-print(f"COUNT {count}")
+        df.at[index, "QC Complete date"] = get_date(
+            row["QC Complete date"], well_metrics
+        )
+
 # Delete the rows which have been marked for deletion.
 for index in to_drop:
     df.drop(axis=0, index=index, inplace=True)
@@ -156,17 +157,21 @@ for outcome in df["Status"].unique():
 
 print(df)
 
-sys.exit()
-
 # Now we have a complete set of data and can assign QC outcomes.
 # We do not know the user who assigned the outcomes in the spreadsheet, so we will use
 # one of known users.
 
-user_name = "xxx@sanger.ac.uk"
 session = next(get_qc_db())
-user_obj = get_user(user_name, session)
-assert user_obj is not None, "No user for f{user_name}"
 
+app_name = "BACKFILLING"
+qc_type = "sequencing"
+
+user_name = "xxx@sanger.ac.uk"
+user_obj = get_user(user_name, session)
+if user_obj is None:
+    raise Exception(f"No user for {user_name}")
+
+num_errors = 0
 for index, row in df.iterrows():
     well_qc = WellQc(
         run_name=row["Run ID"], well_label=row["Well Location"], session=session
@@ -176,10 +181,14 @@ for index, row in df.iterrows():
         well_qc.assign_qc_state(
             user=user_obj,
             qc_state=qc_state,
-            qc_type="sequencing",
+            qc_type=qc_type,
             is_preliminary=is_preliminary,
-            application="BACKFILLING",
+            application=app_name,
             date_updated=row["QC Complete date"],
         )
     except Exception as e:
+        print(f"Error for row index {index}:")
         print(e)
+        num_errors += 1
+
+print(f"Finished backfilling QC outcomes, number of errors - {num_errors}")
