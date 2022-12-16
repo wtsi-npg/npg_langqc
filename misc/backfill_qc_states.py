@@ -21,8 +21,8 @@ def check_df_shape(df, message):
 
 def convert_well_label(well_label):
     if isinstance(well_label, str) and well_label:
-        # Drop zero from labels like D01
-        return well_label.replace("0", "")
+        # Drop zero from labels like D01 and convert to upper case.
+        return well_label.replace("0", "").upper()
     return well_label
 
 
@@ -46,7 +46,9 @@ def get_date(date_string, well_metrics):
 
 
 def convert_run_name(run_name):
-    return run_name.replace("TRAC-", "TRACTION-")
+    name = run_name.replace("_", "-").upper()
+    # See Jira NPG-700 for background on the 88960->89960 replacement.
+    return name.replace("TRAC-", "TRACTION-").replace("88960", "89960")
 
 
 def well_metrics_from_movie(session, movie_id):
@@ -117,7 +119,8 @@ for index, row in df.iterrows():
         well_metrics = WellMetrics(
             run_name=run, well_label=well, session=session
         ).get_metrics()
-    else:
+
+    if well_metrics is None:
         movie_id = row["Movie ID"]
         if isinstance(movie_id, str):
             well_metrics = well_metrics_from_movie(session, movie_id)
@@ -125,15 +128,21 @@ for index, row in df.iterrows():
                 # Save well label, which we will need later.
                 df.at[index, "Well Location"] = well_metrics.well_label
 
-    # Do this run and well exist in mlwh?
     if well_metrics is None:
-        # No - mark the row for deletion.
-        to_drop.append(index)
+        to_drop.append(index)  # No mlwh data - mark the row for deletion.
     else:
-        # Yes - deal with dates.
+        # Save dates as datetime objects.
         df.at[index, "QC Complete date"] = get_date(
             row["QC Complete date"], well_metrics
         )
+        # Since MySQL is case-insensitive, it is possible to retrieve mlwh
+        # data even when there are variations in run names. Occasionally there
+        # might be typos in run name in the spreadsheet. All these cases have
+        # be investigated.
+        mlwh_run = well_metrics.pac_bio_run_name
+        if run != mlwh_run:
+            print(f"ERROR: {mlwh_run} != {run}")
+            to_drop.append(index)  # Inconsistent data - mark the row for deletion.
 
 # Delete the rows which have been marked for deletion.
 for index in to_drop:
