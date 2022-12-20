@@ -23,8 +23,7 @@ from typing import List
 
 from pydantic import BaseModel, Extra, Field
 
-from lang_qc.models.pager import PagedResponse
-from lang_qc.models.qc_flow_status import QcFlowStatusEnum
+from lang_qc.models.pager import PagedStatusResponse
 from lang_qc.models.qc_state import QcState
 
 
@@ -67,7 +66,7 @@ class PacBioWell(BaseModel, extra=Extra.forbid):
     )
 
 
-class PacBioPagedWells(PagedResponse, extra=Extra.forbid):
+class PacBioPagedWells(PagedStatusResponse, extra=Extra.forbid):
     """
     A response model for paged data about PacBio wells.
     """
@@ -81,15 +80,3 @@ class PacBioPagedWells(PagedResponse, extra=Extra.forbid):
         specified by the `page_size` and `page_number` attributes.
         """,
     )
-    qc_flow_status: QcFlowStatusEnum = Field(
-        title="QC flow status", description="QC flow status used to select wells."
-    )
-
-    def set_page(self, wells: List[PacBioWell]):
-        """
-        Given a list of `PacBioWell` objects, slices the list according to the
-        value of the `page_size` and `page_number` attributes and sets the the
-        `wells` and `total_number_of_items` attributes.
-        """
-        self.total_number_of_items = len(wells)
-        self.wells = self.slice_data(wells)
