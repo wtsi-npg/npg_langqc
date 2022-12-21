@@ -18,22 +18,12 @@
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
 from datetime import datetime
-from enum import Enum, unique
 from typing import List
 
 from pydantic import BaseModel, Extra, Field
 
 from lang_qc.models.pager import PagedStatusResponse
 from lang_qc.models.qc_state import QcState
-
-
-@unique
-class WellStatusEnum(str, Enum):
-    """
-    An enumeration of SMRT Link well statuses, which are used by this API.
-    """
-
-    COMPLETE = "Complete"
 
 
 class PacBioWell(BaseModel, extra=Extra.forbid):

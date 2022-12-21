@@ -30,7 +30,6 @@ from lang_qc.db.qc_schema import (
     SeqProduct,
     SubProduct,
 )
-from lang_qc.models.pacbio.well import WellStatusEnum
 
 
 def grab_wells_from_db(db_session: Session) -> List[PacBioRunWellMetrics]:
@@ -56,7 +55,7 @@ def grab_wells_from_db(db_session: Session) -> List[PacBioRunWellMetrics]:
                 ),
                 PacBioRunWellMetrics.ccs_execution_mode == "None",
             ),
-            PacBioRunWellMetrics.well_status == WellStatusEnum.COMPLETE,
+            PacBioRunWellMetrics.well_status == "Complete",
         )
     )
 
