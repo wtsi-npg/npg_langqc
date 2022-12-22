@@ -46,13 +46,11 @@ USERS = [
 ]
 
 
-@pytest.fixture()
+@pytest.fixture(scope="module")
 def load_dicts_and_users(qcdb_test_session):
 
     _dicts_and_users(qcdb_test_session)
     qcdb_test_session.commit()
-
-    return qcdb_test_session
 
 
 def _dicts_and_users(session):

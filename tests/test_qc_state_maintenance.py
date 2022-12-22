@@ -14,9 +14,10 @@ from lang_qc.db.qc_schema import QcState, QcStateHist, User
 from tests.fixtures.qc_db_basic_data import load_dicts_and_users
 
 
-def test_dict_helper(load_dicts_and_users):
+def test_dict_helper(qcdb_test_session, load_dicts_and_users):
 
-    session = load_dicts_and_users
+    session = qcdb_test_session
+    load_dicts_and_users
 
     helper = QcDictDB(session=session)
 
@@ -47,9 +48,10 @@ def test_dict_helper(load_dicts_and_users):
     assert list(helper.qc_states.keys()) == expected_sorted_states
 
 
-def test_well_state_helper(load_dicts_and_users):
+def test_well_state_helper(qcdb_test_session, load_dicts_and_users):
 
-    session = load_dicts_and_users
+    session = qcdb_test_session
+    load_dicts_and_users
     users = session.execute(select(User)).scalars().all()
     user1 = users[0].username
     user2 = users[1].username
