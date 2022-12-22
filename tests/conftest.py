@@ -94,7 +94,7 @@ def create_mlwhdb_test_sessionfactory(config):
     return TestingSessionLocal
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", name="mlwhdb_test_session")
 def mlwhdb_test_session(mlwhdb_test_sessionfactory):
     with mlwhdb_test_sessionfactory() as session:
         yield session
