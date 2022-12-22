@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import pytest
 from ml_warehouse.schema import PacBioRunWellMetrics
 from sqlalchemy import insert, select
@@ -51,7 +53,9 @@ USERS = [
 QC_DATA = [
     ["TRACTION_RUN_1", "A1", "Claimed", True, "2022-12-07 07:15:19"],
     ["TRACTION_RUN_1", "B1", "On hold", True, "2022-12-08 07:15:19"],
-    ["TRACTION_RUN_1", "C1", "Claimed", True, "2022-12-07 09:15:19"],
+    ["TRACTION_RUN_1", "C1", "Claimed", True, "2022-12-08 08:15:19"],
+    ["TRACTION_RUN_1", "D1", "On hold", True, "2022-12-08 09:15:19"],
+    ["TRACTION_RUN_1", "E1", "Claimed", True, "2022-12-07 09:15:19"],
     ["TRACTION_RUN_2", "A1", "Failed, Instrument", True, "2022-12-07 15:13:56"],
     ["TRACTION_RUN_2", "B1", "Failed, Instrument", False, "2022-12-08 15:18:56"],
     ["TRACTION_RUN_2", "C1", "Failed, SMRT cell", True, "2022-12-08 18:14:56"],
@@ -79,6 +83,24 @@ MLWH_DATA = [
     [
         "TRACTION_RUN_1",
         "B1",
+        "2022-12-02 15:10:36",
+        "2022-12-09 11:17:23",
+        "2022-12-03 18:28:42",
+        "2022-12-05 07:15:19",
+        "Complete",
+    ],
+    [
+        "TRACTION_RUN_1",
+        "C1",
+        "2022-12-02 15:10:36",
+        "2022-12-09 11:17:23",
+        "2022-12-02 15:20:40",
+        "2022-12-04 05:37:14",
+        "Complete",
+    ],
+    [
+        "TRACTION_RUN_1",
+        "D1",
         "2022-12-02 15:10:36",
         "2022-12-09 11:17:23",
         "2022-12-03 18:28:42",
@@ -300,7 +322,7 @@ def load_data4well_retrieval(
                 user=users[0],
                 qc_state=qc_data[2],
                 is_preliminary=qc_data[3],
-                date_updated=qc_data[3],
+                date_updated=datetime.strptime(qc_data[4], "%Y-%m-%d %H:%M:%S"),
                 qc_type=qc_type,
             )
 

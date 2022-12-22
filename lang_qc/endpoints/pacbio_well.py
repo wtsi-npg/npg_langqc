@@ -20,7 +20,7 @@
 from typing import Dict, List, Tuple
 
 from fastapi import APIRouter, Depends, HTTPException
-from ml_warehouse.schema import PacBioRun, PacBioRunWellMetrics
+from ml_warehouse.schema import PacBioRun
 from pydantic import PositiveInt
 from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
@@ -38,10 +38,7 @@ from lang_qc.db.qc_connection import get_qc_db
 from lang_qc.db.qc_schema import User
 from lang_qc.db.utils import (
     extract_well_label_and_run_name_from_state,
-    get_in_progress_wells_and_states,
     get_inbox_wells_and_states,
-    get_on_hold_wells_and_states,
-    get_qc_complete_wells_and_states,
 )
 from lang_qc.models.lims import Sample, Study
 from lang_qc.models.pacbio.run import PacBioRunResponse
@@ -88,11 +85,14 @@ def get_wells_filtered_by_status(
     factory = PacBioPagedWellsFactory(
         page_size=page_size, page_number=page_number, qc_flow_status=qc_status
     )
-    # Now we are getting all results for a status.
-    # Ideally we'd like to get the relevant page straight away.
-    wells, states = grab_wells_with_status(qc_status, qcdb_session, mlwh_session)
-    pbwells = pack_wells_and_states(wells, states)
-    paged_pbwells = factory.wells2paged_wells(pbwells)
+
+    paged_pbwells = None
+    if qc_status == QcFlowStatusEnum.INBOX:
+        wells, states = get_inbox_wells_and_states(qcdb_session, mlwh_session)
+        pbwells = pack_wells_and_states(wells, states)
+        paged_pbwells = factory.wells2paged_wells(pbwells)
+    else:
+        paged_pbwells = factory.create()
 
     return paged_pbwells
 
@@ -275,26 +275,6 @@ def pack_wells_and_states(wells, qc_states) -> List[PacBioWell]:
         )
 
     return results
-
-
-def grab_wells_with_status(
-    status: QcFlowStatusEnum,
-    qcdb_session: Session,
-    mlwh_session: Session,
-) -> Tuple[List[PacBioRunWellMetrics], List[QcState]]:
-    """Get wells from the QC DB filtered by QC status."""
-
-    match status:
-        case QcFlowStatusEnum.INBOX:
-            return get_inbox_wells_and_states(qcdb_session, mlwh_session)
-        case QcFlowStatusEnum.IN_PROGRESS:
-            return get_in_progress_wells_and_states(qcdb_session, mlwh_session)
-        case QcFlowStatusEnum.ON_HOLD:
-            return get_on_hold_wells_and_states(qcdb_session, mlwh_session)
-        case QcFlowStatusEnum.QC_COMPLETE:
-            return get_qc_complete_wells_and_states(qcdb_session, mlwh_session)
-        case _:
-            raise Exception("An unknown filter was passed.")
 
 
 def _id_for_well(run_well: Tuple) -> str:
