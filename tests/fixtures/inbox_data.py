@@ -10,6 +10,7 @@ from ml_warehouse.schema import (
     Study,
 )
 from npg_id_generation.pac_bio import PacBioEntity
+from sqlalchemy import delete, text
 
 from lang_qc.db.qc_schema import (
     ProductLayout,
@@ -94,6 +95,18 @@ def inbox_data(mlwhdb_test_session):
             )
         )
 
+    mlwhdb_test_session.commit()
+
+    yield True
+
+    print("\nTEARDOWN inbox_data")
+    mlwhdb_test_session.execute(text("SET foreign_key_checks=0;"))
+    mlwhdb_test_session.execute(delete(PacBioProductMetrics))
+    mlwhdb_test_session.execute(delete(PacBioRun))
+    mlwhdb_test_session.execute(delete(Study))
+    mlwhdb_test_session.execute(delete(Sample))
+    mlwhdb_test_session.execute(delete(PacBioRunWellMetrics))
+    mlwhdb_test_session.execute(text("SET foreign_key_checks=1;"))
     mlwhdb_test_session.commit()
 
 
@@ -202,7 +215,31 @@ def test_data_factory(mlwhdb_test_session, qcdb_test_session):
 
         return desired_wells
 
-    return setup_data
+    yield setup_data
+
+    print("\nTEARDOWN test_data_factory")
+
+    mlwhdb_test_session.execute(text("SET foreign_key_checks=0;"))
+    mlwhdb_test_session.execute(delete(PacBioProductMetrics))
+    mlwhdb_test_session.execute(delete(PacBioRun))
+    mlwhdb_test_session.execute(delete(Study))
+    mlwhdb_test_session.execute(delete(Sample))
+    mlwhdb_test_session.execute(delete(PacBioRunWellMetrics))
+    mlwhdb_test_session.execute(text("SET foreign_key_checks=1;"))
+    mlwhdb_test_session.commit()
+
+    qcdb_test_session.execute(text("SET foreign_key_checks=0;"))
+    qcdb_test_session.execute(delete(QcState))
+    qcdb_test_session.execute(delete(ProductLayout))
+    qcdb_test_session.execute(delete(SeqProduct))
+    qcdb_test_session.execute(delete(SubProduct))
+    qcdb_test_session.execute(delete(QcType))
+    qcdb_test_session.execute(delete(SubProductAttr))
+    qcdb_test_session.execute(delete(SeqPlatform))
+    qcdb_test_session.execute(delete(User))
+    qcdb_test_session.execute(delete(QcStateDict))
+    qcdb_test_session.execute(text("SET foreign_key_checks=1;"))
+    qcdb_test_session.commit()
 
 
 @pytest.fixture()

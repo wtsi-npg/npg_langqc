@@ -15,7 +15,7 @@ from lang_qc.main import app
 test_ini = os.path.join(os.path.dirname(__file__), "testdb.ini")
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="package")
 def config() -> configparser.ConfigParser:
     # Database credentials for the test MySQL instance are stored here. This
     # should be an instance in a container, discarded after each test run.
@@ -65,7 +65,7 @@ def mysql_url(
     )
 
 
-@pytest.fixture(scope="function", name="mlwhdb_test_sessionfactory")
+@pytest.fixture(scope="module", name="mlwhdb_test_sessionfactory")
 def create_mlwhdb_test_sessionfactory(config):
     """Create a MLWH SQLAlchemy session factory, using credentials from config.
 
@@ -82,13 +82,10 @@ def create_mlwhdb_test_sessionfactory(config):
     )
     engine = create_engine(url, future=True)
     TestingSessionLocal = sessionmaker(bind=engine)
-
     with engine.connect() as conn:
         # Workaround for invalid default values for dates.
+        # Needed only in CI.
         conn.execute(text("SET sql_mode = '';"))
-        conn.commit()
-        # Make it easier to populate the tables
-        conn.execute(text("SET foreign_key_checks=0;"))
         conn.commit()
     # Drop all tables and then create them to make it easier to test locally too.
     MlwhBase.metadata.drop_all(bind=engine)
@@ -103,7 +100,7 @@ def mlwhdb_test_session(mlwhdb_test_sessionfactory):
         yield session
 
 
-@pytest.fixture(scope="function", name="qcdb_test_sessionfactory")
+@pytest.fixture(scope="module", name="qcdb_test_sessionfactory")
 def create_qcdb_test_sessionfactory(config):
     """Create a QC DB SQLAlchemy session factory, using credentials from config.
 
@@ -118,7 +115,13 @@ def create_qcdb_test_sessionfactory(config):
     url = mysql_url(config, "MySQL QCDB", "test", "test", "127.0.0.1", "3307", "langqc")
     engine = create_engine(url, future=True)
     TestingSessionLocal = sessionmaker(bind=engine)
-
+    with engine.connect() as conn:
+        # Workaround for invalid default values for dates.
+        conn.execute(text("SET sql_mode = '';"))
+        conn.commit()
+        # Make it easier to populate the tables
+        conn.execute(text("SET foreign_key_checks=0;"))
+        conn.commit()
     # Drop all tables and then create then to make it easier to test locally too.
     QcBase.metadata.drop_all(bind=engine)
     QcBase.metadata.create_all(bind=engine)
@@ -126,13 +129,13 @@ def create_qcdb_test_sessionfactory(config):
     return TestingSessionLocal
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", name="qcdb_test_session")
 def qcdb_test_session(qcdb_test_sessionfactory):
     with qcdb_test_sessionfactory() as session:
         yield session
 
 
-@pytest.fixture(scope="function", name="test_client")
+@pytest.fixture(scope="module", name="test_client")
 def create_test_client(
     config, mlwhdb_test_sessionfactory, qcdb_test_sessionfactory
 ) -> TestClient:
