@@ -32,6 +32,7 @@ from lang_qc.db.helper.well import (
     WellMetrics,
     WellQc,
 )
+from lang_qc.db.helper.wells import PacBioPagedWellsFactory
 from lang_qc.db.mlwh_connection import get_mlwh_db
 from lang_qc.db.qc_connection import get_qc_db
 from lang_qc.db.qc_schema import User
@@ -84,16 +85,16 @@ def get_wells_filtered_by_status(
 ):
 
     # Page size and number values will be validated at this point.
-    paged_pbwells = PacBioPagedWells(
+    factory = PacBioPagedWellsFactory(
         page_size=page_size, page_number=page_number, qc_flow_status=qc_status
     )
     # Now we are getting all results for a status.
     # Ideally we'd like to get the relevant page straight away.
     wells, states = grab_wells_with_status(qc_status, qcdb_session, mlwh_session)
     pbwells = pack_wells_and_states(wells, states)
-    # Now we slice the list and finalize the object.
-    paged_pbwells.set_page(pbwells)
-    return paged_pbwells  # And return it.
+    paged_pbwells = factory.wells2paged_wells(pbwells)
+
+    return paged_pbwells
 
 
 @router.get(
