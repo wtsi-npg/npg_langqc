@@ -83,7 +83,11 @@ def get_wells_filtered_by_status(
 
     # Page size and number values will be validated at this point.
     factory = PacBioPagedWellsFactory(
-        page_size=page_size, page_number=page_number, qc_flow_status=qc_status
+        qcdb_session=qcdb_session,
+        mlwh_session=mlwh_session,
+        page_size=page_size,
+        page_number=page_number,
+        qc_flow_status=qc_status,
     )
 
     paged_pbwells = None

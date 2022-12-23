@@ -94,7 +94,7 @@ class PacBioPagedWellsFactory(PagedStatusResponse):
             raise Exception("Not implemented")
 
         wells = self._get_wells()
-        # self._add_tracking_info(wells)
+        self._add_tracking_info(wells)
 
         return PacBioPagedWells(
             page_number=self.page_number,
@@ -156,14 +156,18 @@ class PacBioPagedWellsFactory(PagedStatusResponse):
             # One query for all or query per well? The latter for now to avoid the need
             # to match the records later. Should be fast enough for small-ish pages, we
             # query on a unique key.
-            db_well = self.mlwh_session.execute(
-                select(PacBioRunWellMetrics).where(
-                    and_(
-                        PacBioRunWellMetrics.pac_bio_run_name == well.run_name,
-                        PacBioRunWellMetrics.well_label == well.label,
+            db_well = (
+                self.mlwh_session.execute(
+                    select(PacBioRunWellMetrics).where(
+                        and_(
+                            PacBioRunWellMetrics.pac_bio_run_name == well.run_name,
+                            PacBioRunWellMetrics.well_label == well.label,
+                        )
                     )
                 )
-            ).scalars.one_or_none()
+                .scalars()
+                .one_or_none()
+            )
             # No error if no matching mlwh record is found.
             # TODO: log a warning.
             if db_well is not None:
