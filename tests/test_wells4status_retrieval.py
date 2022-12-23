@@ -74,7 +74,6 @@ def test_query(qcdb_test_session, mlwhdb_test_session, load_data4well_retrieval)
         qc_flow_status=QcFlowStatusEnum.QC_COMPLETE,
     )
     query = factory._build_query4status()
-    print(str(query))
     states = qcdb_test_session.execute(query).scalars().all()
     expected_data = [
         ["Failed, SMRT cell", "2022-12-07 15:23:56"],
@@ -114,6 +113,12 @@ def test_paged_retrieval(
     qcdb_test_session, mlwhdb_test_session, load_data4well_retrieval
 ):
 
+    expected_page_details = {
+        QcFlowStatusEnum.IN_PROGRESS.name: 9,
+        QcFlowStatusEnum.ON_HOLD.name: 2,
+        QcFlowStatusEnum.QC_COMPLETE.name: 4,
+    }
+
     for status in [
         QcFlowStatusEnum.IN_PROGRESS,
         QcFlowStatusEnum.ON_HOLD,
@@ -133,8 +138,8 @@ def test_paged_retrieval(
         assert paged_wells.page_number == 1
         assert paged_wells.qc_flow_status == status
         total_number_of_items = paged_wells.total_number_of_items
-        # assert total_number_of_items != 0
-        # assert len(paged_wells.wells) != 0
+        assert total_number_of_items == expected_page_details[status.name]
+        assert len(paged_wells.wells) == total_number_of_items
 
         factory = PacBioPagedWellsFactory(
             qcdb_session=qcdb_test_session,
@@ -164,7 +169,7 @@ def test_paged_retrieval(
         assert paged_wells.page_number == 1
         assert paged_wells.qc_flow_status == status
         assert paged_wells.total_number_of_items == total_number_of_items
-        # assert len(paged_wells.wells) == 1
+        assert len(paged_wells.wells) == 1
 
         factory = PacBioPagedWellsFactory(
             qcdb_session=qcdb_test_session,
@@ -179,4 +184,4 @@ def test_paged_retrieval(
         assert paged_wells.page_number == 2
         assert paged_wells.qc_flow_status == status
         assert paged_wells.total_number_of_items == total_number_of_items
-        # assert len(paged_wells.wells) == 1
+        assert len(paged_wells.wells) == 1

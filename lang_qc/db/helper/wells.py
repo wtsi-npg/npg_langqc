@@ -28,6 +28,7 @@ from lang_qc.db.qc_schema import QcState, QcStateDict, QcType
 from lang_qc.models.pacbio.well import PacBioPagedWells, PacBioWell
 from lang_qc.models.pager import PagedStatusResponse
 from lang_qc.models.qc_flow_status import QcFlowStatusEnum
+from lang_qc.models.qc_state import QcState as QcStateModel
 
 FILTERS = {
     QcFlowStatusEnum.ON_HOLD.name: (QcStateDict.state == "On hold"),
@@ -55,7 +56,6 @@ class PacBioPagedWellsFactory(PagedStatusResponse):
     )
 
     class Config:
-        allow_mutation = False
         arbitrary_types_allowed = True
         extra = Extra.forbid
 
@@ -94,7 +94,7 @@ class PacBioPagedWellsFactory(PagedStatusResponse):
             raise Exception("Not implemented")
 
         wells = self._get_wells()
-        self._add_tracking_info(wells)
+        # self._add_tracking_info(wells)
 
         return PacBioPagedWells(
             page_number=self.page_number,
@@ -133,16 +133,18 @@ class PacBioPagedWellsFactory(PagedStatusResponse):
     def _get_wells(self) -> List[PacBioWell]:
 
         # Note that the run name and well label are sourced from the QC database.
-        # They are better be correct there!
+        # They'd better be correct there!
         wells = []
-        """
         for qc_state in self._retrieve_qc_states():
             sub_product = qc_state.seq_product.product_layout[0].sub_product
-            wells.append(PacBioWell(
-                "run_name": sub_product.value_attr_one,
-                "label": sub_product.value_attr_two,
-                "qc_state": QcState.from_orm(sub_product),
-            )) """
+            # TODO: consider adding from_orm method to PacBioWell
+            wells.append(
+                PacBioWell(
+                    run_name=sub_product.value_attr_one,
+                    label=sub_product.value_attr_two,
+                    qc_state=QcStateModel.from_orm(qc_state),
+                )
+            )
         return wells
 
     def _add_tracking_info(self, wells: List[PacBioWell]):
