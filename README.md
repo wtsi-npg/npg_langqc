@@ -3,12 +3,12 @@
 Please see the documents in the [docs](docs) folder for documentation on
 subjects other than development, testing and deployment.
 
-
 ## Install and run locally
 
 You can install the package with `pip install .` from the repository's root.
 Alternatively you can use [Poetry](https://python-poetry.org/docs/basic-usage/#installing-dependencies)
-to install and manage a virtual environment.
+to install and manage a virtual environment. Poetry will demand python => 3.10
+available via package manager or pyenv.
 
 Then set two environment variables:
 
@@ -20,7 +20,7 @@ Or `uvicorn lang_qc.main:app --reload` to reload the server on code changes.
 
 ## Using docker-compose
 
-### Requirements:
+### Requirements
 
 The deployment was tested with versions at least as recent as:
 
@@ -32,7 +32,7 @@ The ports you would like to expose should also be open on your server.
 
 To run the server, create an env file with the following template:
 
-```
+```bash
 OIDCProviderMetadataURL=<identityproviderhostURL>/.well-known/openid-configuration # e.g. https://accounts.google.com/.well-known/openid-configuration
 OIDCClientID=<yourclientID> # set by the OIDC Provider
 OIDCClientSecret=<yourclientsecret> # set by the OIDC Provider
@@ -54,7 +54,7 @@ Run: `docker-compose --env-file /path/to/env/file up -d`
 
 Finally, you can setup a systemd service in `/etc/systemd/system/npg_langqc.service` (change the paths accordingly):
 
-```
+```conf
 [Unit]
 Description=%i service with docker compose
 Requires=docker.service
@@ -79,7 +79,7 @@ Build:
 
 ```sh
 docker-compose \
-  --env-file /path/to/env/file 
+  --env-file /path/to/env/file
   -f docker-compose.yml
   -f docker-compose.dev.yml
   build
@@ -89,7 +89,7 @@ Run:
 
 ```sh
 docker-compose \
-  --env-file /path/to/env/file 
+  --env-file /path/to/env/file
   -f docker-compose.yml
   -f docker-compose.dev.yml
   up -d
@@ -123,14 +123,14 @@ and`cert.pem` or create symlinks to them using these names.
 
 Create a config folder containing one file, `uvicorn_env`, with the following contents:
 
-```
+```sh
 DB_URL=<insert your DB URL here>
 CORS_ORIGINS=<comma-separated list of origins for which to allow CORS>
 ```
 
 An example is:
 
-```
+```sh
 DB_URL=mysql+pymysql://myuser:mypass@example.com:3306/mydbname
 CORS_ORIGINS=http://localhost:3000,https://example.com:443
 ```
@@ -139,7 +139,7 @@ CORS_ORIGINS=http://localhost:3000,https://example.com:443
 
 Create an envfile containng the following:
 
-```
+```bash
 export CERT_FOLDER=/path/to/cert/folder
 export CONFIG_FOLDER=/path/to/config/folder
 export SSL_PORT=<your desired port for the server> # e.g. SSL_PORT=443
@@ -152,7 +152,7 @@ Source this file: `. envfile`
 Run the server (replace `devel` with `latest` if you wish to run the `master` branch
 instead.):
 
-```
+```bash
 docker run \
   --name npg_langqc \
   -p ${SSL_PORT}:443 \
@@ -170,7 +170,7 @@ The next steps are to set the server up as a SystemD service.
 Create a service file `/etc/systemd/system/npg_langqc.service`, with the following
 contents:
 
-```
+```conf
 [Unit]
 Description=npg_langqc Docker container
 Wants=docker.service
@@ -188,7 +188,7 @@ WantedBy=multi-user.target
 
 Enable and start the service:
 
-```
+```bash
 sudo systemctl enable npg_langqc.service
 sudo systemctl start npg_langqc.service
 ```
@@ -197,7 +197,7 @@ sudo systemctl start npg_langqc.service
 
 Verify everything is working:
 
-```
+```bash
 systemctl status npg_langqc.service
 journalctl -xe
 ```
