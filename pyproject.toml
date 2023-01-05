@@ -25,6 +25,7 @@ fastapi = { extras = ["all"], version = "^0.78.0" }
 sqlacodegen = { git = "http://github.com/agronholm/sqlacodegen.git", tag="3.0.0rc1" }
 alembic = "^1.8.1"
 isort = { version = "^5.10.1", extras = ["colors"] }
+pandas = "1.5.2"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
