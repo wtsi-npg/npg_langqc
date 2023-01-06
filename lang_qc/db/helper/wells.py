@@ -66,7 +66,7 @@ class PacBioPagedWellsFactory(PagedStatusResponse):
         corresponding `PacBioPagedWells` object.
 
         Legacy method, will be removed as soon as the `create` method can handle
-        requests for teh inbox wells
+        requests for the inbox wells
         """
         return PacBioPagedWells(
             page_number=self.page_number,
@@ -123,11 +123,10 @@ class PacBioPagedWellsFactory(PagedStatusResponse):
     def _retrieve_qc_states(self):
 
         states = self.qcdb_session.execute(self._build_query4status()).scalars().all()
-        # Save the number of retrieved rows - needed to page correctly and here
-        #  and needed by the client to correctly set up the paging widget.
+        # Save the number of retrieved rows - needed to page correctly,
+        # also needed by the client to correctly set up the paging widget.
         self.total_number_of_items = len(states)
         # Return the states for the wells we were asked to fetch, max - page_size, min - 0.
-
         return self.slice_data(states)
 
     def _get_wells(self) -> List[PacBioWell]:
