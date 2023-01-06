@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 from typing import List
 
 from ml_warehouse.schema import PacBioRunWellMetrics
@@ -167,9 +168,13 @@ class PacBioPagedWellsFactory(PagedStatusResponse):
                 .scalars()
                 .one_or_none()
             )
-            # No error if no matching mlwh record is found.
-            # TODO: log a warning.
-            if db_well is not None:
+
+            if db_well is None:
+                # No error if no matching mlwh record is found.
+                logging.warning(
+                    f"No mlwh record for run '{well.run_name}' well '{well.label}'"
+                )
+            else:
                 well.run_start_time = db_well.run_start
                 well.run_complete_time = db_well.run_complete
                 well.well_start_time = db_well.well_start
