@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime, timedelta
 
 import pytest
 from ml_warehouse.schema import PacBioRunWellMetrics
@@ -80,7 +80,7 @@ MLWH_DATA = [
         "2022-12-02 15:20:40",
         "2022-12-04 05:37:14",
         "Complete",
-        None,
+        "None",
         5114903,
         None,
     ],
@@ -92,7 +92,7 @@ MLWH_DATA = [
         "2022-12-03 18:28:42",
         "2022-12-05 07:15:19",
         "Complete",
-        None,
+        "None",
         4793726,
         None,
     ],
@@ -116,7 +116,7 @@ MLWH_DATA = [
         "2022-12-03 18:28:42",
         "2022-12-05 07:15:19",
         "Complete",
-        None,
+        "None",
         5198365,
         None,
     ],
@@ -200,7 +200,7 @@ MLWH_DATA = [
         "2022-12-06 11:08:59",
         "2022-12-08 00:03:14",
         "Complete",
-        None,
+        "None",
         5114900,
         None,
     ],
@@ -212,7 +212,7 @@ MLWH_DATA = [
         "2022-12-07 14:21:21",
         "2022-12-09 01:43:36",
         "Complete",
-        None,
+        "None",
         5114503,
         None,
     ],
@@ -224,7 +224,7 @@ MLWH_DATA = [
         "2022-12-08 17:38:38",
         "2022-12-10 07:44:48",
         "Complete",
-        None,
+        "None",
         5124903,
         None,
     ],
@@ -236,7 +236,7 @@ MLWH_DATA = [
         "2022-12-09 22:36:07",
         "2022-12-11 16:02:57",
         "Complete",
-        None,
+        "None",
         4114903,
         None,
     ],
@@ -274,7 +274,7 @@ MLWH_DATA = [
         "Complete",
         "OnInstrument",
         3989782,
-        2669919,       
+        2669919,
     ],
     [
         "TRACTION_RUN_6",
@@ -288,7 +288,18 @@ MLWH_DATA = [
         3989786,
         2769919,
     ],
-    ["TRACTION_RUN_7", "A1", "2022-12-21 11:08:51", None, None, None, "Aborted", "OnInstrument", None, None,],
+    [
+        "TRACTION_RUN_7",
+        "A1",
+        "2022-12-21 11:08:51",
+        None,
+        None,
+        None,
+        "Aborted",
+        "OnInstrument",
+        None,
+        None,
+    ],
     [
         "TRACTION_RUN_8",
         "A1",
@@ -321,7 +332,7 @@ MLWH_DATA = [
         None,
         None,
         "Terminated",
-         "OffInstrument",
+        "OffInstrument",
         None,
         None,
     ],
@@ -382,10 +393,48 @@ MLWH_DATA = [
         "2022-12-15 10:22:52",
         "Complete",
         "OffInstrument",
+        3339714,
+        2226107,
+    ],
+    [
+        "TRACTION_RUN_12",
+        "B1",
+        "2022-12-11 11:15:41",
+        "2022-12-16 07:39:59",
+        "2022-12-13 21:16:37",
+        "2022-12-15 10:22:52",
+        "Complete",
+        "OffInstrument",
+        3336714,
         None,
+    ],
+    [
+        "TRACTION_RUN_12",
+        "C1",
+        "2022-12-11 11:15:41",
+        "2022-12-16 07:39:59",
+        "2022-12-13 21:16:37",
+        "2022-12-15 10:22:52",
+        "Complete",
+        "OffInstrument",
+        None,
+        3339724,
+    ],
+    [
+        "TRACTION_RUN_13",
+        "A1",
+        "2022-11-11 11:15:41",
+        "2022-11-16 07:39:59",
+        "2022-11-13 21:16:37",
+        "2022-11-15 10:22:52",
+        "Complete",
+        "OffInstrument",
+        3989714,
         2227107,
     ],
 ]
+
+DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 
 @pytest.fixture(scope="module")
@@ -419,9 +468,14 @@ def load_data4well_retrieval(
                 user=users[0],
                 qc_state=qc_data[2],
                 is_preliminary=qc_data[3],
-                date_updated=datetime.strptime(qc_data[4], "%Y-%m-%d %H:%M:%S"),
+                date_updated=datetime.strptime(qc_data[4], DATE_FORMAT),
                 qc_type=qc_type,
             )
+
+    # We want some wells to be in the inbox. For that their run_complete dates
+    # should be within last four weeks. Therefore, we need to update the timestamps
+    # for these runs.
+    _update_timestamps4inbox()
 
     # Transform a list of lists into a list of hashes, which map to db rows.
     mlwh_data4insert = [
@@ -433,6 +487,7 @@ def load_data4well_retrieval(
             "well_start": record[4],
             "well_complete": record[5],
             "run_status": record[6],
+            "well_status": record[6],
             "ccs_execution_mode": record[7],
             "polymerase_num_reads": record[8],
             "hifi_num_reads": record[9],
@@ -441,3 +496,40 @@ def load_data4well_retrieval(
     ]
     mlwhdb_test_session.execute(insert(PacBioRunWellMetrics), mlwh_data4insert)
     mlwhdb_test_session.commit()
+
+    return MLWH_DATA
+
+
+def _update_timestamps4inbox():
+    # Inbox wells:
+    # TRACTION_RUN_3 - A1, B1,
+    # TRACTION_RUN_4 - C1, D1,
+    # TRACTION_RUN_10 - A1, B1, C1
+    # TRACTION_RUN_12 - A1
+
+    # Find the earliest date in the set.
+    inbox_runs = [f"TRACTION_RUN_{run}" for run in (3, 4, 10, 12)]
+    date_tuples = [
+        (record[2], record[3], record[4], record[5])
+        for record in MLWH_DATA
+        if record[0] in inbox_runs
+    ]
+    dates = []
+    for dt in date_tuples:
+        dates.extend([datetime.strptime(date, DATE_FORMAT) for date in dt])
+    old_earliest = min(dates)
+
+    # Find the earliest date 26 days from today.
+    new_earliest = date.today() - timedelta(days=26)
+    # Find the difference in days.
+    delta = (
+        datetime(new_earliest.year, new_earliest.month, new_earliest.day) - old_earliest
+    )
+    delta = timedelta(delta.days)
+
+    # Amend all dates for the inbox data by adding delta.
+    for index, record in enumerate(MLWH_DATA):
+        if record[0] in inbox_runs:
+            for i in (2, 3, 4, 5):
+                time = datetime.strptime(record[i], DATE_FORMAT) + delta
+                MLWH_DATA[index][i] = time.strftime(DATE_FORMAT)

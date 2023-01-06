@@ -18,13 +18,15 @@
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
 import logging
+from datetime import date, datetime, timedelta
 from typing import List
 
 from ml_warehouse.schema import PacBioRunWellMetrics
 from pydantic import Extra, Field
-from sqlalchemy import and_, select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
+from lang_qc.db.helper.well import WellQc
 from lang_qc.db.qc_schema import QcState, QcStateDict, QcType
 from lang_qc.models.pacbio.well import PacBioPagedWells, PacBioWell
 from lang_qc.models.pager import PagedStatusResponse
@@ -38,6 +40,8 @@ FILTERS = {
         QcState.is_preliminary == 1, QcStateDict.state != "On hold"
     ),
 }
+
+INBOX_LOOK_BACK_NUM_WEEKS = 4
 
 
 class PacBioPagedWellsFactory(PagedStatusResponse):
@@ -60,23 +64,6 @@ class PacBioPagedWellsFactory(PagedStatusResponse):
         arbitrary_types_allowed = True
         extra = Extra.forbid
 
-    def wells2paged_wells(self, wells: List[PacBioWell]) -> PacBioPagedWells:
-        """
-        Given a list of `PacBioWell` objects, slices the list according to the
-        value of the `page_size` and `page_number` attributes and returns a
-        corresponding `PacBioPagedWells` object.
-
-        Legacy method, will be removed as soon as the `create` method can handle
-        requests for the inbox wells
-        """
-        return PacBioPagedWells(
-            page_number=self.page_number,
-            page_size=self.page_size,
-            total_number_of_items=len(wells),
-            qc_flow_status=self.qc_flow_status,
-            wells=self.slice_data(wells),
-        )
-
     def create(self) -> PacBioPagedWells:
         """
         Returns `PacBioPagedWells` object that corresponds to the criteria
@@ -86,16 +73,20 @@ class PacBioPagedWellsFactory(PagedStatusResponse):
         The `PacBioWell` objects in `wells` attribute of the returned object
         are sorted in a way appropriate for the requested `qc_flow_status`.
         For non-inbox requests the wells with most recently assigned QC states
-        come first.
+        come first. For inbox requests the wells with least recent 'run completed'
+        timestamp are listed first. The query for the inbox wells looks at runs
+        which completed within the last four weeks.
 
-        The inbox requests are not yet implemented.
+        The implementation of the inbox query will change when the QC outcomes
+        become available in mlwh.
         """
 
+        wells = []
         if self.qc_flow_status == QcFlowStatusEnum.INBOX:
-            raise Exception("Not implemented")
-
-        wells = self._get_wells()
-        self._add_tracking_info(wells)
+            wells = self._recent_inbox_wells(self._recent_completed_wells())
+        else:
+            wells = self._get_wells()
+            self._add_tracking_info(wells)
 
         return PacBioPagedWells(
             page_number=self.page_number,
@@ -179,3 +170,83 @@ class PacBioPagedWellsFactory(PagedStatusResponse):
                 well.run_complete_time = db_well.run_complete
                 well.well_start_time = db_well.well_start
                 well.well_complete_time = db_well.well_complete
+
+    def _recent_completed_wells(self) -> List[PacBioRunWellMetrics]:
+        """
+        Get recent completed wells from the mlwh database.
+        """
+
+        ######
+        # It is important not to show aborted wells in the inbox.
+        #
+        # The well can be complete as in Illumina 'run complete' but that's not
+        # the same as analysis complete which the other conditions are trying for.
+        # It potentially gets a bit easier with v11 but those conditions should
+        # still work ok.
+        #
+
+        # Using current local time.
+        # Generating a date rather than a timestamp here in order to have consistent
+        # start date during the working day.
+        my_date = date.today() - timedelta(weeks=INBOX_LOOK_BACK_NUM_WEEKS)
+        start_datetime = datetime(my_date.year, my_date.month, my_date.day)
+
+        # TODO: fall back to run_complete when well_complete is undefined
+
+        query = (
+            select(PacBioRunWellMetrics)
+            .where(PacBioRunWellMetrics.well_status == "Complete")
+            .where(PacBioRunWellMetrics.run_complete > start_datetime)
+            .where(PacBioRunWellMetrics.polymerase_num_reads.is_not(None))
+            .where(
+                or_(
+                    and_(
+                        PacBioRunWellMetrics.ccs_execution_mode.in_(
+                            ("OffInstrument", "OnInstrument")
+                        ),
+                        PacBioRunWellMetrics.hifi_num_reads.is_not(None),
+                    ),
+                    PacBioRunWellMetrics.ccs_execution_mode == "None",
+                )
+            )
+            .order_by(
+                PacBioRunWellMetrics.run_complete,
+                PacBioRunWellMetrics.pac_bio_run_name,
+                PacBioRunWellMetrics.well_label,
+            )
+        )
+
+        return self.mlwh_session.execute(query).scalars().all()
+
+    def _recent_inbox_wells(self, recent_wells):
+
+        inbox_wells_indexes = []
+        for index, db_well in enumerate(recent_wells):
+            in_qc = WellQc(
+                session=self.qcdb_session,
+                run_name=db_well.pac_bio_run_name,
+                well_label=db_well.well_label,
+            ).current_qc_state()
+            if in_qc is None:
+                inbox_wells_indexes.append(index)
+
+        # Save the number of retrieved rows.
+        self.total_number_of_items = len(inbox_wells_indexes)
+
+        inbox_wells = []
+        # Iterate over indexes of records we want for this page and retrieve data
+        # for this page. QC data is not available for the inbox wells.
+        for index in self.slice_data(inbox_wells_indexes):
+            db_well = recent_wells[index]
+            inbox_wells.append(
+                PacBioWell(
+                    run_name=db_well.pac_bio_run_name,
+                    label=db_well.well_label,
+                    run_start_time=db_well.run_start,
+                    run_complete_time=db_well.run_complete,
+                    well_start_time=db_well.well_start,
+                    well_complete_time=db_well.well_complete,
+                )
+            )
+
+        return inbox_wells

@@ -91,17 +91,82 @@ def test_query(qcdb_test_session, mlwhdb_test_session, load_data4well_retrieval)
         _compare_dates(state.date_updated, expected_state[1])
 
 
-def test_inbox_retrieval(qcdb_test_session, mlwhdb_test_session):
+def test_inbox_wells_retrieval(
+    qcdb_test_session, mlwhdb_test_session, load_data4well_retrieval
+):
+    status = QcFlowStatusEnum.INBOX
 
-    factory = PacBioPagedWellsFactory(
+    paged_wells = PacBioPagedWellsFactory(
         qcdb_session=qcdb_test_session,
         mlwh_session=mlwhdb_test_session,
         page_size=10,
         page_number=1,
-        qc_flow_status=QcFlowStatusEnum.INBOX,
-    )
-    with pytest.raises(Exception, match=r"Not implemented"):
-        factory.create()
+        qc_flow_status=status,
+    ).create()
+    assert isinstance(paged_wells, PacBioPagedWells)
+    assert paged_wells.page_size == 10
+    assert paged_wells.page_number == 1
+    assert paged_wells.qc_flow_status == status
+    assert paged_wells.total_number_of_items == 8
+    assert len(paged_wells.wells) == 8
+
+    paged_wells = PacBioPagedWellsFactory(
+        qcdb_session=qcdb_test_session,
+        mlwh_session=mlwhdb_test_session,
+        page_size=10,
+        page_number=2,
+        qc_flow_status=status,
+    ).create()
+    assert isinstance(paged_wells, PacBioPagedWells)
+    assert paged_wells.page_size == 10
+    assert paged_wells.page_number == 2
+    assert paged_wells.qc_flow_status == status
+    assert paged_wells.total_number_of_items == 8
+    assert len(paged_wells.wells) == 0
+
+    paged_wells = PacBioPagedWellsFactory(
+        qcdb_session=qcdb_test_session,
+        mlwh_session=mlwhdb_test_session,
+        page_size=3,
+        page_number=3,
+        qc_flow_status=status,
+    ).create()
+    assert isinstance(paged_wells, PacBioPagedWells)
+    assert paged_wells.page_size == 3
+    assert paged_wells.page_number == 3
+    assert paged_wells.qc_flow_status == status
+    assert paged_wells.total_number_of_items == 8
+    assert len(paged_wells.wells) == 2
+
+    # The dates for this well had been amended prior to loading to the db,
+    # so we cannot hardcode expected dates.
+    mlwh_data = load_data4well_retrieval
+
+    well = paged_wells.wells[0]
+    assert isinstance(well, PacBioWell)
+    assert well.run_name == "TRACTION_RUN_10"
+    assert well.label == "C1"
+    assert well.qc_state is None
+    [well_fixture] = [
+        f for f in mlwh_data if (f[0] == "TRACTION_RUN_10" and f[1] == "C1")
+    ]
+    _compare_dates(well.run_start_time, well_fixture[2])
+    _compare_dates(well.run_complete_time, well_fixture[3])
+    _compare_dates(well.well_start_time, well_fixture[4])
+    _compare_dates(well.well_complete_time, well_fixture[5])
+
+    well = paged_wells.wells[1]
+    assert isinstance(well, PacBioWell)
+    assert well.run_name == "TRACTION_RUN_12"
+    assert well.label == "A1"
+    assert well.qc_state is None
+    [well_fixture] = [
+        f for f in mlwh_data if (f[0] == "TRACTION_RUN_12" and f[1] == "A1")
+    ]
+    _compare_dates(well.run_start_time, well_fixture[2])
+    _compare_dates(well.run_complete_time, well_fixture[3])
+    _compare_dates(well.well_start_time, well_fixture[4])
+    _compare_dates(well.well_complete_time, well_fixture[5])
 
 
 def test_paged_retrieval(
