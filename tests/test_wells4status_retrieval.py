@@ -58,13 +58,12 @@ def test_query(qcdb_test_session, mlwhdb_test_session, load_data4well_retrieval)
     # The results should be sorted by the update date in a descending order.
     expected_data.reverse()  # in place
     assert len(states) == len(expected_data)
-    for index in range(9):
-        state = states[index]
+    for state, expected_state in zip(states, expected_data):
         assert isinstance(state, QcState)
         assert state.is_preliminary == 1
         assert state.qc_type.qc_type == "sequencing"
-        assert state.qc_state_dict.state == expected_data[index][0]
-        _compare_dates(state.date_updated, expected_data[index][1])
+        assert state.qc_state_dict.state == expected_state[0]
+        _compare_dates(state.date_updated, expected_state[1])
 
     factory = PacBioPagedWellsFactory(
         qcdb_session=qcdb_test_session,
@@ -84,13 +83,12 @@ def test_query(qcdb_test_session, mlwhdb_test_session, load_data4well_retrieval)
     # The results should be sorted by the update date in a descending order.
     expected_data.reverse()  # in place
     assert len(states) == len(expected_data)
-    for index in range(4):
-        state = states[index]
+    for state, expected_state in zip(states, expected_data):
         assert isinstance(state, QcState)
         assert state.is_preliminary == 0
         assert state.qc_type.qc_type == "sequencing"
-        assert state.qc_state_dict.state == expected_data[index][0]
-        _compare_dates(state.date_updated, expected_data[index][1])
+        assert state.qc_state_dict.state == expected_state[0]
+        _compare_dates(state.date_updated, expected_state[1])
 
 
 def test_inbox_retrieval(qcdb_test_session, mlwhdb_test_session):
