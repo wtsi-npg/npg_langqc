@@ -355,8 +355,8 @@ def test_get_well(test_client: TestClient, inbox_data):
     qc_data["hifi_read_bases"]["value"] = 28.53
     qc_data["hifi_read_length_mean"]["value"] = 11619
     qc_data["local_base_rate"]["value"] = 2.73
-    qc_data["p0_num"]["value"] = 32.50
-    qc_data["p1_num"]["value"] = 66.04
+    qc_data["p0_num"]["value"] = 32.47
+    qc_data["p1_num"]["value"] = 65.98
     qc_data["p2_num"]["value"] = 1.55
     qc_data["polymerase_read_bases"]["value"] = 534.42
     qc_data["polymerase_read_length_mean"]["value"] = 101200

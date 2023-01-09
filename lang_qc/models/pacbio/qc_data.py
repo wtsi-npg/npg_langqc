@@ -60,11 +60,11 @@ class QCDataWell(BaseModel):
             "polymerase_read_length_mean",
         }
 
-        productive_zmws_num = 0
-        if obj.productive_zmws_num is not None:
-            productive_zmws_num = obj.productive_zmws_num
-
         qc_data = {}
+
+        sum_of_productive_reads = (
+            (obj.p0_num or 0) + (obj.p1_num or 0) + (obj.p2_num or 0)
+        )
 
         for name in attrs:
 
@@ -85,8 +85,8 @@ class QCDataWell(BaseModel):
                         # We retain zero value whatever the denominator is.
                         pass
                     else:
-                        if productive_zmws_num != 0:
-                            value = (value / productive_zmws_num) * 100
+                        if sum_of_productive_reads != 0:
+                            value = (value / sum_of_productive_reads) * 100
                         else:
                             value = None
                 else:
