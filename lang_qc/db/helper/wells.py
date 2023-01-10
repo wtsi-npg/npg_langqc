@@ -19,10 +19,10 @@
 
 import logging
 from datetime import date, datetime, timedelta
-from typing import List
+from typing import ClassVar, List
 
 from ml_warehouse.schema import PacBioRunWellMetrics
-from pydantic import Extra, Field
+from pydantic import BaseModel, Extra, Field
 from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
@@ -33,15 +33,77 @@ from lang_qc.models.pager import PagedStatusResponse
 from lang_qc.models.qc_flow_status import QcFlowStatusEnum
 from lang_qc.models.qc_state import QcState as QcStateModel
 
-FILTERS = {
-    QcFlowStatusEnum.ON_HOLD.name: (QcStateDict.state == "On hold"),
-    QcFlowStatusEnum.QC_COMPLETE.name: (QcState.is_preliminary == 0),
-    QcFlowStatusEnum.IN_PROGRESS.name: and_(
-        QcState.is_preliminary == 1, QcStateDict.state != "On hold"
-    ),
-}
+"""
+This package is using an undocumented feature of Pydantic, type
+`ClassVar`, which was introduced in https://github.com/pydantic/pydantic/pull/339
+Here this type is used to mark a purely internal to the class variables.
+"""
 
-INBOX_LOOK_BACK_NUM_WEEKS = 4
+
+class WellWh(BaseModel):
+    """
+    A data access class for routine SQLAlchemy operations on wells data
+    in ml warehouse database.
+    """
+
+    session: Session = Field(
+        title="SQLAlchemy Session",
+        description="A SQLAlchemy Session for the ml warehouse database",
+    )
+    INBOX_LOOK_BACK_NUM_WEEKS: ClassVar = 4
+
+    class Config:
+        allow_mutation = False
+        arbitrary_types_allowed = True
+
+    def recent_completed_wells(self) -> List[PacBioRunWellMetrics]:
+        """
+        Get recent completed wells from the mlwh database.
+        The implementation of the inbox query might change when the QC outcomes
+        become available in mlwh.
+        """
+
+        ######
+        # It is important not to show aborted wells in the inbox.
+        #
+        # The well can be complete as in Illumina 'run complete' but that's not
+        # the same as analysis complete which the other conditions are trying for.
+        # It potentially gets a bit easier with v11 but those conditions should
+        # still work ok.
+        #
+
+        # Using current local time.
+        # Generating a date rather than a timestamp here in order to have a consistent
+        # earliest date for the look-back period during the QC team's working day.
+        my_date = date.today() - timedelta(weeks=self.INBOX_LOOK_BACK_NUM_WEEKS)
+        look_back_min_date = datetime(my_date.year, my_date.month, my_date.day)
+
+        # TODO: fall back to run_complete when well_complete is undefined
+
+        query = (
+            select(PacBioRunWellMetrics)
+            .where(PacBioRunWellMetrics.well_status == "Complete")
+            .where(PacBioRunWellMetrics.run_complete > look_back_min_date)
+            .where(PacBioRunWellMetrics.polymerase_num_reads.is_not(None))
+            .where(
+                or_(
+                    and_(
+                        PacBioRunWellMetrics.ccs_execution_mode.in_(
+                            ("OffInstrument", "OnInstrument")
+                        ),
+                        PacBioRunWellMetrics.hifi_num_reads.is_not(None),
+                    ),
+                    PacBioRunWellMetrics.ccs_execution_mode == "None",
+                )
+            )
+            .order_by(
+                PacBioRunWellMetrics.run_complete,
+                PacBioRunWellMetrics.pac_bio_run_name,
+                PacBioRunWellMetrics.well_label,
+            )
+        )
+
+        return self.session.execute(query).scalars().all()
 
 
 class PacBioPagedWellsFactory(PagedStatusResponse):
@@ -60,6 +122,14 @@ class PacBioPagedWellsFactory(PagedStatusResponse):
         description="A SQLAlchemy Session for the ml warehouse database",
     )
 
+    FILTERS: ClassVar = {
+        QcFlowStatusEnum.ON_HOLD.name: (QcStateDict.state == "On hold"),
+        QcFlowStatusEnum.QC_COMPLETE.name: (QcState.is_preliminary == 0),
+        QcFlowStatusEnum.IN_PROGRESS.name: and_(
+            QcState.is_preliminary == 1, QcStateDict.state != "On hold"
+        ),
+    }
+
     class Config:
         arbitrary_types_allowed = True
         extra = Extra.forbid
@@ -76,14 +146,12 @@ class PacBioPagedWellsFactory(PagedStatusResponse):
         come first. For inbox requests the wells with least recent 'run completed'
         timestamp are listed first. The query for the inbox wells looks at runs
         which completed within the last four weeks.
-
-        The implementation of the inbox query will change when the QC outcomes
-        become available in mlwh.
         """
 
         wells = []
         if self.qc_flow_status == QcFlowStatusEnum.INBOX:
-            wells = self._recent_inbox_wells(self._recent_completed_wells())
+            recent_wells = WellWh(session=self.mlwh_session).recent_completed_wells()
+            wells = self._recent_inbox_wells(recent_wells)
         else:
             wells = self._get_wells()
             self._add_tracking_info(wells)
@@ -110,7 +178,7 @@ class PacBioPagedWellsFactory(PagedStatusResponse):
             .order_by(QcState.date_updated.desc())
         )
         # Add status-specific part of the query.
-        return query.where(FILTERS[self.qc_flow_status.name])
+        return query.where(self.FILTERS[self.qc_flow_status.name])
 
     def _retrieve_qc_states(self):
 
@@ -170,53 +238,6 @@ class PacBioPagedWellsFactory(PagedStatusResponse):
                 well.run_complete_time = db_well.run_complete
                 well.well_start_time = db_well.well_start
                 well.well_complete_time = db_well.well_complete
-
-    def _recent_completed_wells(self) -> List[PacBioRunWellMetrics]:
-        """
-        Get recent completed wells from the mlwh database.
-        """
-
-        ######
-        # It is important not to show aborted wells in the inbox.
-        #
-        # The well can be complete as in Illumina 'run complete' but that's not
-        # the same as analysis complete which the other conditions are trying for.
-        # It potentially gets a bit easier with v11 but those conditions should
-        # still work ok.
-        #
-
-        # Using current local time.
-        # Generating a date rather than a timestamp here in order to have a consistent
-        # earliest date for the look-back period during the QC team's working day.
-        my_date = date.today() - timedelta(weeks=INBOX_LOOK_BACK_NUM_WEEKS)
-        look_back_min_date = datetime(my_date.year, my_date.month, my_date.day)
-
-        # TODO: fall back to run_complete when well_complete is undefined
-
-        query = (
-            select(PacBioRunWellMetrics)
-            .where(PacBioRunWellMetrics.well_status == "Complete")
-            .where(PacBioRunWellMetrics.run_complete > look_back_min_date)
-            .where(PacBioRunWellMetrics.polymerase_num_reads.is_not(None))
-            .where(
-                or_(
-                    and_(
-                        PacBioRunWellMetrics.ccs_execution_mode.in_(
-                            ("OffInstrument", "OnInstrument")
-                        ),
-                        PacBioRunWellMetrics.hifi_num_reads.is_not(None),
-                    ),
-                    PacBioRunWellMetrics.ccs_execution_mode == "None",
-                )
-            )
-            .order_by(
-                PacBioRunWellMetrics.run_complete,
-                PacBioRunWellMetrics.pac_bio_run_name,
-                PacBioRunWellMetrics.well_label,
-            )
-        )
-
-        return self.mlwh_session.execute(query).scalars().all()
 
     def _recent_inbox_wells(self, recent_wells):
 

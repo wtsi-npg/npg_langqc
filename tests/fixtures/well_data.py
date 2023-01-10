@@ -104,7 +104,7 @@ MLWH_DATA = [
         "2022-12-02 15:20:40",
         "2022-12-04 05:37:14",
         "Complete",
-        None,
+        "None",
         4291550,
         None,
     ],
@@ -513,9 +513,10 @@ def _update_timestamps4inbox():
     # hifi_num_reads are set in a way that makes them eligible for the QC
     # inbox. Here we make sure that these wells have recent (ie within 4 weeks)
     # completion dates.
+    # We also update dates for TRACTION_RUN_1, which does have wells in QC.
 
     # Find the earliest date in the set.
-    inbox_runs = [f"TRACTION_RUN_{run}" for run in (3, 4, 10, 12)]
+    inbox_runs = [f"TRACTION_RUN_{run}" for run in (1, 3, 4, 10, 12)]
     date_tuples = [
         (record[2], record[3], record[4], record[5])
         for record in MLWH_DATA
@@ -525,18 +526,16 @@ def _update_timestamps4inbox():
     for dt in date_tuples:
         dates.extend([datetime.strptime(date, DATE_FORMAT) for date in dt])
     old_earliest = min(dates)
-
-    # Find the earliest date 26 days from today.
+    # Find the date 26 days from today.
     new_earliest = date.today() - timedelta(days=26)
     # Find the difference in days.
     delta = (
         datetime(new_earliest.year, new_earliest.month, new_earliest.day) - old_earliest
     )
-    delta = timedelta(delta.days)
-
+    delta_plus = timedelta(delta.days)
     # Amend all dates for the inbox data by adding delta.
     for index, record in enumerate(MLWH_DATA):
         if record[0] in inbox_runs:
             for i in (2, 3, 4, 5):
-                time = datetime.strptime(record[i], DATE_FORMAT) + delta
+                time = datetime.strptime(record[i], DATE_FORMAT) + delta_plus
                 MLWH_DATA[index][i] = time.strftime(DATE_FORMAT)
