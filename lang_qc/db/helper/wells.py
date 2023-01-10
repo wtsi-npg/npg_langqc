@@ -186,17 +186,17 @@ class PacBioPagedWellsFactory(PagedStatusResponse):
         #
 
         # Using current local time.
-        # Generating a date rather than a timestamp here in order to have consistent
-        # start date during the working day.
+        # Generating a date rather than a timestamp here in order to have a consistent
+        # earliest date for the look-back period during the QC team's working day.
         my_date = date.today() - timedelta(weeks=INBOX_LOOK_BACK_NUM_WEEKS)
-        start_datetime = datetime(my_date.year, my_date.month, my_date.day)
+        look_back_min_date = datetime(my_date.year, my_date.month, my_date.day)
 
         # TODO: fall back to run_complete when well_complete is undefined
 
         query = (
             select(PacBioRunWellMetrics)
             .where(PacBioRunWellMetrics.well_status == "Complete")
-            .where(PacBioRunWellMetrics.run_complete > start_datetime)
+            .where(PacBioRunWellMetrics.run_complete > look_back_min_date)
             .where(PacBioRunWellMetrics.polymerase_num_reads.is_not(None))
             .where(
                 or_(
