@@ -501,11 +501,18 @@ def load_data4well_retrieval(
 
 
 def _update_timestamps4inbox():
-    # Inbox wells:
+
+    # Designated inbox wells:
     # TRACTION_RUN_3 - A1, B1,
     # TRACTION_RUN_4 - C1, D1,
     # TRACTION_RUN_10 - A1, B1, C1
     # TRACTION_RUN_12 - A1
+
+    # These wells do not have a record in a fixture for the LangQC database,
+    # values for their run status, ccs_execution_mode, polymerase_num_reads,
+    # hifi_num_reads are set in a way that makes them eligible for the QC
+    # inbox. Here we make sure that these wells have recent (ie within 4 weeks)
+    # completion dates.
 
     # Find the earliest date in the set.
     inbox_runs = [f"TRACTION_RUN_{run}" for run in (3, 4, 10, 12)]

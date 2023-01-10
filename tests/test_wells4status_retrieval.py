@@ -94,6 +94,11 @@ def test_query(qcdb_test_session, mlwhdb_test_session, load_data4well_retrieval)
 def test_inbox_wells_retrieval(
     qcdb_test_session, mlwhdb_test_session, load_data4well_retrieval
 ):
+
+    # To understand how the test db records for inbox wells are set up,
+    # please see the comment at the beginning of the _update_timestamps4inbox()
+    # function in tests.fixtures.well_data
+
     status = QcFlowStatusEnum.INBOX
 
     paged_wells = PacBioPagedWellsFactory(
