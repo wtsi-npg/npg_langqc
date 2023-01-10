@@ -360,7 +360,7 @@ python-versions = "*"
 
 [[package]]
 name = "ml-warehouse"
-version = "1.0.0"
+version = "1.1.0"
 description = "Python SQLAlchemy bindings to a warehouse housing data from multiple LIM systems."
 category = "main"
 optional = false
@@ -376,8 +376,8 @@ sqlalchemy-utils = "*"
 [package.source]
 type = "git"
 url = "https://github.com/wtsi-npg/ml-warehouse-python.git"
-reference = "1.0.0"
-resolved_reference = "b910859415637b7d9fb4a6025cf42d0961c2863d"
+reference = "1.1.0"
+resolved_reference = "b56bfe12c796ba06b108eceb2d70b044b74067f8"
 
 [[package]]
 name = "mypy-extensions"
