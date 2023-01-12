@@ -1,4 +1,3 @@
-import json
 from datetime import datetime
 
 from fastapi.testclient import TestClient
@@ -34,7 +33,7 @@ def test_claim_well_simple(test_client: TestClient, test_data_factory):
     }
     test_data_factory(test_data)
 
-    time_now = datetime.utcnow()
+    time_now = datetime.now()
 
     response = test_client.post(
         "/pacbio/run/MARATHON/well/B1/qc_claim",

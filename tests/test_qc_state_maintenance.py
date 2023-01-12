@@ -57,7 +57,7 @@ def test_well_state_helper(qcdb_test_session, load_dicts_and_users):
     pbi = PacBioEntity(run_name="Run 1", well_label="A")
     id = pbi.hash_product_id()
     json = pbi.json()
-    time_now = datetime.utcnow()
+    time_now = datetime.now()
 
     helper = WellQc(session=session, run_name="Run 1", well_label="A")
 
@@ -106,9 +106,9 @@ def test_well_state_helper(qcdb_test_session, load_dicts_and_users):
     state_obj = helper.assign_qc_state(**args)
     assert _num_qc_state_objects(session, id_seq_product) == 1
     assert state_obj.user.username == user2
-    assert state_obj.qc_type.qc_type == "sequencing"
-    assert state_obj.qc_state_dict.state == "Passed"
-    assert state_obj.created_by == "MyScript"
+    assert state_obj.qc_type.qc_type == args["qc_type"]
+    assert state_obj.qc_state_dict.state == args["qc_state"]
+    assert state_obj.created_by == args["application"]
     assert state_obj.is_preliminary == 1
     assert state_obj.id_seq_product == id_seq_product
     hist_objs = _hist_objects(session, id_seq_product)
@@ -126,7 +126,7 @@ def test_well_state_helper(qcdb_test_session, load_dicts_and_users):
     # Expect a new QC state for a different QC type
     args["qc_type"] = "library"
     state_obj = helper.assign_qc_state(**args)
-    assert state_obj.qc_type.qc_type == "library"
+    assert state_obj.qc_type.qc_type == args["qc_type"]
     assert _num_qc_state_objects(session, id_seq_product) == 2
     hist_objs = _hist_objects(session, id_seq_product)
     assert len(hist_objs) == 3

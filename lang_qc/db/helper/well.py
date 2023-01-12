@@ -258,33 +258,36 @@ class WellQc(QcDictDB):
         date_updated: datetime = None,
     ) -> QcState:
         """
-        Tries to assign a new QC state for the QC type defined by the `qc_type`
-        argument to the entity defined by this instance. Returns an object that
-        corresponds to a new, updated or unchanged row in the `qc_state` table.
+        Creates and persists a new QC state of type `qc_type` for this instance.
+        Returns an QcState object representing the new/updated/unchanged
+        row in the `qc_state` table.
 
-        A new row is returned if there was no corresponding QC assessment record.
+        A new row is created if there was no corresponding QC state in the DB.
 
-        An unchanged existing row is returned if the current QC state for the
-        requested qc type is the same as defined by the `qc_state` and `is_preliminary`
-        arguments.
+        The current row is returned if the current QC state in the DB matches
+         `qc_type`, `qc_state` and `is_preliminary` arguments.
 
-        An updated record is returned in all other cases.
+        An updated row is returned in all other cases.
 
-        The method does not perform a conversion of one type of QC record into another.
-        It allows for records for different types of QC for the same entity to co-exist.
-        For example, if a sequencing QC record exists for the entity and the library QC
-        record does not exist and the `qc_type` attribute of this method defines the
-        library QC type, a new database record is created.
+        Changing of `qc_type` for an existing row is not permitted.
 
-        The method does not enforce any particular order of assigning QC states,
-        neither it mandates that all QC assignments for the entity should be
-        performed by the same user.
+        Records for different types of QC for the same entity can co-exist.
+        For example: A sequencing QC record
+            (qc_type="sequencing", qc_state="DONE", is_preliminary=true)
+        can exist at the same time as
+            (qc_type="library", qc_state="DONE", is_preliminary=true)
+        without conflict. These are independent kinds of QC assessment.
+
+        A QC state change can be initiated by any user, and any QC state can
+        replace any other. Enforcement of business rules must be handled at the
+        application level.
 
         A `ValidationError` is raised if the values of either `qc_state` or `qc_type`
         attributes are invalid.
 
-        For each new or updated record in the `qc_state` row table a new record is
-        created in the `qc_state_hist` table. All database changes are committed.
+        For each new or updated record in the `qc_state` table a new record is
+        created in the `qc_state_hist` table, thereby preserving a history of all
+        changes.
 
         If a record for the product defined by this instance is not present in the
         `seq_product` table, it is created alongside corresponding records in the
@@ -295,23 +298,21 @@ class WellQc(QcDictDB):
             user - an instance of the existing in the database lang_qc.db.qc_schema.User,
             object, required
 
-            new_qc_state - a string description of the QC state to be assigned, defaults
-            to `Claimed`
+            new_qc_state - a string description of the QC state to be assigned
 
-            qc_type - a string representing QC type, defaults to `sequencing`
+            qc_type - a string representing QC type
 
             is_preliminary - a boolean value representing the preliminary nature of the
-            QC state, defaults to `True`
+            QC state. False == final, i.e completed with no further changes intended.
 
             application - a string, the name of the application using this API,
-            defaults to `Lang QC`
+            defaults to `Lang QC`. For differentiating between changes via GUI and
+            other changes made by scripts or pipelines.
 
-            date_updated - a `datetime` object representing the time when the state
-            was updated, defaults to None. If this date is supplied by the caller, it is
-            advised to adjust the value to the UTC time zone. If the value is not given,
-            the UTC timestamp for 'now' is used. If the QC outcome for this entity does
-            not exist, the value of this argument is used for the `date_created` column.
-
+            date_updated - an optional `datetime` for explicitly setting when the QC state was
+            changed. Normally the database will set the timestamp, but a manual setting can be
+            used for testing and data manipulation. If the QC outcome for this entity does not
+            exist, the value of this argument is used for the `date_created` column as well.
         """
 
         db_state = self.current_qc_state(qc_type)
@@ -338,7 +339,6 @@ class WellQc(QcDictDB):
             "is_preliminary": 1 if is_preliminary is True else 0,
             "user": user,
             "created_by": application,
-            "date_updated": datetime.utcnow() if date_updated is None else date_updated,
             "qc_type": self.qc_types[qc_type],
             "seq_product": self.seq_product,
         }
@@ -350,13 +350,26 @@ class WellQc(QcDictDB):
             db_state.is_preliminary = values["is_preliminary"]
             db_state.user = values["user"]
             db_state.created_by = values["created_by"]
-            db_state.date_updated = values["date_updated"]
-            values["date_created"] = db_state.date_created  # Save for historic.
+            if date_updated:
+                db_state.date_updated = date_updated
         else:
-            values["date_created"] = values["date_updated"]
-            db_state = QcState(**values)  # Create a new record.
+            # Create a new record, date_updated=None is accepted by the ORM as
+            # deferring to the schema defaults
+            db_state = QcState(
+                date_created=date_updated, date_updated=date_updated, **values
+            )
 
-        self.session.add_all([db_state, QcStateHist(**values)])
+        self.session.add(db_state)
+        self.session.commit()  # to generate and propagate timestamps
+
+        qc_state_hist = QcStateHist(
+            # Clone timestamps whether from argument or generated by the DB
+            date_created=db_state.date_created,
+            date_updated=db_state.date_updated,
+            **values,
+        )
+
+        self.session.add(qc_state_hist)
         self.session.commit()
 
         return db_state
