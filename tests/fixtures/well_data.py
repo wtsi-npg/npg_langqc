@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime, timedelta
 
 import pytest
 from ml_warehouse.schema import PacBioRunWellMetrics
@@ -69,7 +69,8 @@ QC_DATA = [
 ]
 
 # Data in each list: run name, well label, run start, completed and
-# well start, completed dates, then run status.
+# well start, completed dates, run status, ccs_execution_mode,
+# polymerase_num_reads, hifi_num_reads.
 MLWH_DATA = [
     [
         "TRACTION_RUN_1",
@@ -79,6 +80,9 @@ MLWH_DATA = [
         "2022-12-02 15:20:40",
         "2022-12-04 05:37:14",
         "Complete",
+        "None",
+        5114903,
+        None,
     ],
     [
         "TRACTION_RUN_1",
@@ -88,6 +92,9 @@ MLWH_DATA = [
         "2022-12-03 18:28:42",
         "2022-12-05 07:15:19",
         "Complete",
+        "None",
+        4793726,
+        None,
     ],
     [
         "TRACTION_RUN_1",
@@ -97,6 +104,9 @@ MLWH_DATA = [
         "2022-12-02 15:20:40",
         "2022-12-04 05:37:14",
         "Complete",
+        "None",
+        4291550,
+        None,
     ],
     [
         "TRACTION_RUN_1",
@@ -106,6 +116,9 @@ MLWH_DATA = [
         "2022-12-03 18:28:42",
         "2022-12-05 07:15:19",
         "Complete",
+        "None",
+        5198365,
+        None,
     ],
     [
         "TRACTION_RUN_2",
@@ -115,6 +128,9 @@ MLWH_DATA = [
         "2022-12-02 15:21:20",
         "2022-12-04 06:43:31",
         "Complete",
+        "OffInstrument",
+        3672108,
+        1081530,
     ],
     [
         "TRACTION_RUN_2",
@@ -124,6 +140,9 @@ MLWH_DATA = [
         "2022-12-03 18:41:10",
         "2022-12-05 03:14:01",
         "Complete",
+        "OffInstrument",
+        6312393,
+        2109215,
     ],
     [
         "TRACTION_RUN_2",
@@ -133,6 +152,9 @@ MLWH_DATA = [
         "2022-12-04 21:52:27",
         "2022-12-06 11:08:40",
         "Complete",
+        "OffInstrument",
+        6342393,
+        2106715,
     ],
     [
         "TRACTION_RUN_2",
@@ -142,6 +164,9 @@ MLWH_DATA = [
         "2022-12-06 01:20:31",
         "2022-12-07 14:13:56",
         "Complete",
+        "OffInstrument",
+        6342593,
+        2160715,
     ],
     [
         "TRACTION_RUN_3",
@@ -151,6 +176,9 @@ MLWH_DATA = [
         "2022-12-10 01:56:23",
         "2022-12-11 20:23:56",
         "Complete",
+        "None",
+        1391057,
+        None,
     ],
     [
         "TRACTION_RUN_3",
@@ -160,6 +188,9 @@ MLWH_DATA = [
         "2022-12-11 06:53:00",
         "2022-12-12 19:48:11",
         "Complete",
+        "None",
+        4519510,
+        None,
     ],
     [
         "TRACTION_RUN_4",
@@ -169,6 +200,9 @@ MLWH_DATA = [
         "2022-12-06 11:08:59",
         "2022-12-08 00:03:14",
         "Complete",
+        "None",
+        5114900,
+        None,
     ],
     [
         "TRACTION_RUN_4",
@@ -178,6 +212,9 @@ MLWH_DATA = [
         "2022-12-07 14:21:21",
         "2022-12-09 01:43:36",
         "Complete",
+        "None",
+        5114503,
+        None,
     ],
     [
         "TRACTION_RUN_4",
@@ -187,6 +224,9 @@ MLWH_DATA = [
         "2022-12-08 17:38:38",
         "2022-12-10 07:44:48",
         "Complete",
+        "None",
+        5124903,
+        None,
     ],
     [
         "TRACTION_RUN_4",
@@ -196,6 +236,9 @@ MLWH_DATA = [
         "2022-12-09 22:36:07",
         "2022-12-11 16:02:57",
         "Complete",
+        "None",
+        4114903,
+        None,
     ],
     [
         "TRACTION_RUN_5",
@@ -205,6 +248,9 @@ MLWH_DATA = [
         "2022-12-19 01:54:11",
         "2022-12-20 14:21:06",
         "Complete",
+        "OnInstrument",
+        3999482,
+        2049919,
     ],
     [
         "TRACTION_RUN_5",
@@ -214,6 +260,9 @@ MLWH_DATA = [
         "2022-12-14 12:06:49",
         "2022-12-15 23:35:44",
         "Complete",
+        "OnInstrument",
+        3989482,
+        2069919,
     ],
     [
         "TRACTION_RUN_6",
@@ -223,6 +272,9 @@ MLWH_DATA = [
         "2022-12-12 15:57:31",
         "2022-12-14 06:42:33",
         "Complete",
+        "OnInstrument",
+        3989782,
+        2669919,
     ],
     [
         "TRACTION_RUN_6",
@@ -232,8 +284,22 @@ MLWH_DATA = [
         "2022-12-13 20:52:47",
         "2022-12-15 10:37:35",
         "Complete",
+        "OnInstrument",
+        3989786,
+        2769919,
     ],
-    ["TRACTION_RUN_7", "A1", "2022-12-21 11:08:51", None, None, None, "Aborted"],
+    [
+        "TRACTION_RUN_7",
+        "A1",
+        "2022-12-21 11:08:51",
+        None,
+        None,
+        None,
+        "Aborted",
+        "OnInstrument",
+        None,
+        None,
+    ],
     [
         "TRACTION_RUN_8",
         "A1",
@@ -242,6 +308,9 @@ MLWH_DATA = [
         "2022-12-19 08:49:49",
         "2022-12-20 21:24:13",
         "Running",
+        "OnInstrument",
+        None,
+        None,
     ],
     [
         "TRACTION_RUN_8",
@@ -251,6 +320,9 @@ MLWH_DATA = [
         "2022-12-20 13:46:24",
         None,
         "Running",
+        "OnInstrument",
+        None,
+        None,
     ],
     [
         "TRACTION_RUN_9",
@@ -260,6 +332,9 @@ MLWH_DATA = [
         None,
         None,
         "Terminated",
+        "OffInstrument",
+        None,
+        None,
     ],
     [
         "TRACTION_RUN_10",
@@ -269,6 +344,9 @@ MLWH_DATA = [
         "2022-12-09 11:25:41",
         "2022-12-10 23:20:18",
         "Complete",
+        "OnInstrument",
+        3959786,
+        2779919,
     ],
     [
         "TRACTION_RUN_10",
@@ -278,6 +356,9 @@ MLWH_DATA = [
         "2022-12-10 16:20:18",
         "2022-12-12 05:00:40",
         "Complete",
+        "OnInstrument",
+        3989716,
+        2761919,
     ],
     [
         "TRACTION_RUN_10",
@@ -287,8 +368,73 @@ MLWH_DATA = [
         "2022-12-11 21:16:37",
         "2022-12-13 10:22:52",
         "Complete",
+        "OnInstrument",
+        3969786,
+        2763919,
+    ],
+    [
+        "TRACTION_RUN_11",
+        "A1",
+        "2022-12-10 11:15:41",
+        "2022-12-15 07:39:59",
+        "2022-12-12 21:16:37",
+        "2022-12-14 10:22:52",
+        "Complete",
+        "OnInstrument",
+        None,
+        None,
+    ],
+    [
+        "TRACTION_RUN_12",
+        "A1",
+        "2022-12-11 11:15:41",
+        "2022-12-16 07:39:59",
+        "2022-12-13 21:16:37",
+        "2022-12-15 10:22:52",
+        "Complete",
+        "OffInstrument",
+        3339714,
+        2226107,
+    ],
+    [
+        "TRACTION_RUN_12",
+        "B1",
+        "2022-12-11 11:15:41",
+        "2022-12-16 07:39:59",
+        "2022-12-13 21:16:37",
+        "2022-12-15 10:22:52",
+        "Complete",
+        "OffInstrument",
+        3336714,
+        None,
+    ],
+    [
+        "TRACTION_RUN_12",
+        "C1",
+        "2022-12-11 11:15:41",
+        "2022-12-16 07:39:59",
+        "2022-12-13 21:16:37",
+        "2022-12-15 10:22:52",
+        "Complete",
+        "OffInstrument",
+        None,
+        3339724,
+    ],
+    [
+        "TRACTION_RUN_13",
+        "A1",
+        "2022-11-11 11:15:41",
+        "2022-11-16 07:39:59",
+        "2022-11-13 21:16:37",
+        "2022-11-15 10:22:52",
+        "Complete",
+        "OffInstrument",
+        3989714,
+        2227107,
     ],
 ]
+
+DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 
 @pytest.fixture(scope="module")
@@ -322,9 +468,14 @@ def load_data4well_retrieval(
                 user=users[0],
                 qc_state=qc_data[2],
                 is_preliminary=qc_data[3],
-                date_updated=datetime.strptime(qc_data[4], "%Y-%m-%d %H:%M:%S"),
+                date_updated=datetime.strptime(qc_data[4], DATE_FORMAT),
                 qc_type=qc_type,
             )
+
+    # We want some wells to be in the inbox. For that their run_complete dates
+    # should be within last four weeks. Therefore, we need to update the timestamps
+    # for these runs.
+    _update_timestamps4inbox()
 
     # Transform a list of lists into a list of hashes, which map to db rows.
     mlwh_data4insert = [
@@ -336,8 +487,55 @@ def load_data4well_retrieval(
             "well_start": record[4],
             "well_complete": record[5],
             "run_status": record[6],
+            "well_status": record[6],
+            "ccs_execution_mode": record[7],
+            "polymerase_num_reads": record[8],
+            "hifi_num_reads": record[9],
         }
         for record in MLWH_DATA
     ]
     mlwhdb_test_session.execute(insert(PacBioRunWellMetrics), mlwh_data4insert)
     mlwhdb_test_session.commit()
+
+    return MLWH_DATA
+
+
+def _update_timestamps4inbox():
+
+    # Designated inbox wells:
+    # TRACTION_RUN_3 - A1, B1,
+    # TRACTION_RUN_4 - C1, D1,
+    # TRACTION_RUN_10 - A1, B1, C1
+    # TRACTION_RUN_12 - A1
+
+    # These wells do not have a record in a fixture for the LangQC database,
+    # values for their run status, ccs_execution_mode, polymerase_num_reads,
+    # hifi_num_reads are set in a way that makes them eligible for the QC
+    # inbox. Here we make sure that these wells have recent (ie within 4 weeks)
+    # completion dates.
+    # We also update dates for TRACTION_RUN_1, which does have wells in QC.
+
+    # Find the earliest date in the set.
+    inbox_runs = [f"TRACTION_RUN_{run}" for run in (1, 3, 4, 10, 12)]
+    date_tuples = [
+        (record[2], record[3], record[4], record[5])
+        for record in MLWH_DATA
+        if record[0] in inbox_runs
+    ]
+    dates = []
+    for dt in date_tuples:
+        dates.extend([datetime.strptime(date, DATE_FORMAT) for date in dt])
+    old_earliest = min(dates)
+    # Find the date 26 days from today.
+    new_earliest = date.today() - timedelta(days=26)
+    # Find the difference in days.
+    delta = (
+        datetime(new_earliest.year, new_earliest.month, new_earliest.day) - old_earliest
+    )
+    delta_plus = timedelta(delta.days)
+    # Amend all dates for the inbox data by adding delta.
+    for index, record in enumerate(MLWH_DATA):
+        if record[0] in inbox_runs:
+            for i in (2, 3, 4, 5):
+                time = datetime.strptime(record[i], DATE_FORMAT) + delta_plus
+                MLWH_DATA[index][i] = time.strftime(DATE_FORMAT)

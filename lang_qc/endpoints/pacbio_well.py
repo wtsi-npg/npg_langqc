@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Dict, List, Tuple
+from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
 from ml_warehouse.schema import PacBioRun
@@ -36,13 +36,9 @@ from lang_qc.db.helper.wells import PacBioPagedWellsFactory
 from lang_qc.db.mlwh_connection import get_mlwh_db
 from lang_qc.db.qc_connection import get_qc_db
 from lang_qc.db.qc_schema import User
-from lang_qc.db.utils import (
-    extract_well_label_and_run_name_from_state,
-    get_inbox_wells_and_states,
-)
 from lang_qc.models.lims import Sample, Study
 from lang_qc.models.pacbio.run import PacBioRunResponse
-from lang_qc.models.pacbio.well import PacBioPagedWells, PacBioWell
+from lang_qc.models.pacbio.well import PacBioPagedWells
 from lang_qc.models.qc_flow_status import QcFlowStatusEnum
 from lang_qc.models.qc_state import QcState, QcStateBasic
 from lang_qc.util.auth import check_user
@@ -81,24 +77,14 @@ def get_wells_filtered_by_status(
     mlwh_session: Session = Depends(get_mlwh_db),
 ):
 
-    # Page size and number values will be validated at this point.
-    factory = PacBioPagedWellsFactory(
+    # Page size and number values will be validated by the constructor.
+    return PacBioPagedWellsFactory(
         qcdb_session=qcdb_session,
         mlwh_session=mlwh_session,
         page_size=page_size,
         page_number=page_number,
         qc_flow_status=qc_status,
-    )
-
-    paged_pbwells = None
-    if qc_status == QcFlowStatusEnum.INBOX:
-        wells, states = get_inbox_wells_and_states(qcdb_session, mlwh_session)
-        pbwells = pack_wells_and_states(wells, states)
-        paged_pbwells = factory.wells2paged_wells(pbwells)
-    else:
-        paged_pbwells = factory.create()
-
-    return paged_pbwells
+    ).create()
 
 
 @router.get(
@@ -236,51 +222,3 @@ def assign_qc_state(
         )
 
     return QcState.from_orm(qc_state)
-
-
-def pack_wells_and_states(wells, qc_states) -> List[PacBioWell]:
-    """
-    Pack wells and QC states together into a list of PacBioWell objects.
-
-    If a well does not have a corresponding QC state, it will be set to `None`.
-    """
-
-    well_id2well: Dict = {}
-    well_id2qc_state: Dict = {}
-
-    for well in wells:
-        unique_id = _id_for_well((well.pac_bio_run_name, well.well_label))
-        well_id2well[unique_id] = well
-
-    for state in qc_states:
-
-        unique_id = _id_for_well(extract_well_label_and_run_name_from_state(state))
-        if unique_id not in well_id2well:
-            raise Exception(
-                f"A state has been found which does not correspond to a well: {state}"
-            )
-        well_id2qc_state[unique_id] = QcState.from_orm(state)
-
-    results: List = []
-    # Sort the keys so that the wells are listed in order of
-    # run name, then well label.
-    for well_id in sorted(well_id2well):
-        well = well_id2well[well_id]
-        results.append(
-            PacBioWell(
-                label=well.well_label,
-                run_name=well.pac_bio_run_name,
-                run_start_time=well.run_start,
-                run_complete_time=well.run_complete,
-                well_start_time=well.well_start,
-                well_complete_time=well.well_complete,
-                qc_state=well_id2qc_state.get(well_id, None),
-            )
-        )
-
-    return results
-
-
-def _id_for_well(run_well: Tuple) -> str:
-
-    return ":".join(run_well)
