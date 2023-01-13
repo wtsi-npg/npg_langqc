@@ -3,7 +3,7 @@ name = "npg_langqc"
 packages = [
   { include = "lang_qc" },
 ]
-version = "0.3.0"
+version = "0.3.1"
 description = "FastAPI application for Long Read QC"
 authors = ["Adam Blanchet <ab59@sanger.ac.uk>"]
 license = "GPL-3.0-or-later"
