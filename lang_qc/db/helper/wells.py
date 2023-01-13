@@ -1,6 +1,8 @@
-# Copyright (c) 2022 Genome Research Ltd.
+# Copyright (c) 2022, 2023 Genome Research Ltd.
 #
-# Author: Marina Gourtovaia <mg8@sanger.ac.uk>
+# Authors:
+#   Marina Gourtovaia <mg8@sanger.ac.uk>
+#   Kieron Taylor <kt19@sanger.ac.uk>
 #
 # This file is part of npg_langqc.
 #

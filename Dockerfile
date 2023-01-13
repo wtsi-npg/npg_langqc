@@ -1,5 +1,4 @@
 FROM python:3.10 as requirements-stage
-LABEL org.opencontainers.image.authors="Adam Blanchet <ab59@sanger.ac.uk>"
 
 WORKDIR /tmp
 

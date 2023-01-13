@@ -5,7 +5,7 @@ packages = [
 ]
 version = "0.3.1"
 description = "FastAPI application for Long Read QC"
-authors = ["Adam Blanchet <ab59@sanger.ac.uk>"]
+authors = ["Adam Blanchet", "Marina Gourtovaia mg8@sanger.ac.uk", "Kieron Taylor kt19@sanger.ac.uk"]
 license = "GPL-3.0-or-later"
 
 [tool.poetry.dependencies]
