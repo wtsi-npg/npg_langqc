@@ -1,11 +1,6 @@
 from fastapi.testclient import TestClient
 
-from lang_qc import __version__
 from tests.fixtures.inbox_data import test_data_factory
-
-
-def test_version():
-    assert __version__ == "0.3.1"
 
 
 def test_not_found(test_client: TestClient):
