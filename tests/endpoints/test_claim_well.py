@@ -1,4 +1,4 @@
-import json
+from datetime import datetime
 
 from fastapi.testclient import TestClient
 from npg_id_generation.pac_bio import PacBioEntity
@@ -33,6 +33,8 @@ def test_claim_well_simple(test_client: TestClient, test_data_factory):
     }
     test_data_factory(test_data)
 
+    time_now = datetime.now()
+
     response = test_client.post(
         "/pacbio/run/MARATHON/well/B1/qc_claim",
         headers={"oidc_claim_email": "zx80@example.com"},
@@ -57,7 +59,10 @@ def test_claim_well_simple(test_client: TestClient, test_data_factory):
     for key, expected_value in expected.items():
         assert actual_content[key] == expected_value
     for date_key in ("date_created", "date_updated"):
-        assert actual_content[date_key] is not None
+        delta = (
+            datetime.strptime(actual_content[date_key], "%Y-%m-%dT%H:%M:%S") - time_now
+        )
+        assert delta.total_seconds() <= 1
 
 
 def test_claim_well_unknown_user(test_client: TestClient, test_data_factory):

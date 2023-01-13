@@ -17,10 +17,10 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Dict, List, Tuple
+from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
-from ml_warehouse.schema import PacBioRun, PacBioRunWellMetrics
+from ml_warehouse.schema import PacBioRun
 from pydantic import PositiveInt
 from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
@@ -32,19 +32,13 @@ from lang_qc.db.helper.well import (
     WellMetrics,
     WellQc,
 )
+from lang_qc.db.helper.wells import PacBioPagedWellsFactory
 from lang_qc.db.mlwh_connection import get_mlwh_db
 from lang_qc.db.qc_connection import get_qc_db
 from lang_qc.db.qc_schema import User
-from lang_qc.db.utils import (
-    extract_well_label_and_run_name_from_state,
-    get_in_progress_wells_and_states,
-    get_inbox_wells_and_states,
-    get_on_hold_wells_and_states,
-    get_qc_complete_wells_and_states,
-)
 from lang_qc.models.lims import Sample, Study
 from lang_qc.models.pacbio.run import PacBioRunResponse
-from lang_qc.models.pacbio.well import PacBioPagedWells, PacBioWell
+from lang_qc.models.pacbio.well import PacBioPagedWells
 from lang_qc.models.qc_flow_status import QcFlowStatusEnum
 from lang_qc.models.qc_state import QcState, QcStateBasic
 from lang_qc.util.auth import check_user
@@ -83,17 +77,14 @@ def get_wells_filtered_by_status(
     mlwh_session: Session = Depends(get_mlwh_db),
 ):
 
-    # Page size and number values will be validated at this point.
-    paged_pbwells = PacBioPagedWells(
-        page_size=page_size, page_number=page_number, qc_flow_status=qc_status
-    )
-    # Now we are getting all results for a status.
-    # Ideally we'd like to get the relevant page straight away.
-    wells, states = grab_wells_with_status(qc_status, qcdb_session, mlwh_session)
-    pbwells = pack_wells_and_states(wells, states)
-    # Now we slice the list and finalize the object.
-    paged_pbwells.set_page(pbwells)
-    return paged_pbwells  # And return it.
+    # Page size and number values will be validated by the constructor.
+    return PacBioPagedWellsFactory(
+        qcdb_session=qcdb_session,
+        mlwh_session=mlwh_session,
+        page_size=page_size,
+        page_number=page_number,
+        qc_flow_status=qc_status,
+    ).create()
 
 
 @router.get(
@@ -231,71 +222,3 @@ def assign_qc_state(
         )
 
     return QcState.from_orm(qc_state)
-
-
-def pack_wells_and_states(wells, qc_states) -> List[PacBioWell]:
-    """
-    Pack wells and QC states together into a list of PacBioWell objects.
-
-    If a well does not have a corresponding QC state, it will be set to `None`.
-    """
-
-    well_id2well: Dict = {}
-    well_id2qc_state: Dict = {}
-
-    for well in wells:
-        unique_id = _id_for_well((well.pac_bio_run_name, well.well_label))
-        well_id2well[unique_id] = well
-
-    for state in qc_states:
-
-        unique_id = _id_for_well(extract_well_label_and_run_name_from_state(state))
-        if unique_id not in well_id2well:
-            raise Exception(
-                f"A state has been found which does not correspond to a well: {state}"
-            )
-        well_id2qc_state[unique_id] = QcState.from_orm(state)
-
-    results: List = []
-    # Sort the keys so that the wells are listed in order of
-    # run name, then well label.
-    for well_id in sorted(well_id2well):
-        well = well_id2well[well_id]
-        results.append(
-            PacBioWell(
-                label=well.well_label,
-                run_name=well.pac_bio_run_name,
-                run_start_time=well.run_start,
-                run_complete_time=well.run_complete,
-                well_start_time=well.well_start,
-                well_complete_time=well.well_complete,
-                qc_state=well_id2qc_state.get(well_id, None),
-            )
-        )
-
-    return results
-
-
-def grab_wells_with_status(
-    status: QcFlowStatusEnum,
-    qcdb_session: Session,
-    mlwh_session: Session,
-) -> Tuple[List[PacBioRunWellMetrics], List[QcState]]:
-    """Get wells from the QC DB filtered by QC status."""
-
-    match status:
-        case QcFlowStatusEnum.INBOX:
-            return get_inbox_wells_and_states(qcdb_session, mlwh_session)
-        case QcFlowStatusEnum.IN_PROGRESS:
-            return get_in_progress_wells_and_states(qcdb_session, mlwh_session)
-        case QcFlowStatusEnum.ON_HOLD:
-            return get_on_hold_wells_and_states(qcdb_session, mlwh_session)
-        case QcFlowStatusEnum.QC_COMPLETE:
-            return get_qc_complete_wells_and_states(qcdb_session, mlwh_session)
-        case _:
-            raise Exception("An unknown filter was passed.")
-
-
-def _id_for_well(run_well: Tuple) -> str:
-
-    return ":".join(run_well)

@@ -8,6 +8,8 @@
     # Example:
 
     # Proxy to lang_qc API server
+    ProxyPass  /openapi/ http://lang_qc:8181/openapi/
+    ProxyPassReverse /openapi/ http://lang_qc:8181/openapi/
     ProxyPass  /api/ http://lang_qc:8181/
     ProxyPassReverse /api/ http://lang_qc:8181/
 
@@ -48,6 +50,7 @@
     OIDCCryptoPassphrase ${OIDCCryptoPassphrase}
     OIDCScope "openid email"
     OIDCInfoHook userinfo
+    OIDCSessionInactivityTimeout 1200
 
     # Redirect from root to the root of the web app.
     RedirectMatch 301 ^/$ /ui/

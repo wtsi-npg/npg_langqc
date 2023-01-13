@@ -1,4 +1,4 @@
-FROM node:16 as base-stage
+FROM node:18-alpine as base-stage
 
 COPY  package.json /code/longue_vue/
 
@@ -9,12 +9,10 @@ RUN npm install
 FROM base-stage as production-build-stage
 
 ARG BASE_PATH=/ui/
-ARG API_SERVER_HOST="https://localhost/"
 
 COPY . /code/longue_vue/
 
-RUN  sed -i "s,https://dev-langqc.dnapipelines.sanger.ac.uk,${API_SERVER_HOST}/,g" ./src/views/RunView.vue \
-  && npm run build -- --base=${BASE_PATH}
+RUN npm run build -- --base=${BASE_PATH}
 
 FROM httpd:alpine as production
 

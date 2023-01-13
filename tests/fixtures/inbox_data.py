@@ -10,6 +10,7 @@ from ml_warehouse.schema import (
     Study,
 )
 from npg_id_generation.pac_bio import PacBioEntity
+from sqlalchemy import delete, text
 
 from lang_qc.db.qc_schema import (
     ProductLayout,
@@ -33,6 +34,7 @@ def inbox_data(mlwhdb_test_session):
 
         metrics = PacBioRunWellMetrics(
             well_complete=datetime.now() - delta,
+            run_complete=datetime.now() - delta,
         )
         metrics.well_label = label
         metrics.pac_bio_run_name = "MARATHON"
@@ -94,6 +96,18 @@ def inbox_data(mlwhdb_test_session):
             )
         )
 
+    mlwhdb_test_session.commit()
+
+    yield True
+
+    print("\nTEARDOWN inbox_data")
+    mlwhdb_test_session.execute(text("SET foreign_key_checks=0;"))
+    mlwhdb_test_session.execute(delete(PacBioProductMetrics))
+    mlwhdb_test_session.execute(delete(PacBioRun))
+    mlwhdb_test_session.execute(delete(Study))
+    mlwhdb_test_session.execute(delete(Sample))
+    mlwhdb_test_session.execute(delete(PacBioRunWellMetrics))
+    mlwhdb_test_session.execute(text("SET foreign_key_checks=1;"))
     mlwhdb_test_session.commit()
 
 
@@ -202,56 +216,28 @@ def test_data_factory(mlwhdb_test_session, qcdb_test_session):
 
         return desired_wells
 
-    return setup_data
+    yield setup_data
 
+    print("\nTEARDOWN test_data_factory")
 
-@pytest.fixture()
-def wells_and_states() -> Tuple[List[PacBioRunWellMetrics], List[QcState]]:
+    mlwhdb_test_session.execute(text("SET foreign_key_checks=0;"))
+    mlwhdb_test_session.execute(delete(PacBioProductMetrics))
+    mlwhdb_test_session.execute(delete(PacBioRun))
+    mlwhdb_test_session.execute(delete(Study))
+    mlwhdb_test_session.execute(delete(Sample))
+    mlwhdb_test_session.execute(delete(PacBioRunWellMetrics))
+    mlwhdb_test_session.execute(text("SET foreign_key_checks=1;"))
+    mlwhdb_test_session.commit()
 
-    wells = {"MARATHON": ["A1", "A2", "A3", "A4"], "SEMI-MARATHON": ["A1", "A2", "A3"]}
-
-    run_metrics = []
-    states = []
-
-    for run_name in wells:
-        for well_label in wells[run_name]:
-            run_metrics.append(
-                PacBioRunWellMetrics(
-                    pac_bio_run_name=run_name,
-                    well_label=well_label,
-                    instrument_type="PacBio",
-                )
-            )
-            pbe = PacBioEntity(run_name=run_name, well_label=well_label)
-            id = pbe.hash_product_id()
-            json = pbe.json()
-            states.append(
-                QcState(
-                    id_qc_state_dict=1,
-                    created_by="me",
-                    seq_product=SeqProduct(
-                        id_seq_platform="PacBio",
-                        id_product=id,
-                        product_layout=[
-                            ProductLayout(
-                                sub_product=SubProduct(
-                                    id_attr_one=1,
-                                    value_attr_one=run_name,
-                                    id_attr_two=2,
-                                    value_attr_two=well_label,
-                                    properties=json,
-                                    properties_digest=id,
-                                )
-                            )
-                        ],
-                    ),
-                    user=User(username="zx80"),
-                    qc_type=QcType(qc_type="library", description="library QC."),
-                    qc_state_dict=QcStateDict(
-                        state="Passed",
-                        outcome=1,
-                    ),
-                )
-            )
-
-    return (run_metrics, states)
+    qcdb_test_session.execute(text("SET foreign_key_checks=0;"))
+    qcdb_test_session.execute(delete(QcState))
+    qcdb_test_session.execute(delete(ProductLayout))
+    qcdb_test_session.execute(delete(SeqProduct))
+    qcdb_test_session.execute(delete(SubProduct))
+    qcdb_test_session.execute(delete(QcType))
+    qcdb_test_session.execute(delete(SubProductAttr))
+    qcdb_test_session.execute(delete(SeqPlatform))
+    qcdb_test_session.execute(delete(User))
+    qcdb_test_session.execute(delete(QcStateDict))
+    qcdb_test_session.execute(text("SET foreign_key_checks=1;"))
+    qcdb_test_session.commit()

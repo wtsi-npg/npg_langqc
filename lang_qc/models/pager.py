@@ -21,6 +21,8 @@ from typing import List
 
 from pydantic import BaseModel, Field, PositiveInt
 
+from lang_qc.models.qc_flow_status import QcFlowStatusEnum
+
 
 class PagedResponse(BaseModel):
     """
@@ -63,3 +65,14 @@ class PagedResponse(BaseModel):
         from_number = self.page_size * (self.page_number - 1)
         to_number = from_number + self.page_size
         return data[from_number:to_number]
+
+
+class PagedStatusResponse(PagedResponse):
+    """
+    A response model for paged data that relates to a particular QC flow
+    status, described by the `qc_flow_status` attribute.
+    """
+
+    qc_flow_status: QcFlowStatusEnum = Field(
+        title="QC flow status", description="QC flow status used for the selection."
+    )

@@ -15,7 +15,7 @@ services:
     depends_on:
       - lang_qc
       - longue_vue
-    build: 
+    build:
       context: ./docker/proxy/
       target: production
     ports:
@@ -33,9 +33,8 @@ services:
   longue_vue:
     depends_on:
       - lang_qc
-    build: 
+    build:
       context: ./frontend
       target: production
       args:
-        API_SERVER_HOST: $SERVER_HOST
         BASE_PATH: /ui/

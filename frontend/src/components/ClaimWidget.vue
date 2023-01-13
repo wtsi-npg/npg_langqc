@@ -1,10 +1,9 @@
 <script setup>
     import { inject } from "vue";
+    import { ElMessage } from "element-plus";
     import LangQc from "../utils/langqc.js";
-    import { useMessageStore } from "@/stores/message.js";
     import { useWellStore } from "@/stores/focusWell.js";
 
-    const errorBuffer = useMessageStore();
     const focusWell = useWellStore();
 
     const emit = defineEmits(['wellClaimed']);
@@ -21,20 +20,28 @@
 
         client.claimWell(runName, wellLabel)
         .then(
-            response => { focusWell.updateWellQcState(response) }
+            (response) => {
+                focusWell.updateWellQcState(response);
+                ElMessage({
+                    message: 'Claimed',
+                    type: 'success',
+                    duration: 2000
+                });
+                emit('wellClaimed');
+            }
         ).catch(
             (error) => {
-                errorBuffer.addMessage(error);
+                ElMessage({
+                    message: error
+                })
             }
         );
-
-        emit('wellClaimed');
     }
 </script>
 
 <template>
     <div id="ClaimButton">
-        <el-button type="primary" @click.once="claimHandler" :disabled="tabGetter != 'inbox'">Claim for QC</el-button>
+        <el-button type="primary" @click="claimHandler" :disabled="tabGetter != 'inbox'">Claim for QC</el-button>
     </div>
 </template>
 

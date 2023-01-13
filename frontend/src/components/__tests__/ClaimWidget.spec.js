@@ -5,13 +5,12 @@ import ElementPlus from 'element-plus';
 
 import ClaimWidget from '../ClaimWidget.vue';
 import { useWellStore } from '@/stores/focusWell.js';
-import { useMessageStore } from '@/stores/message.js';
 
 describe('Clicking triggers POST and side-effects', () => {
     // A typical claim success
     fetch.mockResponse(
         JSON.stringify({
-            state: 'Claimed',
+            qc_state: 'Claimed',
             outcome: null,
             is_preliminary: true,
             qc_type: 'sequencing',
@@ -19,7 +18,7 @@ describe('Clicking triggers POST and side-effects', () => {
             user: 'loggedInUser'
         })
     );
-    let { widget, wellStore, messageStore }  = [null, null, null];
+    let { widget, wellStore }  = [null, null, null];
 
     beforeEach(() => {
         widget = mount(ClaimWidget, {
@@ -49,7 +48,6 @@ describe('Clicking triggers POST and side-effects', () => {
             }
         });
         wellStore = useWellStore();
-        messageStore = useMessageStore();
     });
 
 
@@ -58,8 +56,7 @@ describe('Clicking triggers POST and side-effects', () => {
         await widget.get('button').trigger('click');
         await flushPromises(); // Forces reactivity to shake out
 
-        expect(messageStore.errorMessages).toHaveLength(0);
-        expect(wellStore.getQcState).toEqual('Claimed');
+        expect(wellStore.getQcValue).toEqual('Claimed');
 
         let request = fetch.mock.calls[0];
         expect(request[0]).toEqual('/api/pacbio/run/TEST/well/A1/qc_claim');
@@ -77,8 +74,7 @@ describe('Clicking triggers POST and side-effects', () => {
 
         await widget.get('button').trigger('click');
         await flushPromises();
-        expect(messageStore.errorMessages).toHaveLength(1);
-        expect(messageStore.errorMessages).toEqual(["API says no"]);
+        // Notice ElMessage elements have appeared somehow?
 
         expect(widget.emits).not.toBeDefined();
     });

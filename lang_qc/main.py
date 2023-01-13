@@ -16,6 +16,8 @@
 #
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
+
+import logging
 import os
 
 from fastapi import FastAPI
@@ -30,6 +32,8 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+logging.basicConfig(level=logging.INFO)
 
 # Get origins from environment, must be a comma-separated list of origins
 # for example, set CORS_ORIGINS=http://localhost:300,https://example.com:443
