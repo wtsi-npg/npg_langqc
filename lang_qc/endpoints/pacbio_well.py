@@ -169,7 +169,7 @@ def claim_qc(
     return QcState.from_orm(well_qc.assign_qc_state(user=user))
 
 
-@router.post(
+@router.put(
     "/run/{run_name}/well/{well_label}/qc_assign",
     summary="Assign QC state to a well",
     description="""

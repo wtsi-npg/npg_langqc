@@ -24,7 +24,7 @@ def test_change_non_existent_well(test_client: TestClient, test_data_factory):
         }
     """
 
-    response = test_client.post(
+    response = test_client.put(
         "/pacbio/run/NONEXISTENT/well/A0/qc_assign",
         post_data,
         headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
@@ -53,7 +53,7 @@ def test_change_outcome(test_client: TestClient, test_data_factory):
         }
     """
 
-    response = test_client.post(
+    response = test_client.put(
         "/pacbio/run/MARATHON/well/A1/qc_assign",
         post_data,
         headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
@@ -86,7 +86,7 @@ def test_change_outcome(test_client: TestClient, test_data_factory):
           "is_preliminary": false
         }
     """
-    response = test_client.post(
+    response = test_client.put(
         "/pacbio/run/MARATHON/well/A1/qc_assign",
         post_data,
         headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
@@ -104,7 +104,7 @@ def test_change_outcome(test_client: TestClient, test_data_factory):
           "is_preliminary": true
         }
     """
-    response = test_client.post(
+    response = test_client.put(
         "/pacbio/run/MARATHON/well/A1/qc_assign",
         post_data,
         headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
@@ -135,7 +135,7 @@ def test_error_on_invalid_state(test_client: TestClient, test_data_factory):
         "is_preliminary": False,
     }
 
-    response = test_client.post(
+    response = test_client.put(
         "/pacbio/run/SEMI-MARATHON/well/D1/qc_assign",
         json.dumps(post_data),
         headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
@@ -163,7 +163,7 @@ def test_error_on_unknown_user(test_client: TestClient, test_data_factory):
         "is_preliminary": False,
     }
 
-    response = test_client.post(
+    response = test_client.put(
         "/pacbio/run/SEMI-MARATHON/well/D1/qc_assign",
         json.dumps(post_data),
         headers={"OIDC_CLAIM_EMAIL": "intruder@example.com"},
@@ -188,7 +188,7 @@ def test_error_on_unclaimed_well(test_client: TestClient, test_data_factory):
         "is_preliminary": True,
     }
 
-    response = test_client.post(
+    response = test_client.put(
         "/pacbio/run/MARATHON/well/A1/qc_assign",
         json.dumps(post_data),
         headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
@@ -212,7 +212,7 @@ def test_error_on_preclaimed_well(test_client: TestClient, test_data_factory):
         "is_preliminary": True,
     }
 
-    response = test_client.post(
+    response = test_client.put(
         "/pacbio/run/MARATHON/well/A1/qc_assign",
         json.dumps(post_data),
         headers={"OIDC_CLAIM_EMAIL": "cd32@example.com"},
