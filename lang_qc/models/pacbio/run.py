@@ -1,6 +1,8 @@
-# Copyright (c) 2022 Genome Research Ltd.
+# Copyright (c) 2022, 2023 Genome Research Ltd.
 #
-# Author: Adam Blanchet <ab59@sanger.ac.uk>
+# Authors:
+#  Adam Blanchet
+#  Marina Gourtovaia <mg8@sanger.ac.uk>
 #
 # This file is part of npg_langqc.
 #
