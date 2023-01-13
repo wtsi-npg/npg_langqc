@@ -5,7 +5,7 @@ from tests.fixtures.inbox_data import test_data_factory
 
 
 def test_version():
-    assert __version__ == "0.2.0"
+    assert __version__ == "0.3.1"
 
 
 def test_not_found(test_client: TestClient):
