@@ -50,5 +50,8 @@ Run a migration with
 where `revision` is the revision identifier. Your database will now have the
 updated schema.
 
-
 [a list of changes Alembic might not detect correctly]: https://alembic.sqlalchemy.org/en/latest/autogenerate.html#what-does-autogenerate-detect-and-what-does-it-not-detect
+
+## Making sure the ORM model has not diverged from the DB schema
+
+As of alembic 1.9, we gain the `alembic check` command, that generates errors if the server and ORM model are different. If there are changes, `alembic revision --autogenerate` can create a revision to alter the DB schema to match the ORM model. This may not be precisely what you want it to do!
