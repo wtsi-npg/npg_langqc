@@ -27,7 +27,8 @@ To follow a 'pure' alembic migration path (not recommended), check the
 generated revision (alembic should show you the path to it), and modify it
 as necessary. There is [a list of changes Alembic might not detect correctly].
 This includes table/column name changes, which generate deletion and creation
-of tables/columns, so these must be changed manually.
+of tables/columns, so these must be changed manually. It also includes uncommon
+index properties, such as sorting dates in descending order.
 
 Both DDL and DML statements cam be included into the  migration. However, we
 recommend that DML statements change data only for tables which perform the
@@ -54,4 +55,12 @@ updated schema.
 
 ## Making sure the ORM model has not diverged from the DB schema
 
-As of alembic 1.9, we gain the `alembic check` command, that generates errors if the server and ORM model are different. If there are changes, `alembic revision --autogenerate` can create a revision to alter the DB schema to match the ORM model. This may not be precisely what you want it to do!
+As of alembic 1.9, we gain the `alembic check` command, that generates errors
+if the server and ORM model are different. If there are changes,
+`alembic revision --autogenerate` can create a revision to alter the DB schema
+to match the ORM model. This may not be precisely what you want it to do!
+
+CAVEAT: alembic does not do a good job of handling indexes created by hand in
+a previous migration. It will try to drop and recreate them with different
+names. It will also lose any properties that alembic is not able to detect.
+This situation may be improved with updates for sqlalchemy 2.0 in the future.
