@@ -92,11 +92,13 @@ def get_wells_filtered_by_status(
 @router.get(
     "/run/{run_name}/well/{well_label}",
     summary="Get QC data for a well",
-    response_model=PacBioRunResponse,
+    response_model=PacBioWellFull,
 )
 def get_pacbio_well(
     run_name: str, well_label: str, db_session: Session = Depends(get_mlwh_db)
-) -> PacBioRunResponse:
+) -> PacBioWellFull:
+
+    # The code below will mostly disappear
 
     stmt = select(PacBioRun).filter(
         and_(PacBioRun.well_label == well_label, PacBioRun.pac_bio_run_name == run_name)

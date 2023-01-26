@@ -20,12 +20,13 @@
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
 from datetime import datetime
-from typing import List
+from typing import List, Dict
 
 from pydantic import BaseModel, Extra, Field
 
 from lang_qc.models.pager import PagedStatusResponse
 from lang_qc.models.qc_state import QcState
+from lang_qc.models.pacbio.qc_data import QCDataWell
 
 
 class PacBioWell(BaseModel, extra=Extra.forbid):
@@ -45,8 +46,10 @@ class PacBioWell(BaseModel, extra=Extra.forbid):
     )
     run_start_time: datetime = Field(default=None, title="Run start time")
     run_complete_time: datetime = Field(default=None, title="Run complete time")
+    run_status: str
     well_start_time: datetime = Field(default=None, title="Well start time")
     well_complete_time: datetime = Field(default=None, title="Well complete time")
+    well_status: str
     qc_state: QcState = Field(
         default=None,
         title="Current QC state of this well",
@@ -72,3 +75,23 @@ class PacBioPagedWells(PagedStatusResponse, extra=Extra.forbid):
         specified by the `page_size` and `page_number` attributes.
         """,
     )
+
+
+class PacBioWellFull(PacBioWell, extra=Extra.forbid) :
+    """
+    A response model for a single PacBio well on a particular PacBio run.
+    The class contains the attributes that uniquely define this well (`run_name`
+    and `level`), along with the time line and the current QC state of this well,
+    if any.
+    
+    Compared to the parent class, this model is enhanced with LIMS information
+    about the well and QC metrics for this well, which is essential when
+    the QC assessment of the sequencing process.
+    """
+
+    metrics: QCDataWell
+    provenance: Dict # this will be an object, which will wrap info about study, sample and lib type
+                     # lang_qc/models//pacbio/run.py will be deleted
+                     # lang_qc/models//lims.py will be moved to lang_qc/models//pacbio/ and will
+                     # implement this wrapper object for LIMS data
+
