@@ -1,24 +1,18 @@
-from ml_warehouse.schema import (
-    PacBioProductMetrics,
-    PacBioRun,
-    PacBioRunWellMetrics,
-    Sample,
-    Study,
-)
+from ml_warehouse.schema import PacBioRun
 from sqlalchemy import select
 
 from lang_qc.models.pacbio.lims import PacBioLimsData
 from tests.conftest import insert_from_yaml
 
-table_classes = (PacBioRun, Study, Sample, PacBioProductMetrics, PacBioRunWellMetrics)
-run_name = "TRACTION-RUN-92"
-# Four wells, D1 has 40 samples, the rest have one sample each.
-#
-
 
 def test_query(mlwhdb_test_session):
 
-    insert_from_yaml(mlwhdb_test_session, "tests/data/mlwh_pb_run_92", table_classes)
+    run_name = "TRACTION-RUN-92"
+    # Four wells, D1 has 40 samples, the rest have one sample each.
+
+    insert_from_yaml(
+        mlwhdb_test_session, "tests/data/mlwh_pb_run_92", "ml_warehouse.schema"
+    )
 
     query = (
         select(PacBioRun)
