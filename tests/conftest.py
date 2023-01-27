@@ -1,10 +1,14 @@
 import configparser
 import os
+import os.path
+import pathlib
+import re
 
 import pytest
+import yaml
 from fastapi.testclient import TestClient
 from ml_warehouse.schema import Base as MlwhBase
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, insert, text
 from sqlalchemy.orm import Session, sessionmaker
 
 from lang_qc.db.mlwh_connection import get_mlwh_db
@@ -158,3 +162,21 @@ def create_test_client(
     client = TestClient(app)
 
     return client
+
+
+def insert_from_yaml(session, dir_path, classes):
+
+    dir_obj = pathlib.Path(dir_path)
+    file_paths = list(str(f) for f in dir_obj.iterdir())
+    file_paths.sort()
+
+    matches2classes = dict((f"-{c.__name__}.yml", c) for c in classes)
+    for file_path in file_paths:
+        with open(file_path, "r") as f:
+            data = yaml.safe_load(f)
+            (head, file_name) = os.path.split(file_path)
+            match = re.sub(r"\A\d+", "", file_name)
+            table_class = matches2classes[match]
+            session.execute(insert(table_class), data)
+
+    session.commit()
