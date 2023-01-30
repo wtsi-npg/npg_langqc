@@ -1,7 +1,7 @@
 from ml_warehouse.schema import PacBioRun
 from sqlalchemy import select
 
-from lang_qc.models.pacbio.lims import PacBioLimsData
+from lang_qc.models.pacbio.experiment import PacBioExperiment
 from tests.conftest import insert_from_yaml
 
 
@@ -21,7 +21,7 @@ def test_query(mlwhdb_test_session):
     )
     well_row = mlwhdb_test_session.execute(query).scalars().one()
 
-    lims = PacBioLimsData.from_orm([well_row])
+    lims = PacBioExperiment.from_orm([well_row])
     assert lims.num_samples == 1
     assert lims.study_id == ["6457"]
     assert lims.study_name == "Tree of Life - ASG"
@@ -37,7 +37,7 @@ def test_query(mlwhdb_test_session):
     )
     well_row = mlwhdb_test_session.execute(query).scalars().one()
 
-    lims = PacBioLimsData.from_orm([well_row])
+    lims = PacBioExperiment.from_orm([well_row])
     assert lims.num_samples == 1
     assert lims.study_id == ["5901"]
     assert lims.study_name == "DTOL_Darwin Tree of Life"
@@ -53,7 +53,7 @@ def test_query(mlwhdb_test_session):
     )
     well_rows = mlwhdb_test_session.execute(query).scalars().all()
 
-    lims = PacBioLimsData.from_orm(well_rows)
+    lims = PacBioExperiment.from_orm(well_rows)
     assert lims.num_samples == 40
     assert lims.study_id == ["7069"]
     assert lims.study_name is None
@@ -69,7 +69,7 @@ def test_query(mlwhdb_test_session):
     )
     well_rows = mlwhdb_test_session.execute(query).scalars().all()
 
-    lims = PacBioLimsData.from_orm(well_rows)
+    lims = PacBioExperiment.from_orm(well_rows)
     assert lims.num_samples == 3
     assert lims.study_id == ["5901", "6457"]
     assert lims.study_name is None
@@ -85,7 +85,7 @@ def test_query(mlwhdb_test_session):
     )
     well_rows = mlwhdb_test_session.execute(query).scalars().all()
 
-    lims = PacBioLimsData.from_orm(well_rows)
+    lims = PacBioExperiment.from_orm(well_rows)
     assert lims.num_samples == 42
     assert lims.study_id == ["6457", "7069"]
     assert lims.study_name is None

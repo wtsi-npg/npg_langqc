@@ -24,16 +24,20 @@ from ml_warehouse.schema import PacBioRun
 from pydantic import BaseModel, Extra, Field
 
 
-class PacBioLimsData(BaseModel):
+class PacBioExperiment(BaseModel):
     """
-    A response model for LIMS data for PacBio wells and samples.
+    A response model that contains laboratory tracking information
+    about the PacBio wells and samples prior to the start of the
+    sequencing run. The current source of the information is the
+    multi-lims warehouse.
+
     The model is capable of representing both a well with either a
     single sample or multiple samples and a single sample (library).
 
     The class is agnostic to the nature of the entity it represents.
-    It gives a reasonable representation of LIMS data for a multi-sample
-    well. LIMS data for a well can also be modelled as a list of
-    PacBioLimsData objects, each object representing a single sample
+    It gives a reasonable representation of data for a multi-sample
+    well. Data for a well can also be modelled as a list of
+    PacBioExperiment objects, each object representing a single sample
     (library).
     """
 
