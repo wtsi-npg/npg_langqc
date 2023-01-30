@@ -1,3 +1,4 @@
+import pytest
 from ml_warehouse.schema import PacBioRun
 from sqlalchemy import select
 
@@ -93,3 +94,13 @@ def test_query(mlwhdb_test_session):
     assert lims.sample_name is None
     assert lims.library_type == ["PacBio_Ultra_Low_Input", "Pacbio_HiFi_mplx"]
     assert lims.tag_sequence == []
+
+    with pytest.raises(
+        Exception, match=r"Cannot create PacBioLimsData object, no data"
+    ):
+        PacBioExperiment.from_orm([])
+
+    with pytest.raises(
+        Exception, match=r"Cannot create PacBioLimsData object, None row"
+    ):
+        PacBioExperiment.from_orm([well_row, None])
