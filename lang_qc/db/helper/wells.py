@@ -250,7 +250,6 @@ class PacBioPagedWellsFactory(PagedStatusResponse):
                 )
             else:
                 well.copy_run_tracking_info(db_well)
-                print(well)
 
     def _recent_inbox_wells(self, recent_wells):
 
