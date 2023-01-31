@@ -136,8 +136,6 @@ class PacBioExperiment(BaseModel):
         # Convert sets back to lists and sort so that the list items are
         # in a predictable order.
         for key in ("library_type", "study_id"):
-            li = list(lims_data[key])
-            li.sort()
-            lims_data[key] = li
+            lims_data[key] = sorted(lims_data[key])
 
         return cls.parse_obj(lims_data)
