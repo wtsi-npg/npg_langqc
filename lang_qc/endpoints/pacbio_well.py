@@ -28,13 +28,8 @@ from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
 from starlette import status
 
-from lang_qc.db.helper.well import (
-    InconsistentInputError,
-    InvalidDictValueError,
-    WellMetrics,
-    WellQc,
-)
-from lang_qc.db.helper.wells import PacBioPagedWellsFactory
+from lang_qc.db.helper.well import InconsistentInputError, InvalidDictValueError, WellQc
+from lang_qc.db.helper.wells import PacBioPagedWellsFactory, WellWh
 from lang_qc.db.mlwh_connection import get_mlwh_db
 from lang_qc.db.qc_connection import get_qc_db
 from lang_qc.db.qc_schema import User
@@ -152,8 +147,12 @@ def claim_qc(
     mlwhdb_session: Session = Depends(get_mlwh_db),
 ) -> QcState:
 
-    wm = WellMetrics(session=mlwhdb_session, run_name=run_name, well_label=well_label)
-    if wm.exists() is False:
+    if (
+        WellWh(session=mlwhdb_session).well_exists(
+            run_name=run_name, well_label=well_label
+        )
+        is False
+    ):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Well {well_label} run {run_name} does not exist",

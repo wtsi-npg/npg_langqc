@@ -22,6 +22,7 @@
 from datetime import datetime
 from typing import List
 
+from ml_warehouse.schema import PacBioRunWellMetrics
 from pydantic import BaseModel, Extra, Field
 
 from lang_qc.models.pager import PagedStatusResponse
@@ -32,21 +33,25 @@ class PacBioWell(BaseModel, extra=Extra.forbid):
     """
     A response model for a single PacBio well on a particular PacBio run.
     The class contains the attributes that uniquely define this well (`run_name`
-    and `level`), along with the time line and the current QC state of this well,
+    and `label`), along with the time line and the current QC state of this well,
     if any.
 
     This model does not contain any information about data that was
     sequenced or QC metrics or assessment for such data.
     """
 
+    # Well identifies.
     label: str = Field(title="Well label", description="The label of the PacBio well")
     run_name: str = Field(
         title="Run name", description="PacBio run name as registered in LIMS"
     )
+
+    # Run and well tracking information from SMRT Link
     run_start_time: datetime = Field(default=None, title="Run start time")
     run_complete_time: datetime = Field(default=None, title="Run complete time")
     well_start_time: datetime = Field(default=None, title="Well start time")
     well_complete_time: datetime = Field(default=None, title="Well complete time")
+
     qc_state: QcState = Field(
         default=None,
         title="Current QC state of this well",
@@ -56,6 +61,16 @@ class PacBioWell(BaseModel, extra=Extra.forbid):
         available depends on the lifecycle stage of this well.
         """,
     )
+
+    def copy_run_tracking_info(self, db_well: PacBioRunWellMetrics):
+        """
+        Populates this object with the run and well tracking information
+        from a database row that is passed as an argument.
+        """
+        self.run_start_time = db_well.run_start
+        self.run_complete_time = db_well.run_complete
+        self.well_start_time = db_well.well_start
+        self.well_complete_time = db_well.well_complete
 
 
 class PacBioPagedWells(PagedStatusResponse, extra=Extra.forbid):

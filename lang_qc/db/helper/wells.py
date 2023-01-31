@@ -58,6 +58,29 @@ class WellWh(BaseModel):
         allow_mutation = False
         arbitrary_types_allowed = True
 
+    def get_well(self, run_name: str, well_label: str) -> PacBioRunWellMetrics | None:
+        """
+        Returns a well row record from the well metrics table or
+        None if the record does not exist.
+        """
+
+        return self.session.execute(
+            select(PacBioRunWellMetrics).where(
+                and_(
+                    PacBioRunWellMetrics.pac_bio_run_name == run_name,
+                    PacBioRunWellMetrics.well_label == well_label,
+                )
+            )
+        ).scalar_one_or_none()
+
+    def well_exists(self, run_name: str, well_label: str) -> bool:
+        """
+        Returns `True` if a record for combination of a well and a run exists,
+        in the well metrics table `False` otherwise.
+        """
+
+        return bool(self.get_well(run_name, well_label))
+
     def recent_completed_wells(self) -> List[PacBioRunWellMetrics]:
         """
         Get recent completed wells from the mlwh database.
@@ -217,29 +240,16 @@ class PacBioPagedWellsFactory(PagedStatusResponse):
             # One query for all or query per well? The latter for now to avoid the need
             # to match the records later. Should be fast enough for small-ish pages, we
             # query on a unique key.
-            db_well = (
-                self.mlwh_session.execute(
-                    select(PacBioRunWellMetrics).where(
-                        and_(
-                            PacBioRunWellMetrics.pac_bio_run_name == well.run_name,
-                            PacBioRunWellMetrics.well_label == well.label,
-                        )
-                    )
-                )
-                .scalars()
-                .one_or_none()
+            db_well = WellWh(session=self.mlwh_session).get_well(
+                run_name=well.run_name, well_label=well.label
             )
-
             if db_well is None:
                 # No error if no matching mlwh record is found.
                 logging.warning(
                     f"No mlwh record for run '{well.run_name}' well '{well.label}'"
                 )
             else:
-                well.run_start_time = db_well.run_start
-                well.run_complete_time = db_well.run_complete
-                well.well_start_time = db_well.well_start
-                well.well_complete_time = db_well.well_complete
+                well.copy_run_tracking_info(db_well)
 
     def _recent_inbox_wells(self, recent_wells):
 
@@ -261,15 +271,10 @@ class PacBioPagedWellsFactory(PagedStatusResponse):
         # for this page. QC data is not available for the inbox wells.
         for index in self.slice_data(inbox_wells_indexes):
             db_well = recent_wells[index]
-            inbox_wells.append(
-                PacBioWell(
-                    run_name=db_well.pac_bio_run_name,
-                    label=db_well.well_label,
-                    run_start_time=db_well.run_start,
-                    run_complete_time=db_well.run_complete,
-                    well_start_time=db_well.well_start,
-                    well_complete_time=db_well.well_complete,
-                )
+            pb_well = PacBioWell(
+                run_name=db_well.pac_bio_run_name, label=db_well.well_label
             )
+            pb_well.copy_run_tracking_info(db_well)
+            inbox_wells.append(pb_well)
 
         return inbox_wells
