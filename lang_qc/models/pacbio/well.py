@@ -24,7 +24,11 @@ from typing import List
 
 from ml_warehouse.schema import PacBioRunWellMetrics
 from pydantic import BaseModel, Extra, Field
+from sqlalchemy.orm import Session
 
+from lang_qc.db.helper.well import WellQc
+from lang_qc.models.pacbio.experiment import PacBioExperiment
+from lang_qc.models.pacbio.qc_data import QCDataWell
 from lang_qc.models.pager import PagedStatusResponse
 from lang_qc.models.qc_state import QcState
 
@@ -87,3 +91,61 @@ class PacBioPagedWells(PagedStatusResponse, extra=Extra.forbid):
         specified by the `page_size` and `page_number` attributes.
         """,
     )
+
+
+class PacBioWellFull(PacBioWell):
+    """
+    A response model for a single PacBio well on a particular PacBio run.
+    The class contains the attributes that uniquely define this well (`run_name`
+    and `label`), along with the laboratory experiment and sequence run tracking
+    information, current QC state of this well and QC data for this well.
+    """
+
+    metrics: QCDataWell = Field(
+        title="Currently available QC data for well",
+    )
+    experiment_tracking: PacBioExperiment = Field(
+        default=None,
+        title="Experiment tracking information",
+        description="""
+        Laboratory experiment tracking information for this well, if available.
+        """,
+    )
+
+    class Config:
+        orm_mode = True
+        extra = Extra.forbid
+
+    @classmethod
+    def from_orm(cls, mlwh_db_row: PacBioRunWellMetrics, qc_session: Session):
+
+        obj = cls(
+            run_name=mlwh_db_row.pac_bio_run_name,
+            label=mlwh_db_row.well_label,
+            metrics=QCDataWell.from_orm(mlwh_db_row),
+        )
+        obj.copy_run_tracking_info(mlwh_db_row)
+
+        obj.metrics = QCDataWell.from_orm(mlwh_db_row)
+
+        experiment_info = []
+        for row in mlwh_db_row.pac_bio_product_metrics:
+            exp_row = row.pac_bio_run
+            if exp_row:
+                experiment_info.append(exp_row)
+            else:
+                # Do not supply incomplete data.
+                experiment_info = []
+                break
+        if len(experiment_info):
+            obj.experiment_tracking = PacBioExperiment.from_orm(experiment_info)
+
+        qc_state = WellQc(
+            session=qc_session,
+            run_name=mlwh_db_row.pac_bio_run_name,
+            well_label=mlwh_db_row.well_label,
+        ).current_qc_state()
+        if qc_state:
+            obj.qc_state = qc_state
+
+        return obj
