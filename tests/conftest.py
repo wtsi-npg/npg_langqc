@@ -1,10 +1,15 @@
 import configparser
+import importlib
 import os
+import os.path
+import pathlib
+import re
 
 import pytest
+import yaml
 from fastapi.testclient import TestClient
 from ml_warehouse.schema import Base as MlwhBase
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, insert, text
 from sqlalchemy.orm import Session, sessionmaker
 
 from lang_qc.db.mlwh_connection import get_mlwh_db
@@ -158,3 +163,28 @@ def create_test_client(
     client = TestClient(app)
 
     return client
+
+
+def insert_from_yaml(session, dir_path, module_name):
+
+    # Load the schema module where the table ORM classes are defined.
+    module = importlib.import_module(module_name)
+
+    # Find all files in a given directory.
+    dir_obj = pathlib.Path(dir_path)
+    file_paths = list(str(f) for f in dir_obj.iterdir())
+    file_paths.sort()
+
+    for file_path in file_paths:
+        with open(file_path, "r") as f:
+            (head, file_name) = os.path.split(file_path)
+            # File name example: 200-PacBioRun.yml
+            m = re.match(r"\A\d+-([a-zA-Z]+)\.yml\Z", file_name)
+            if m is None:
+                raise Exception(f"Unexpected file {file_path} in fixtures.")
+            class_name = m.group(1)
+            table_class = getattr(module, class_name)
+            data = yaml.safe_load(f)
+            session.execute(insert(table_class), data)
+
+    session.commit()

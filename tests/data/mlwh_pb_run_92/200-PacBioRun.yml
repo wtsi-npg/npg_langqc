@@ -1,0 +1,1207 @@
+---
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 98966
+  id_sample_tmp: 7816466
+  id_study_tmp: 6287
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 289
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: TOL_ASG12404704
+  pac_bio_library_tube_uuid: b6048313-59cf-40f7-8ee4-bb1cc6eb4d7d
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: PacBio_Ultra_Low_Input
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: ~
+  tag_sequence: ~
+  tag_set_id_lims: ~
+  tag_set_name: ~
+  well_label: A1
+  well_uuid_lims: 7f780783-455f-4e51-99da-e0004819b7dd
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 98967
+  id_sample_tmp: 7816468
+  id_study_tmp: 6287
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 290
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: TOL_ASG12404706
+  pac_bio_library_tube_uuid: 1ef2675d-8ec3-4942-8969-8eec114c81f7
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: PacBio_Ultra_Low_Input
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: ~
+  tag_sequence: ~
+  tag_set_id_lims: ~
+  tag_set_name: ~
+  well_label: B1
+  well_uuid_lims: 3164b82f-ad29-49fd-925a-1b9cf35146b3
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 98968
+  id_sample_tmp: 7729098
+  id_study_tmp: 5735
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 291
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: DTOL12273960
+  pac_bio_library_tube_uuid: 7402ceb1-a2f5-4cbd-a28a-d4deda05b375
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: PacBio_Ultra_Low_Input
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: ~
+  tag_sequence: GATATATATGTGTGTAT
+  tag_set_id_lims: 5
+  tag_set_name: Sequel_48_Microbial_Barcoded_OHA_v
+  well_label: C1
+  well_uuid_lims: 22b30a26-e203-44f3-a5b2-303c18c55f65
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 98969
+  id_sample_tmp: 8128264
+  id_study_tmp: 6942
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 316
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: MQ201412764986
+  pac_bio_library_tube_uuid: b13c76ed-5a07-4f82-a107-27967f7b5a39
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: Pacbio_HiFi_mplx
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: bc1007T
+  tag_sequence: TCTGTATCTCTATGTGT
+  tag_set_id_lims: 5
+  tag_set_name: Sequel_48_Microbial_Barcoded_OHA_v1
+  well_label: D1
+  well_uuid_lims: 1cc67f96-ec1d-47da-a991-2fcfd53d09be
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 98970
+  id_sample_tmp: 8128265
+  id_study_tmp: 6942
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 317
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: MQ201412764987
+  pac_bio_library_tube_uuid: 55e5aaad-91da-4147-97ce-aa3ce8026b34
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: Pacbio_HiFi_mplx
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: bc1023T
+  tag_sequence: CAGAGAGATATCTCTGT
+  tag_set_id_lims: 5
+  tag_set_name: Sequel_48_Microbial_Barcoded_OHA_v1
+  well_label: D1
+  well_uuid_lims: 1cc67f96-ec1d-47da-a991-2fcfd53d09be
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 98971
+  id_sample_tmp: 8128266
+  id_study_tmp: 6942
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 318
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: MQ201412764988
+  pac_bio_library_tube_uuid: 09ed8f99-3dd4-4d35-bb79-78718e6d0753
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: Pacbio_HiFi_mplx
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: bc1024T
+  tag_sequence: CATGTAGAGCAGAGAGT
+  tag_set_id_lims: 5
+  tag_set_name: Sequel_48_Microbial_Barcoded_OHA_v1
+  well_label: D1
+  well_uuid_lims: 1cc67f96-ec1d-47da-a991-2fcfd53d09be
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 98972
+  id_sample_tmp: 8128267
+  id_study_tmp: 6942
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 319
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: MQ201412764989
+  pac_bio_library_tube_uuid: 6dc51600-2b69-496b-9154-2d2687228a78
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: Pacbio_HiFi_mplx
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: bc1026T
+  tag_sequence: CACAGAGACACGCACAT
+  tag_set_id_lims: 5
+  tag_set_name: Sequel_48_Microbial_Barcoded_OHA_v1
+  well_label: D1
+  well_uuid_lims: 1cc67f96-ec1d-47da-a991-2fcfd53d09be
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 98973
+  id_sample_tmp: 8128268
+  id_study_tmp: 6942
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 320
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: MQ201412764990
+  pac_bio_library_tube_uuid: 47128ed5-bc13-4173-ac1a-27ca7510661f
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: Pacbio_HiFi_mplx
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: bc1027T
+  tag_sequence: CTCACACTCTCTCACAT
+  tag_set_id_lims: 5
+  tag_set_name: Sequel_48_Microbial_Barcoded_OHA_v1
+  well_label: D1
+  well_uuid_lims: 1cc67f96-ec1d-47da-a991-2fcfd53d09be
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 98974
+  id_sample_tmp: 8128269
+  id_study_tmp: 6942
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 321
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: MQ201412764991
+  pac_bio_library_tube_uuid: 26462d68-ff4f-4cb2-84cd-8e8f3989c28a
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: Pacbio_HiFi_mplx
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: bc1028T
+  tag_sequence: CTCTGCTCTGACTCTCT
+  tag_set_id_lims: 5
+  tag_set_name: Sequel_48_Microbial_Barcoded_OHA_v1
+  well_label: D1
+  well_uuid_lims: 1cc67f96-ec1d-47da-a991-2fcfd53d09be
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 98975
+  id_sample_tmp: 8128270
+  id_study_tmp: 6942
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 322
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: MQ201412764992
+  pac_bio_library_tube_uuid: 3199b20d-ecb6-4052-b473-1c5248192853
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: Pacbio_HiFi_mplx
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: bc1029T
+  tag_sequence: TATATATGTCTATAGAT
+  tag_set_id_lims: 5
+  tag_set_name: Sequel_48_Microbial_Barcoded_OHA_v1
+  well_label: D1
+  well_uuid_lims: 1cc67f96-ec1d-47da-a991-2fcfd53d09be
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 98976
+  id_sample_tmp: 8128271
+  id_study_tmp: 6942
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 323
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: MQ201412764993
+  pac_bio_library_tube_uuid: 03baf629-b4e6-47a9-b96f-6072388a966f
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: Pacbio_HiFi_mplx
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: bc1031T
+  tag_sequence: GATGTCTGAGTGTGTGT
+  tag_set_id_lims: 5
+  tag_set_name: Sequel_48_Microbial_Barcoded_OHA_v1
+  well_label: D1
+  well_uuid_lims: 1cc67f96-ec1d-47da-a991-2fcfd53d09be
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 98977
+  id_sample_tmp: 8128272
+  id_study_tmp: 6942
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 324
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: MQ201412764994
+  pac_bio_library_tube_uuid: 9abf25ba-aa09-4b30-a5df-c0da9dfe5eae
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: Pacbio_HiFi_mplx
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: bc1033T
+  tag_sequence: TCTCGTCGCAGTCTCTT
+  tag_set_id_lims: 5
+  tag_set_name: Sequel_48_Microbial_Barcoded_OHA_v1
+  well_label: D1
+  well_uuid_lims: 1cc67f96-ec1d-47da-a991-2fcfd53d09be
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 98978
+  id_sample_tmp: 8128273
+  id_study_tmp: 6942
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 325
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: MQ201412764995
+  pac_bio_library_tube_uuid: ee86bf36-a1d3-4fe4-bf51-1fc9cafbe822
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: Pacbio_HiFi_mplx
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: bc1034T
+  tag_sequence: ATGTGTATATAGATATT
+  tag_set_id_lims: 5
+  tag_set_name: Sequel_48_Microbial_Barcoded_OHA_v1
+  well_label: D1
+  well_uuid_lims: 1cc67f96-ec1d-47da-a991-2fcfd53d09be
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 98979
+  id_sample_tmp: 8128274
+  id_study_tmp: 6942
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 326
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: MQ201412764996
+  pac_bio_library_tube_uuid: 0d3a8735-46fa-4fcd-9a99-63ceb716421c
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: Pacbio_HiFi_mplx
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: bc1036T
+  tag_sequence: GAGACACGTCGCACACT
+  tag_set_id_lims: 5
+  tag_set_name: Sequel_48_Microbial_Barcoded_OHA_v1
+  well_label: D1
+  well_uuid_lims: 1cc67f96-ec1d-47da-a991-2fcfd53d09be
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 98980
+  id_sample_tmp: 8128275
+  id_study_tmp: 6942
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 327
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: MQ201412764997
+  pac_bio_library_tube_uuid: 8b893a56-a6c3-4b1a-92fd-d58c552bfb99
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: Pacbio_HiFi_mplx
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: bc1037T
+  tag_sequence: ACACATATCGCACTACT
+  tag_set_id_lims: 5
+  tag_set_name: Sequel_48_Microbial_Barcoded_OHA_v1
+  well_label: D1
+  well_uuid_lims: 1cc67f96-ec1d-47da-a991-2fcfd53d09be
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 98981
+  id_sample_tmp: 8128276
+  id_study_tmp: 6942
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 328
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: MQ201412764998
+  pac_bio_library_tube_uuid: 688c9d35-abb7-4a29-9121-8cf938ac8f51
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: Pacbio_HiFi_mplx
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: bc1040T
+  tag_sequence: TGTCATATGAGAGTGTT
+  tag_set_id_lims: 5
+  tag_set_name: Sequel_48_Microbial_Barcoded_OHA_v1
+  well_label: D1
+  well_uuid_lims: 1cc67f96-ec1d-47da-a991-2fcfd53d09be
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 98982
+  id_sample_tmp: 8128277
+  id_study_tmp: 6942
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 329
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: MQ201412764999
+  pac_bio_library_tube_uuid: c753281a-0f86-41ff-9324-da1bf5b18e6d
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: Pacbio_HiFi_mplx
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: bc1043T
+  tag_sequence: TATAGAGCTCTACATAT
+  tag_set_id_lims: 5
+  tag_set_name: Sequel_48_Microbial_Barcoded_OHA_v1
+  well_label: D1
+  well_uuid_lims: 1cc67f96-ec1d-47da-a991-2fcfd53d09be
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 98983
+  id_sample_tmp: 8128278
+  id_study_tmp: 6942
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 330
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: MQ201412765000
+  pac_bio_library_tube_uuid: ff856179-3236-419b-b7ee-4722cdcccb8c
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: Pacbio_HiFi_mplx
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: bc1044T
+  tag_sequence: GCTGAGACGACGCGCGT
+  tag_set_id_lims: 5
+  tag_set_name: Sequel_48_Microbial_Barcoded_OHA_v1
+  well_label: D1
+  well_uuid_lims: 1cc67f96-ec1d-47da-a991-2fcfd53d09be
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 98984
+  id_sample_tmp: 8128279
+  id_study_tmp: 6942
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 331
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: MQ201412765001
+  pac_bio_library_tube_uuid: 678bc5fc-ad0f-4b32-88f3-dc30430666bd
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: Pacbio_HiFi_mplx
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: bc1046T
+  tag_sequence: GATATATCGAGTATATT
+  tag_set_id_lims: 5
+  tag_set_name: Sequel_48_Microbial_Barcoded_OHA_v1
+  well_label: D1
+  well_uuid_lims: 1cc67f96-ec1d-47da-a991-2fcfd53d09be
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 98985
+  id_sample_tmp: 8128280
+  id_study_tmp: 6942
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 332
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: MQ201412765002
+  pac_bio_library_tube_uuid: 939408d3-b0bd-43a8-b064-b4df543dbd3d
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: Pacbio_HiFi_mplx
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: bc1047T
+  tag_sequence: TGTCATGTGTACACACT
+  tag_set_id_lims: 5
+  tag_set_name: Sequel_48_Microbial_Barcoded_OHA_v1
+  well_label: D1
+  well_uuid_lims: 1cc67f96-ec1d-47da-a991-2fcfd53d09be
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 98986
+  id_sample_tmp: 8128281
+  id_study_tmp: 6942
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 333
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: MQ201412765003
+  pac_bio_library_tube_uuid: 57e28504-ae8e-44d5-98bb-cc8b58b0796f
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: Pacbio_HiFi_mplx
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: bc1050T
+  tag_sequence: GATATACGCGAGAGAGT
+  tag_set_id_lims: 5
+  tag_set_name: Sequel_48_Microbial_Barcoded_OHA_v1
+  well_label: D1
+  well_uuid_lims: 1cc67f96-ec1d-47da-a991-2fcfd53d09be
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 98987
+  id_sample_tmp: 8128282
+  id_study_tmp: 6942
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 334
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: MQ201412765004
+  pac_bio_library_tube_uuid: 6aa58e12-e109-4a9c-9202-473de6c3cb3d
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: Pacbio_HiFi_mplx
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: bc1052T
+  tag_sequence: GTGTGAGATATATATCT
+  tag_set_id_lims: 5
+  tag_set_name: Sequel_48_Microbial_Barcoded_OHA_v1
+  well_label: D1
+  well_uuid_lims: 1cc67f96-ec1d-47da-a991-2fcfd53d09be
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 98988
+  id_sample_tmp: 8128283
+  id_study_tmp: 6942
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 335
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: MQ201412765005
+  pac_bio_library_tube_uuid: 84f71323-4b01-4068-81a8-0fd88201e365
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: Pacbio_HiFi_mplx
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: bc1053T
+  tag_sequence: CTCACGTACGTCACACT
+  tag_set_id_lims: 5
+  tag_set_name: Sequel_48_Microbial_Barcoded_OHA_v1
+  well_label: D1
+  well_uuid_lims: 1cc67f96-ec1d-47da-a991-2fcfd53d09be
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 98989
+  id_sample_tmp: 8128284
+  id_study_tmp: 6942
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 336
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: MQ201412765006
+  pac_bio_library_tube_uuid: 42e71be5-a904-401f-94a4-d402854fd43a
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: Pacbio_HiFi_mplx
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: bc1054T
+  tag_sequence: GCGCACGCACTACAGAT
+  tag_set_id_lims: 5
+  tag_set_name: Sequel_48_Microbial_Barcoded_OHA_v1
+  well_label: D1
+  well_uuid_lims: 1cc67f96-ec1d-47da-a991-2fcfd53d09be
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 98990
+  id_sample_tmp: 8128285
+  id_study_tmp: 6942
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 337
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: MQ201412765007
+  pac_bio_library_tube_uuid: 21c2b89c-a369-472b-9649-c42a34270e31
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: Pacbio_HiFi_mplx
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: bc1055T
+  tag_sequence: CACACGAGATCTCATCT
+  tag_set_id_lims: 5
+  tag_set_name: Sequel_48_Microbial_Barcoded_OHA_v1
+  well_label: D1
+  well_uuid_lims: 1cc67f96-ec1d-47da-a991-2fcfd53d09be
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 98991
+  id_sample_tmp: 8128286
+  id_study_tmp: 6942
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 338
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: MQ201412765008
+  pac_bio_library_tube_uuid: fdd485db-66fe-40b3-86c0-2e77286693f2
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: Pacbio_HiFi_mplx
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: bc1057T
+  tag_sequence: GACGAGCGTCTGAGAGT
+  tag_set_id_lims: 5
+  tag_set_name: Sequel_48_Microbial_Barcoded_OHA_v1
+  well_label: D1
+  well_uuid_lims: 1cc67f96-ec1d-47da-a991-2fcfd53d09be
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 98992
+  id_sample_tmp: 8128287
+  id_study_tmp: 6942
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 339
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: MQ201412765009
+  pac_bio_library_tube_uuid: f1dc88a6-4341-4f47-bc01-e548595db359
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: Pacbio_HiFi_mplx
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: bc1058T
+  tag_sequence: TGTGTCTCTGAGAGTAT
+  tag_set_id_lims: 5
+  tag_set_name: Sequel_48_Microbial_Barcoded_OHA_v1
+  well_label: D1
+  well_uuid_lims: 1cc67f96-ec1d-47da-a991-2fcfd53d09be
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 98993
+  id_sample_tmp: 8128288
+  id_study_tmp: 6942
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 340
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: MQ201412765010
+  pac_bio_library_tube_uuid: 460bf28b-0b42-4e0e-89ad-edb29afcc214
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: Pacbio_HiFi_mplx
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: bc1059T
+  tag_sequence: CACACGCACTGAGATAT
+  tag_set_id_lims: 5
+  tag_set_name: Sequel_48_Microbial_Barcoded_OHA_v1
+  well_label: D1
+  well_uuid_lims: 1cc67f96-ec1d-47da-a991-2fcfd53d09be
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 98994
+  id_sample_tmp: 8128289
+  id_study_tmp: 6942
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 341
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: MQ201412765011
+  pac_bio_library_tube_uuid: e5e7f700-dfde-46c1-b403-df63c61b7a7d
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: Pacbio_HiFi_mplx
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: bc1060T
+  tag_sequence: GATGAGTATAGACACAT
+  tag_set_id_lims: 5
+  tag_set_name: Sequel_48_Microbial_Barcoded_OHA_v1
+  well_label: D1
+  well_uuid_lims: 1cc67f96-ec1d-47da-a991-2fcfd53d09be
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 98995
+  id_sample_tmp: 8128290
+  id_study_tmp: 6942
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 342
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: MQ201412765012
+  pac_bio_library_tube_uuid: baae7e7d-e6a4-4700-9b85-f39f417d904e
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: Pacbio_HiFi_mplx
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: bc1061T
+  tag_sequence: GCTGTGTGTGCTCGTCT
+  tag_set_id_lims: 5
+  tag_set_name: Sequel_48_Microbial_Barcoded_OHA_v1
+  well_label: D1
+  well_uuid_lims: 1cc67f96-ec1d-47da-a991-2fcfd53d09be
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 98996
+  id_sample_tmp: 8128291
+  id_study_tmp: 6942
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 343
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: MQ201412765013
+  pac_bio_library_tube_uuid: 3243e75e-25e7-417d-a7a9-4d7958fc53fc
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: Pacbio_HiFi_mplx
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: bc1062T
+  tag_sequence: TCTCAGATAGTCTATAT
+  tag_set_id_lims: 5
+  tag_set_name: Sequel_48_Microbial_Barcoded_OHA_v1
+  well_label: D1
+  well_uuid_lims: 1cc67f96-ec1d-47da-a991-2fcfd53d09be
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 98997
+  id_sample_tmp: 8128292
+  id_study_tmp: 6942
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 344
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: MQ201412765014
+  pac_bio_library_tube_uuid: f165cfc0-acef-4c4c-a594-75312a5639ef
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: Pacbio_HiFi_mplx
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: bc1064T
+  tag_sequence: TATATACAGAGTCGAGT
+  tag_set_id_lims: 5
+  tag_set_name: Sequel_48_Microbial_Barcoded_OHA_v1
+  well_label: D1
+  well_uuid_lims: 1cc67f96-ec1d-47da-a991-2fcfd53d09be
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 98998
+  id_sample_tmp: 8128293
+  id_study_tmp: 6942
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 345
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: MQ201412765015
+  pac_bio_library_tube_uuid: a6731c87-c80d-499e-a14f-6acc75c886c7
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: Pacbio_HiFi_mplx
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: bc1065T
+  tag_sequence: GCGCTCTCTCACATACT
+  tag_set_id_lims: 5
+  tag_set_name: Sequel_48_Microbial_Barcoded_OHA_v1
+  well_label: D1
+  well_uuid_lims: 1cc67f96-ec1d-47da-a991-2fcfd53d09be
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 98999
+  id_sample_tmp: 8128294
+  id_study_tmp: 6942
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 346
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: MQ201412765016
+  pac_bio_library_tube_uuid: e02c714e-06e0-4310-b4b2-c42e1c0b2047
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: Pacbio_HiFi_mplx
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: bc1066T
+  tag_sequence: TATATGCTCTGTGTGAT
+  tag_set_id_lims: 5
+  tag_set_name: Sequel_48_Microbial_Barcoded_OHA_v1
+  well_label: D1
+  well_uuid_lims: 1cc67f96-ec1d-47da-a991-2fcfd53d09be
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 99000
+  id_sample_tmp: 8128295
+  id_study_tmp: 6942
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 347
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: MQ201412765017
+  pac_bio_library_tube_uuid: 54eaf047-c15b-477a-bf5c-16565813f852
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: Pacbio_HiFi_mplx
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: bc1067T
+  tag_sequence: CTCTATATATCTCGTCT
+  tag_set_id_lims: 5
+  tag_set_name: Sequel_48_Microbial_Barcoded_OHA_v1
+  well_label: D1
+  well_uuid_lims: 1cc67f96-ec1d-47da-a991-2fcfd53d09be
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 99001
+  id_sample_tmp: 8128296
+  id_study_tmp: 6942
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 348
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: MQ201412765018
+  pac_bio_library_tube_uuid: f4309605-259b-4a8c-ae44-07d0fe5599aa
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: Pacbio_HiFi_mplx
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: bc1068T
+  tag_sequence: AGAGAGCTCTCTCATCT
+  tag_set_id_lims: 5
+  tag_set_name: Sequel_48_Microbial_Barcoded_OHA_v1
+  well_label: D1
+  well_uuid_lims: 1cc67f96-ec1d-47da-a991-2fcfd53d09be
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 99002
+  id_sample_tmp: 8128297
+  id_study_tmp: 6942
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 349
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: MQ201412765019
+  pac_bio_library_tube_uuid: 2c967408-b934-4d83-aef1-7c39b848fb8b
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: Pacbio_HiFi_mplx
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: bc1070T
+  tag_sequence: TGCTCTCGTGTACTGTT
+  tag_set_id_lims: 5
+  tag_set_name: Sequel_48_Microbial_Barcoded_OHA_v1
+  well_label: D1
+  well_uuid_lims: 1cc67f96-ec1d-47da-a991-2fcfd53d09be
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 99003
+  id_sample_tmp: 8128298
+  id_study_tmp: 6942
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 350
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: MQ201412765020
+  pac_bio_library_tube_uuid: 395ad12e-9088-4a08-abf3-1d38f4aa27f8
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: Pacbio_HiFi_mplx
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: bc1074T
+  tag_sequence: TGTACGCTCTCTATATT
+  tag_set_id_lims: 5
+  tag_set_name: Sequel_48_Microbial_Barcoded_OHA_v1
+  well_label: D1
+  well_uuid_lims: 1cc67f96-ec1d-47da-a991-2fcfd53d09be
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 99004
+  id_sample_tmp: 8128299
+  id_study_tmp: 6942
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 351
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: MQ201412765021
+  pac_bio_library_tube_uuid: 39355c56-9389-4ae3-afc3-589db6e5c887
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: Pacbio_HiFi_mplx
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: bc1076T
+  tag_sequence: GTGCACTCGCGCTCTCT
+  tag_set_id_lims: 5
+  tag_set_name: Sequel_48_Microbial_Barcoded_OHA_v1
+  well_label: D1
+  well_uuid_lims: 1cc67f96-ec1d-47da-a991-2fcfd53d09be
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 99005
+  id_sample_tmp: 8128300
+  id_study_tmp: 6942
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 352
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: MQ201412765022
+  pac_bio_library_tube_uuid: 81dbdbc7-905b-4824-a977-6f9827bbb46c
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: Pacbio_HiFi_mplx
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: bc1077T
+  tag_sequence: TATCTCTCGAGTCGCGT
+  tag_set_id_lims: 5
+  tag_set_name: Sequel_48_Microbial_Barcoded_OHA_v1
+  well_label: D1
+  well_uuid_lims: 1cc67f96-ec1d-47da-a991-2fcfd53d09be
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 99006
+  id_sample_tmp: 8128301
+  id_study_tmp: 6942
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 353
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: MQ201412765023
+  pac_bio_library_tube_uuid: 6114fe7b-cbad-4f79-b4bb-e420198e0e45
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: Pacbio_HiFi_mplx
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: bc1078T
+  tag_sequence: CTCACACATACACGTCT
+  tag_set_id_lims: 5
+  tag_set_name: Sequel_48_Microbial_Barcoded_OHA_v1
+  well_label: D1
+  well_uuid_lims: 1cc67f96-ec1d-47da-a991-2fcfd53d09be
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 99007
+  id_sample_tmp: 8128302
+  id_study_tmp: 6942
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 354
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: MQ201412765024
+  pac_bio_library_tube_uuid: 76b740e6-0b77-407d-ad58-257ecf3fc38f
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: Pacbio_HiFi_mplx
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: bc1079T
+  tag_sequence: ATAGTACACTCTGTGTT
+  tag_set_id_lims: 5
+  tag_set_name: Sequel_48_Microbial_Barcoded_OHA_v1
+  well_label: D1
+  well_uuid_lims: 1cc67f96-ec1d-47da-a991-2fcfd53d09be
+- cost_code: S4773
+  id_lims: Traction
+  id_pac_bio_run_lims: TRACTION-RUN-92
+  id_pac_bio_tmp: 99008
+  id_sample_tmp: 8128303
+  id_study_tmp: 6942
+  last_updated: 2022-09-27 12:50:00
+  library_created_at: ~
+  pac_bio_library_tube_id_lims: 355
+  pac_bio_library_tube_legacy_id: ~
+  pac_bio_library_tube_name: MQ201412765025
+  pac_bio_library_tube_uuid: 61a6b014-96d9-47ef-b744-db558f771e14
+  pac_bio_run_name: TRACTION-RUN-92
+  pac_bio_run_uuid: 5e49873d-c79e-4e16-a14e-817422c21c8e
+  pipeline_id_lims: Pacbio_HiFi_mplx
+  plate_barcode: plate_barcode placeholder
+  plate_uuid_lims: 5d034545-3e9c-439c-ba3d-c06c44f4efbb
+  recorded_at: 2022-09-27 12:50:01
+  tag2_identifier: ~
+  tag2_sequence: ~
+  tag2_set_id_lims: ~
+  tag2_set_name: ~
+  tag_identifier: bc1081T
+  tag_sequence: GATATATATGTGTGTAT
+  tag_set_id_lims: 5
+  tag_set_name: Sequel_48_Microbial_Barcoded_OHA_v1
+  well_label: D1
+  well_uuid_lims: 1cc67f96-ec1d-47da-a991-2fcfd53d09be
+
+
