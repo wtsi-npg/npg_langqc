@@ -6,7 +6,7 @@ from lang_qc.models.pacbio.experiment import PacBioExperiment
 from tests.conftest import insert_from_yaml
 
 
-def test_query(mlwhdb_test_session):
+def test_creating_experiment_object(mlwhdb_test_session):
 
     run_name = "TRACTION-RUN-92"
     # Four wells, D1 has 40 samples, the rest have one sample each.
