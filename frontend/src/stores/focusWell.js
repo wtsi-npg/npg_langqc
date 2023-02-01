@@ -21,8 +21,8 @@ export const useWellStore = defineStore('focusWell', {
         getRunAndLabel(state) {
             if (!isNull(state.runWell)) {
                 return [
-                    state.runWell.run_info.pac_bio_run_name,
-                    state.runWell.run_info.well_label
+                    state.runWell.run_name,
+                    state.runWell.label
                 ];
             } else {
                 return [null, null]
