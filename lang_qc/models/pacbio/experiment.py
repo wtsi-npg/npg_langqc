@@ -119,9 +119,11 @@ class PacBioExperiment(BaseModel):
             "library_type": set(),
             "tag_sequence": [],
         }
+        study_name = None
         for row in lims_db_rows:
             lims_data["study_id"].add(row.study.id_study_lims)
             lims_data["library_type"].add(row.pipeline_id_lims)
+            study_name = row.study.name
             if num_samples == 1:
                 tag = row.tag_sequence
                 if tag:
@@ -132,6 +134,9 @@ class PacBioExperiment(BaseModel):
                 lims_data["sample_id"] = row.sample.id_sample_lims
                 lims_data["sample_name"] = row.sample.name
                 lims_data["study_name"] = row.study.name
+
+        if len(lims_data["study_id"]) == 1:
+            lims_data["study_name"] = study_name
 
         # Convert sets back to lists and sort so that the list items are
         # in a predictable order.
