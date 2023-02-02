@@ -188,3 +188,7 @@ def insert_from_yaml(session, dir_path, module_name):
             session.execute(insert(table_class), data)
 
     session.commit()
+
+
+def compare_dates(date_obj, date_string):
+    assert date_obj.isoformat(sep=" ", timespec="seconds") == date_string

@@ -6,11 +6,8 @@ from lang_qc.db.qc_schema import QcState
 from lang_qc.models.pacbio.well import PacBioPagedWells, PacBioWell
 from lang_qc.models.qc_flow_status import QcFlowStatusEnum
 from lang_qc.models.qc_state import QcState as QcStateModel
+from tests.conftest import compare_dates
 from tests.fixtures.well_data import load_data4well_retrieval, load_dicts_and_users
-
-
-def _compare_dates(date_obj, date_string):
-    assert date_obj.isoformat(sep=" ", timespec="seconds") == date_string
 
 
 def test_query(qcdb_test_session, mlwhdb_test_session, load_data4well_retrieval):
@@ -33,7 +30,7 @@ def test_query(qcdb_test_session, mlwhdb_test_session, load_data4well_retrieval)
         assert state.is_preliminary == 1
         assert state.qc_type.qc_type == "sequencing"
         assert state.qc_state_dict.state == "On hold"
-        _compare_dates(state.date_updated, update_dates[index])
+        compare_dates(state.date_updated, update_dates[index])
 
     factory = PacBioPagedWellsFactory(
         qcdb_session=qcdb_test_session,
@@ -63,7 +60,7 @@ def test_query(qcdb_test_session, mlwhdb_test_session, load_data4well_retrieval)
         assert state.is_preliminary == 1
         assert state.qc_type.qc_type == "sequencing"
         assert state.qc_state_dict.state == expected_state[0]
-        _compare_dates(state.date_updated, expected_state[1])
+        compare_dates(state.date_updated, expected_state[1])
 
     factory = PacBioPagedWellsFactory(
         qcdb_session=qcdb_test_session,
@@ -88,7 +85,7 @@ def test_query(qcdb_test_session, mlwhdb_test_session, load_data4well_retrieval)
         assert state.is_preliminary == 0
         assert state.qc_type.qc_type == "sequencing"
         assert state.qc_state_dict.state == expected_state[0]
-        _compare_dates(state.date_updated, expected_state[1])
+        compare_dates(state.date_updated, expected_state[1])
 
 
 def test_inbox_wells_retrieval(
@@ -155,10 +152,10 @@ def test_inbox_wells_retrieval(
     [well_fixture] = [
         f for f in mlwh_data if (f[0] == "TRACTION_RUN_10" and f[1] == "C1")
     ]
-    _compare_dates(well.run_start_time, well_fixture[2])
-    _compare_dates(well.run_complete_time, well_fixture[3])
-    _compare_dates(well.well_start_time, well_fixture[4])
-    _compare_dates(well.well_complete_time, well_fixture[5])
+    compare_dates(well.run_start_time, well_fixture[2])
+    compare_dates(well.run_complete_time, well_fixture[3])
+    compare_dates(well.well_start_time, well_fixture[4])
+    compare_dates(well.well_complete_time, well_fixture[5])
 
     well = paged_wells.wells[1]
     assert isinstance(well, PacBioWell)
@@ -168,10 +165,10 @@ def test_inbox_wells_retrieval(
     [well_fixture] = [
         f for f in mlwh_data if (f[0] == "TRACTION_RUN_12" and f[1] == "A1")
     ]
-    _compare_dates(well.run_start_time, well_fixture[2])
-    _compare_dates(well.run_complete_time, well_fixture[3])
-    _compare_dates(well.well_start_time, well_fixture[4])
-    _compare_dates(well.well_complete_time, well_fixture[5])
+    compare_dates(well.run_start_time, well_fixture[2])
+    compare_dates(well.run_complete_time, well_fixture[3])
+    compare_dates(well.well_start_time, well_fixture[4])
+    compare_dates(well.well_complete_time, well_fixture[5])
 
 
 def test_paged_retrieval(
@@ -300,10 +297,10 @@ def test_fully_retrieved_data(
     assert isinstance(well, PacBioWell)
     assert well.run_name == "TRACTION_RUN_5"
     assert well.label == "B1"
-    _compare_dates(well.run_start_time, "2022-12-14 11:56:33")
-    _compare_dates(well.run_complete_time, "2022-12-21 09:20:16")
-    _compare_dates(well.well_start_time, "2022-12-14 12:06:49")
-    _compare_dates(well.well_complete_time, "2022-12-15 23:35:44")
+    compare_dates(well.run_start_time, "2022-12-14 11:56:33")
+    compare_dates(well.run_complete_time, "2022-12-21 09:20:16")
+    compare_dates(well.well_start_time, "2022-12-14 12:06:49")
+    compare_dates(well.well_complete_time, "2022-12-15 23:35:44")
 
     qc_state = well.qc_state
     id = PacBioEntity(run_name=well.run_name, well_label=well.label).hash_product_id()
@@ -313,8 +310,8 @@ def test_fully_retrieved_data(
     assert qc_state.is_preliminary is False
     assert qc_state.outcome == 1
     assert qc_state.id_product == id
-    _compare_dates(qc_state.date_created, "2022-12-21 14:21:06")
-    _compare_dates(qc_state.date_updated, "2022-12-21 14:21:06")
+    compare_dates(qc_state.date_created, "2022-12-21 14:21:06")
+    compare_dates(qc_state.date_updated, "2022-12-21 14:21:06")
     assert qc_state.user == "zx80@example.com"
     assert qc_state.created_by == "LangQC"
 
@@ -322,10 +319,10 @@ def test_fully_retrieved_data(
     assert isinstance(well, PacBioWell)
     assert well.run_name == "TRACTION_RUN_2"
     assert well.label == "D1"
-    _compare_dates(well.run_start_time, "2022-12-02 15:11:22")
-    _compare_dates(well.run_complete_time, "2022-12-09 11:26:27")
-    _compare_dates(well.well_start_time, "2022-12-06 01:20:31")
-    _compare_dates(well.well_complete_time, "2022-12-07 14:13:56")
+    compare_dates(well.run_start_time, "2022-12-02 15:11:22")
+    compare_dates(well.run_complete_time, "2022-12-09 11:26:27")
+    compare_dates(well.well_start_time, "2022-12-06 01:20:31")
+    compare_dates(well.well_complete_time, "2022-12-07 14:13:56")
 
     qc_state = well.qc_state
     id = PacBioEntity(run_name=well.run_name, well_label=well.label).hash_product_id()
@@ -335,8 +332,8 @@ def test_fully_retrieved_data(
     assert qc_state.is_preliminary is False
     assert qc_state.outcome == 0
     assert qc_state.id_product == id
-    _compare_dates(qc_state.date_created, "2022-12-07 15:23:56")
-    _compare_dates(qc_state.date_updated, "2022-12-07 15:23:56")
+    compare_dates(qc_state.date_created, "2022-12-07 15:23:56")
+    compare_dates(qc_state.date_updated, "2022-12-07 15:23:56")
     assert qc_state.user == "zx80@example.com"
     assert qc_state.created_by == "LangQC"
 
@@ -371,7 +368,7 @@ def test_partially_retrieved_data(
     assert qc_state.is_preliminary is True
     assert qc_state.outcome is None
     assert qc_state.id_product == id
-    _compare_dates(qc_state.date_created, "2022-12-07 09:15:19")
-    _compare_dates(qc_state.date_updated, "2022-12-07 09:15:19")
+    compare_dates(qc_state.date_created, "2022-12-07 09:15:19")
+    compare_dates(qc_state.date_updated, "2022-12-07 09:15:19")
     assert qc_state.user == "zx80@example.com"
     assert qc_state.created_by == "LangQC"

@@ -57,7 +57,7 @@ def test_creating_experiment_object(mlwhdb_test_session):
     lims = PacBioExperiment.from_orm(well_rows)
     assert lims.num_samples == 40
     assert lims.study_id == ["7069"]
-    assert lims.study_name is None
+    assert lims.study_name == "Alternative Enzymes 2022 microbial genomes"
     assert lims.sample_id is None
     assert lims.sample_name is None
     assert lims.library_type == ["Pacbio_HiFi_mplx"]
