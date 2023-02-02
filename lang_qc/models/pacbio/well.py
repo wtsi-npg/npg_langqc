@@ -55,6 +55,8 @@ class PacBioWell(BaseModel, extra=Extra.forbid):
     run_complete_time: datetime = Field(default=None, title="Run complete time")
     well_start_time: datetime = Field(default=None, title="Well start time")
     well_complete_time: datetime = Field(default=None, title="Well complete time")
+    run_status: str = Field(default=None, title="Current PacBio run status")
+    well_status: str = Field(default=None, title="Current PacBio well status")
 
     qc_state: QcState = Field(
         default=None,
@@ -75,6 +77,8 @@ class PacBioWell(BaseModel, extra=Extra.forbid):
         self.run_complete_time = db_well.run_complete
         self.well_start_time = db_well.well_start
         self.well_complete_time = db_well.well_complete
+        self.run_status = db_well.run_status
+        self.well_status = db_well.well_status
 
 
 class PacBioPagedWells(PagedStatusResponse, extra=Extra.forbid):
