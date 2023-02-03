@@ -14,10 +14,8 @@ describe('Check the getters', () => {
         expect(wellStore.getRunAndLabel).toStrictEqual([null, null]);
 
         wellStore.setFocusWell({
-            run_info: {
-                pac_bio_run_name: 'Whatever',
-                well_label: 'A1'
-            }
+            run_name: 'Whatever',
+            label: 'A1'
         });
 
         expect(wellStore.getRunAndLabel).toStrictEqual(['Whatever', 'A1']);
@@ -27,10 +25,8 @@ describe('Check the getters', () => {
         expect(wellStore.getQcState).toBeNull();
 
         wellStore.setFocusWell({
-            run_info: {
-                nothing: 'to',
-                see: 'here'
-            }
+            nothing: 'to',
+            see: 'here'
         });
         wellStore.updateWellQcState({
             qc_state: 'Pass',

@@ -11,29 +11,39 @@
     function generateSmrtLink(metric) {
         return `https://${metric.smrt_link.hostname}:${pacBioPort}/sl/run-qc/${metric.smrt_link.run_uuid}`
     }
-</script>
-
+</script>    
+    
 <template>
     <div id="Top tier attributes of run">
         <table class="summary">
             <tr>
-                <td>Run</td><td>{{runWell.run_info.pac_bio_run_name}}</td>
+                <td>Run</td><td>{{runWell.run_name}}</td>
             </tr>
             <tr>
-                <td>Well</td><td>{{runWell.run_info.well_label}}</td>
+                <td>Well</td><td>{{runWell.label}}</td>
             </tr>
-            <tr>
-                <td>Library type</td><td>{{runWell.run_info.library_type}}</td>
+            <tr v-if="runWell.well_complete_time">
+                <td>Well complete</td><td>{{runWell.well_complete_time.replace('T',' ')}}</td>
             </tr>
-            <tr>
-                <td>Study</td><td>{{runWell.study.id}}</td>
+            <tr v-if="runWell.experiment_tracking">
+                <td>Library type</td>
+                <td v-if="runWell.experiment_tracking.library_type.length == 1">{{runWell.experiment_tracking.library_type[0]}}</td>
+                <td v-else>Multiple library types: {{runWell.experiment_tracking.library_type.join(", ")}}</td>
             </tr>
-            <tr>
-                <td>Sample</td><td>{{runWell.sample.id}}</td>
+            <tr v-if="runWell.experiment_tracking">
+                <td>Study</td>
+                <!-- TODO: Use study IDs to convert text to link(s) to the LIMS server web pages for the study -->
+                <td v-if="runWell.experiment_tracking.study_id.length == 1">{{runWell.experiment_tracking.study_name}}</td>
+                <td v-else>Multiple studies: {{runWell.experiment_tracking.study_id.join(", ")}}</td>
             </tr>
-            <tr>
-                <td>Last updated</td><td>{{runWell.run_info.last_updated}}</td>
+            <tr v-if="runWell.experiment_tracking">
+                <td>Sample</td>
+                <!-- TODO: Use sample ID to convert text to a link to the LIMS server web page for this sample -->
+                <td v-if="runWell.experiment_tracking.num_samples == 1">{{runWell.experiment_tracking.sample_name}}</td>
+                <!-- TODO: Display a link to the LIMS server web page for a pool here? -->
+                <td v-else>Multiple samples ({{runWell.experiment_tracking.num_samples}})</td>
             </tr>
+            <!-- Tag sequence info can be displayed below when the tag  deplexing info is available -->
         </table>
     </div>
 

@@ -19,12 +19,8 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
-from typing import List
-
 from fastapi import APIRouter, Depends, HTTPException
-from ml_warehouse.schema import PacBioRun
 from pydantic import PositiveInt
-from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
 from starlette import status
 
@@ -33,9 +29,7 @@ from lang_qc.db.helper.wells import PacBioPagedWellsFactory, WellWh
 from lang_qc.db.mlwh_connection import get_mlwh_db
 from lang_qc.db.qc_connection import get_qc_db
 from lang_qc.db.qc_schema import User
-from lang_qc.models.lims import Sample, Study
-from lang_qc.models.pacbio.run import PacBioRunResponse
-from lang_qc.models.pacbio.well import PacBioPagedWells
+from lang_qc.models.pacbio.well import PacBioPagedWells, PacBioWellFull
 from lang_qc.models.qc_flow_status import QcFlowStatusEnum
 from lang_qc.models.qc_state import QcState, QcStateBasic
 from lang_qc.util.auth import check_user
@@ -87,32 +81,27 @@ def get_wells_filtered_by_status(
 @router.get(
     "/run/{run_name}/well/{well_label}",
     summary="Get QC data for a well",
-    response_model=PacBioRunResponse,
+    responses={
+        status.HTTP_404_NOT_FOUND: {"description": "Well does not exist"},
+    },
+    response_model=PacBioWellFull,
 )
 def get_pacbio_well(
-    run_name: str, well_label: str, db_session: Session = Depends(get_mlwh_db)
-) -> PacBioRunResponse:
+    run_name: str,
+    well_label: str,
+    mlwhdb_session: Session = Depends(get_mlwh_db),
+    qcdb_session: Session = Depends(get_qc_db),
+) -> PacBioWellFull:
 
-    stmt = select(PacBioRun).filter(
-        and_(PacBioRun.well_label == well_label, PacBioRun.pac_bio_run_name == run_name)
+    well_row = WellWh(session=mlwhdb_session).get_well(
+        run_name=run_name, well_label=well_label
     )
+    if well_row is None:
+        raise HTTPException(
+            404, detail=f"PacBio well {well_label} run {run_name} not found."
+        )
 
-    results: List = db_session.execute(stmt).scalars().all()
-
-    if len(results) == 0:
-        raise HTTPException(404, detail="No PacBio well found matching criteria.")
-    if len(results) > 1:
-        print("WARNING! THERE IS MORE THAN ONE RESULT! RETURNING THE FIRST ONE")
-
-    run: PacBioRun = results[0]
-
-    response = PacBioRunResponse(
-        run_info=run,
-        metrics=run.pac_bio_product_metrics[0].pac_bio_run_well_metrics,
-        study=Study(id=run.study.id_study_lims),
-        sample=Sample(id=run.sample.id_sample_lims),
-    )
-    return response
+    return PacBioWellFull.from_orm(well_row, qcdb_session)
 
 
 @router.post(
