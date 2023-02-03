@@ -138,6 +138,8 @@ onMounted(() => {
             <th>QC state</th>
             <th>QC date</th>
             <th>Assessor</th>
+            <th>Well status</th>
+            <th>Run status</th>
           </tr>
           <tr :key="wellObj.run_name + ':' + wellObj.label" v-for="wellObj in wellCollection" >
             <td>{{ wellObj.run_name }}</td>
@@ -149,6 +151,8 @@ onMounted(() => {
             <td>{{ wellObj.qc_state ? wellObj.qc_state.qc_state : '&nbsp;'}}</td>
             <td>{{ wellObj.qc_state ? wellObj.qc_state.date_updated : '&nbsp;'}}</td>
             <td>{{ wellObj.qc_state ? wellObj.qc_state.user : '&nbsp;'}}</td>
+            <td>{{ wellObj.well_status ? wellObj.well_status : '&nbsp;'}}</td>
+            <td>{{ wellObj.run_status ? wellObj.run_status : '&nbsp;'}}</td>
           </tr>
         </table>
       </el-tab-pane>

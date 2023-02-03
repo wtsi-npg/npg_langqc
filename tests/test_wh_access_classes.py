@@ -66,7 +66,8 @@ def test_well_metrics_retrieval(mlwhdb_test_session, load_data4well_retrieval):
     well = wm.get_well(run_name="TRACTION_RUN_12", well_label="A1")
     assert well.pac_bio_run_name == "TRACTION_RUN_12"
     assert well.well_label == "A1"
-    assert well.run_status == "Complete"
+    assert well.run_status == "None"
+    assert well.well_status == "Complete"
     assert well.ccs_execution_mode == "OffInstrument"
     assert well.polymerase_num_reads == 3339714
     assert well.hifi_num_reads == 2226107
