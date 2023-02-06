@@ -19,6 +19,7 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import PositiveInt
 from sqlalchemy.orm import Session
@@ -26,6 +27,7 @@ from starlette import status
 
 from lang_qc.db.helper.well import InconsistentInputError, InvalidDictValueError, WellQc
 from lang_qc.db.helper.wells import PacBioPagedWellsFactory, WellWh
+from lang_qc.db.helper.qc import BulkQcFetch
 from lang_qc.db.mlwh_connection import get_mlwh_db
 from lang_qc.db.qc_connection import get_qc_db
 from lang_qc.db.qc_schema import User
@@ -212,3 +214,22 @@ def assign_qc_state(
         )
 
     return QcState.from_orm(qc_state)
+
+
+@router.post(
+    "/wells/qc",
+    summary="Populates a list of checksums with Well data",
+    description="""
+    An endpoint for requesting batches of QC states for a list of IDs.
+    It will iterate over a list of product ID checksums that uniquely identify
+    wells in runs, and respond with an object whose keys are the provided
+    checksums and the values are QcState records divided by their qc_type
+    """,
+    response_model=dict[str, dict[str, QcState]],
+)
+def bulk_qc_fetch(request_body: List[str], qcdb_session: Session = Depends(get_qc_db)):
+    bulk_fetcher = BulkQcFetch(session=qcdb_session)
+
+    products = bulk_fetcher.query_by_id_list(request_body)
+
+    return products
