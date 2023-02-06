@@ -20,14 +20,15 @@
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
 from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import PositiveInt
 from sqlalchemy.orm import Session
 from starlette import status
 
+from lang_qc.db.helper.qc import BulkQcFetch
 from lang_qc.db.helper.well import InconsistentInputError, InvalidDictValueError, WellQc
 from lang_qc.db.helper.wells import PacBioPagedWellsFactory, WellWh
-from lang_qc.db.helper.qc import BulkQcFetch
 from lang_qc.db.mlwh_connection import get_mlwh_db
 from lang_qc.db.qc_connection import get_qc_db
 from lang_qc.db.qc_schema import User

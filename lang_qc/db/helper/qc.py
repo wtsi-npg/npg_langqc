@@ -18,19 +18,14 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
-from typing import List, Dict
+from typing import Dict, List
 
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
-from lang_qc.db.qc_schema import (
-    SeqProduct,
-    QcState as QcStateDb,
-    User,
-    QcStateDict,
-    QcType,
-)
+from lang_qc.db.qc_schema import QcState as QcStateDb
+from lang_qc.db.qc_schema import QcStateDict, QcType, SeqProduct, User
 from lang_qc.models.qc_state import QcState
 
 

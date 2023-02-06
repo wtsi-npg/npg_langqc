@@ -1,7 +1,6 @@
 from datetime import datetime, timedelta
-import pytest
 
-from tests.fixtures.utils import clean_mlwhdb, clean_qcdb
+import pytest
 from ml_warehouse.schema import (
     PacBioProductMetrics,
     PacBioRun,
@@ -10,6 +9,7 @@ from ml_warehouse.schema import (
     Study,
 )
 from npg_id_generation.pac_bio import PacBioEntity
+
 from lang_qc.db.qc_schema import (
     ProductLayout,
     QcState,
@@ -21,6 +21,7 @@ from lang_qc.db.qc_schema import (
     SubProductAttr,
     User,
 )
+from tests.fixtures.utils import clean_mlwhdb, clean_qcdb
 
 
 @pytest.fixture
