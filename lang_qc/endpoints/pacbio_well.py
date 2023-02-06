@@ -218,13 +218,16 @@ def assign_qc_state(
 
 
 @router.post(
-    "/wells/qc",
+    "/products/qc",
     summary="Populates a list of checksums with Well data",
     description="""
     An endpoint for requesting batches of QC states for a list of IDs.
     It will iterate over a list of product ID checksums that uniquely identify
     wells in runs, and respond with an object whose keys are the provided
     checksums and the values are QcState records divided by their qc_type
+
+    Invalid and non-existent IDs will be omitted from the response. The result
+    may be an empty object if no valid IDs are found in the request body.
     """,
     response_model=dict[str, dict[str, QcState]],
 )
