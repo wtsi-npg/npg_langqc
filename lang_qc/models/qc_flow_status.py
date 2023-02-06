@@ -33,8 +33,10 @@ class QcFlowStatus(BaseModel):
 
     label: str = Field(title="A human readable label of the status")
     param: str = Field(
-        title="A query parameter that should be used to retrieve "
-        + "wells at this stage of the flow"
+        title="""
+        A query parameter that should be used to retrieve wells
+        at this stage of the flow.
+        """
     )
 
 
@@ -49,11 +51,13 @@ class QcFlowStatusEnum(str, Enum):
     IN_PROGRESS = "in_progress"
     ON_HOLD = "on_hold"
     QC_COMPLETE = "qc_complete"
+    ABORTED = "aborted"
+    UNKNOWN = "unknown"
 
     @classmethod
     def qc_flow_statuses(cls) -> "List[QcFlowStatus]":
         """
-        A class method that returns a list QcFlowStatus objects, which
+        A class method that returns a list of QcFlowStatus objects, which
         correspond to known QC flow statuses. The list is ordered in the
         the same way as the enumeration itself.
         """
