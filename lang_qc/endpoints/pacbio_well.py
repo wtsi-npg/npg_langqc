@@ -19,7 +19,7 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
-from typing import List
+import re
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import PositiveInt
@@ -44,6 +44,8 @@ router = APIRouter(
         status.HTTP_500_INTERNAL_SERVER_ERROR: {"description": "Unexpected error"}
     },
 )
+
+CHECKSUM_RE = re.compile("^[a-fA-F0-9]{64}$")
 
 
 @router.get(
@@ -231,9 +233,18 @@ def assign_qc_state(
     """,
     response_model=dict[str, dict[str, QcState]],
 )
-def bulk_qc_fetch(request_body: List[str], qcdb_session: Session = Depends(get_qc_db)):
+def bulk_qc_fetch(request_body: list[str], qcdb_session: Session = Depends(get_qc_db)):
+    # Validate body as checksums, because pydantic validators seem to be buggy
+    # for root types and lose the valid checksums
+    for sha in request_body:
+        if not CHECKSUM_RE.fullmatch(sha):
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Checksum must be hexadecimal of length 64, and not {}".format(
+                    sha
+                ),
+            )
     bulk_fetcher = BulkQcFetch(session=qcdb_session)
-
     products = bulk_fetcher.query_by_id_list(request_body)
 
     return products
