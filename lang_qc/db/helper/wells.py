@@ -49,6 +49,7 @@ class WellWh(BaseModel):
     """
 
     session: Session = Field(
+        alias="mlwh_session",
         title="SQLAlchemy Session",
         description="A SQLAlchemy Session for the ml warehouse database",
     )
@@ -57,6 +58,7 @@ class WellWh(BaseModel):
     class Config:
         allow_mutation = False
         arbitrary_types_allowed = True
+        allow_population_by_field_name = True
 
     def get_well(self, run_name: str, well_label: str) -> PacBioRunWellMetrics | None:
         """
@@ -131,7 +133,7 @@ class WellWh(BaseModel):
         return self.session.execute(query).scalars().all()
 
 
-class PacBioPagedWellsFactory(PagedStatusResponse):
+class PacBioPagedWellsFactory(WellWh, PagedStatusResponse):
     """
     Factory class to create `PacBioPagedWells` objects that correspond to
     the criteria given by the attributes of the object, i.e. `page_size`
@@ -141,10 +143,6 @@ class PacBioPagedWellsFactory(PagedStatusResponse):
     qcdb_session: Session = Field(
         title="SQLAlchemy Session",
         description="A SQLAlchemy Session for the LangQC database",
-    )
-    mlwh_session: Session = Field(
-        title="SQLAlchemy Session",
-        description="A SQLAlchemy Session for the ml warehouse database",
     )
 
     # For MySQL it's OK to use case-sensitive comparison operators since
@@ -169,6 +167,7 @@ class PacBioPagedWellsFactory(PagedStatusResponse):
     class Config:
         arbitrary_types_allowed = True
         extra = Extra.forbid
+        allow_mutation = True
 
     def create(self) -> PacBioPagedWells:
         """
@@ -188,7 +187,7 @@ class PacBioPagedWellsFactory(PagedStatusResponse):
 
         wells = []
         if self.qc_flow_status == QcFlowStatusEnum.INBOX:
-            recent_wells = WellWh(session=self.mlwh_session).recent_completed_wells()
+            recent_wells = self.recent_completed_wells()
             wells = self._recent_inbox_wells(recent_wells)
         elif self.qc_flow_status in [
             QcFlowStatusEnum.ABORTED,
@@ -258,9 +257,7 @@ class PacBioPagedWellsFactory(PagedStatusResponse):
             # One query for all or query per well? The latter for now to avoid the need
             # to match the records later. Should be fast enough for small-ish pages, we
             # query on a unique key.
-            db_well = WellWh(session=self.mlwh_session).get_well(
-                run_name=well.run_name, well_label=well.label
-            )
+            db_well = self.get_well(run_name=well.run_name, well_label=well.label)
             if db_well is None:
                 # No error if no matching mlwh record is found.
                 logging.warning(
@@ -295,7 +292,7 @@ class PacBioPagedWellsFactory(PagedStatusResponse):
     def _aborted_and_unknown_wells(self):
 
         wells = (
-            self.mlwh_session.execute(
+            self.session.execute(
                 select(PacBioRunWellMetrics)
                 .where(self.FILTERS[self.qc_flow_status.name])
                 .order_by(
