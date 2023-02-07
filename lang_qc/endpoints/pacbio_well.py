@@ -240,9 +240,7 @@ def bulk_qc_fetch(request_body: list[str], qcdb_session: Session = Depends(get_q
         if not CHECKSUM_RE.fullmatch(sha):
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="Checksum must be hexadecimal of length 64, and not {}".format(
-                    sha
-                ),
+                detail="Checksum must be hexadecimal of length 64",
             )
     bulk_fetcher = BulkQcFetch(session=qcdb_session)
     products = bulk_fetcher.query_by_id_list(request_body)

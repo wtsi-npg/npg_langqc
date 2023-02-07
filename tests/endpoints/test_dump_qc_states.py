@@ -26,10 +26,7 @@ def test_get_qc_by_product_id(test_client: TestClient, test_data_factory):
     assert response.status_code == 422
     print(response.text)
     message = response.json()["detail"]
-    assert (
-        message
-        == "Checksum must be hexadecimal of length 64, and not AAAAAAAAAAAAAAAAAAA"
-    )
+    assert message == "Checksum must be hexadecimal of length 64"
 
     response = test_client.post("/pacbio/products/qc", json=[BAD_STRING])
     assert response.ok is False
