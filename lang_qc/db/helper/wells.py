@@ -147,11 +147,22 @@ class PacBioPagedWellsFactory(PagedStatusResponse):
         description="A SQLAlchemy Session for the ml warehouse database",
     )
 
+    # For MySQL it's OK ot use case-sensitive comparison operators since
+    # its string comparisons are string-insensitive.
     FILTERS: ClassVar = {
         QcFlowStatusEnum.ON_HOLD.name: (QcStateDict.state == "On hold"),
         QcFlowStatusEnum.QC_COMPLETE.name: (QcState.is_preliminary == 0),
         QcFlowStatusEnum.IN_PROGRESS.name: and_(
             QcState.is_preliminary == 1, QcStateDict.state != "On hold"
+        ),
+        QcFlowStatusEnum.ABORTED.name: or_(
+            PacBioRunWellMetrics.well_status.like("Abort%"),
+            PacBioRunWellMetrics.well_status.like("Terminat%"),
+            PacBioRunWellMetrics.well_status.like("Fail%"),
+            PacBioRunWellMetrics.well_status.like("Error%"),
+        ),
+        QcFlowStatusEnum.UNKNOWN.name: and_(
+            PacBioRunWellMetrics.well_status == "Unknown"
         ),
     }
 
@@ -167,16 +178,23 @@ class PacBioPagedWellsFactory(PagedStatusResponse):
 
         The `PacBioWell` objects in `wells` attribute of the returned object
         are sorted in a way appropriate for the requested `qc_flow_status`.
-        For non-inbox requests the wells with most recently assigned QC states
-        come first. For inbox requests the wells with least recent 'run completed'
-        timestamp are listed first. The query for the inbox wells looks at runs
-        which completed within the last four weeks.
+        For the 'in progress' and 'on hold' requests the wells with most recently
+        assigned QC states come first. For inbox requests the wells with least
+        recent 'run completed' timestamp are listed first. The query for the
+        inbox wells looks at runs which completed within the last four weeks.
+        For the 'aborted' and 'unknown' queries the wells are sorted in the
+        run name alphabetical order.
         """
 
         wells = []
         if self.qc_flow_status == QcFlowStatusEnum.INBOX:
             recent_wells = WellWh(session=self.mlwh_session).recent_completed_wells()
             wells = self._recent_inbox_wells(recent_wells)
+        elif self.qc_flow_status in [
+            QcFlowStatusEnum.ABORTED,
+            QcFlowStatusEnum.UNKNOWN,
+        ]:
+            wells = self._aborted_and_unknown_wells()
         else:
             wells = self._get_wells()
             self._add_tracking_info(wells)
@@ -268,13 +286,52 @@ class PacBioPagedWellsFactory(PagedStatusResponse):
 
         inbox_wells = []
         # Iterate over indexes of records we want for this page and retrieve data
-        # for this page. QC data is not available for the inbox wells.
+        # for this page.
         for index in self.slice_data(inbox_wells_indexes):
-            db_well = recent_wells[index]
-            pb_well = PacBioWell(
-                run_name=db_well.pac_bio_run_name, label=db_well.well_label
-            )
-            pb_well.copy_run_tracking_info(db_well)
-            inbox_wells.append(pb_well)
+            inbox_wells.append(recent_wells[index])
 
-        return inbox_wells
+        return self._well_models(inbox_wells)
+
+    def _aborted_and_unknown_wells(self):
+
+        wells = (
+            self.mlwh_session.execute(
+                select(PacBioRunWellMetrics)
+                .where(self.FILTERS[self.qc_flow_status.name])
+                .order_by(
+                    PacBioRunWellMetrics.pac_bio_run_name,
+                    PacBioRunWellMetrics.well_label,
+                )
+            )
+            .scalars()
+            .all()
+        )
+
+        # Save the number of retrieved rows.
+        self.total_number_of_items = len(wells)
+
+        return self._well_models(self.slice_data(wells))
+
+    def _well_models(self, db_wells_list):
+
+        # Normally QC data is not available for the inbox, aborted, etc.
+        # wells. If some well with a non-inbox status has QC state assigned,
+        # the same well will also be retrieved by the 'in progress' or
+        # 'on hold' or 'qc complete' queries. However, it is useful to display
+        # the QC state if it is available.
+        pb_wells = []
+        for db_well in db_wells_list:
+            attrs = {"run_name": db_well.pac_bio_run_name, "label": db_well.well_label}
+            if self.qc_flow_status != QcFlowStatusEnum.INBOX:
+                qc_state = WellQc(
+                    session=self.qcdb_session,
+                    run_name=db_well.pac_bio_run_name,
+                    well_label=db_well.well_label,
+                ).current_qc_state()
+                if qc_state:
+                    attrs["qc_state"] = qc_state
+            pb_well = PacBioWell.parse_obj(attrs)
+            pb_well.copy_run_tracking_info(db_well)
+            pb_wells.append(pb_well)
+
+        return pb_wells

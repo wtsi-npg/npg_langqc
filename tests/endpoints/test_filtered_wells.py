@@ -38,11 +38,12 @@ def test_qc_complete_filter(test_client: TestClient, load_data4well_retrieval):
         {"TRACTION_RUN_5:B1": "Passed"},
     ]
     expected_data.reverse()
+    num_total = len(expected_data)
 
     response = test_client.get(
         "/pacbio/wells?page_size=10&page_number=1&qc_status=" + status
     )
-    _assert_filtered_results(response, expected_data, 10, 1, 4, status)
+    _assert_filtered_results(response, expected_data, 10, 1, num_total, status)
     for well in response.json()["wells"]:
         assert well["run_start_time"] is not None
         assert well["run_complete_time"] is not None
@@ -52,24 +53,19 @@ def test_qc_complete_filter(test_client: TestClient, load_data4well_retrieval):
     response = test_client.get(
         "/pacbio/wells?page_size=10&page_number=2&qc_status=" + status
     )
-    resp = response.json()
-    assert resp["wells"] == []  # empty page
-    assert resp["page_size"] == 10
-    assert resp["page_number"] == 2
-    assert resp["qc_flow_status"] == status
-    assert resp["total_number_of_items"] == 4
+    _assert_filtered_results(response, [], 10, 2, num_total, status)
 
     response = test_client.get(
         "/pacbio/wells?page_size=2&page_number=1&qc_status=" + status
     )
     ed = expected_data[0:2]
-    _assert_filtered_results(response, ed, 2, 1, 4, status)
+    _assert_filtered_results(response, ed, 2, 1, num_total, status)
 
     response = test_client.get(
         "/pacbio/wells?page_size=2&page_number=2&qc_status=" + status
     )
     ed = expected_data[2:]
-    _assert_filtered_results(response, ed, 2, 2, 4, status)
+    _assert_filtered_results(response, ed, 2, 2, num_total, status)
 
 
 def test_on_hold_filter(test_client: TestClient, load_data4well_retrieval):
@@ -80,11 +76,12 @@ def test_on_hold_filter(test_client: TestClient, load_data4well_retrieval):
         {"TRACTION_RUN_1:D1": "On hold"},
         {"TRACTION_RUN_1:B1": "On hold"},
     ]
+    num_total = len(expected_data)
 
     response = test_client.get(
         "/pacbio/wells?page_size=10&page_number=1&qc_status=" + status
     )
-    _assert_filtered_results(response, expected_data, 10, 1, 2, status)
+    _assert_filtered_results(response, expected_data, 10, 1, num_total, status)
 
     response = test_client.get(
         "/pacbio/wells?page_size=10&page_number=2&qc_status=" + status
@@ -95,7 +92,7 @@ def test_on_hold_filter(test_client: TestClient, load_data4well_retrieval):
         "/pacbio/wells?page_size=2&page_number=1&qc_status=" + status
     )
     ed = expected_data[0:2]
-    _assert_filtered_results(response, ed, 2, 1, 2, status)
+    _assert_filtered_results(response, ed, 2, 1, num_total, status)
 
 
 def test_in_progress_filter(test_client: TestClient, load_data4well_retrieval):
@@ -111,17 +108,23 @@ def test_in_progress_filter(test_client: TestClient, load_data4well_retrieval):
         {"TRACTION_RUN_2:A1": "Failed, Instrument"},
         {"TRACTION_RUN_1:E1": "Claimed"},
         {"TRACTION_RUN_1:A1": "Claimed"},
+        {"TRACTION_RUN_7:A1": "Failed"},
     ]
+    num_total = len(expected_data)
 
     response = test_client.get(
         "/pacbio/wells?qc_status=in_progress&page_size=5&page_number=1"
     )
-    _assert_filtered_results(response, expected_data[:5], 5, 1, 9, "in_progress")
+    _assert_filtered_results(
+        response, expected_data[:5], 5, 1, num_total, "in_progress"
+    )
 
     response = test_client.get(
         "/pacbio/wells?qc_status=in_progress&page_size=5&page_number=2"
     )
-    _assert_filtered_results(response, expected_data[5:], 5, 2, 9, "in_progress")
+    _assert_filtered_results(
+        response, expected_data[5:], 5, 2, num_total, "in_progress"
+    )
 
 
 def test_inbox_filter(test_client: TestClient, load_data4well_retrieval):
@@ -139,14 +142,15 @@ def test_inbox_filter(test_client: TestClient, load_data4well_retrieval):
         {"TRACTION_RUN_10:C1": None},
         {"TRACTION_RUN_12:A1": None},
     ]
+    num_total = len(expected_data)
 
     response = test_client.get("/pacbio/wells?page_size=100&page_number=1")
-    _assert_filtered_results(response, expected_data, 100, 1, 8, status)
+    _assert_filtered_results(response, expected_data, 100, 1, num_total, status)
 
     response = test_client.get(
         "/pacbio/wells?qc_status=inbox&page_size=100&page_number=1"
     )
-    _assert_filtered_results(response, expected_data, 100, 1, 8, status)
+    _assert_filtered_results(response, expected_data, 100, 1, num_total, status)
 
     response = test_client.get(
         "/pacbio/wells?page_size=100&page_number=2&qc_status=inbox"
@@ -157,31 +161,85 @@ def test_inbox_filter(test_client: TestClient, load_data4well_retrieval):
         "/pacbio/wells?page_size=2&page_number=1&qc_status=inbox"
     )
     ed = expected_data[0:2]
-    _assert_filtered_results(response, ed, 2, 1, 8, status)
+    _assert_filtered_results(response, ed, 2, 1, num_total, status)
 
     response = test_client.get(
         "/pacbio/wells?page_size=2&page_number=2&qc_status=inbox"
     )
     ed = expected_data[2:4]
-    _assert_filtered_results(response, ed, 2, 2, 8, status)
+    _assert_filtered_results(response, ed, 2, 2, num_total, status)
 
     response = test_client.get(
         "/pacbio/wells?page_size=2&page_number=4&qc_status=inbox"
     )
     ed = expected_data[6:]
-    _assert_filtered_results(response, ed, 2, 4, 8, status)
+    _assert_filtered_results(response, ed, 2, 4, num_total, status)
 
     response = test_client.get(
         "/pacbio/wells?page_size=3&page_number=2&qc_status=inbox"
     )
     ed = expected_data[3:6]
-    _assert_filtered_results(response, ed, 3, 2, 8, status)
+    _assert_filtered_results(response, ed, 3, 2, num_total, status)
 
     response = test_client.get(
         "/pacbio/wells?page_size=3&page_number=3&qc_status=inbox"
     )
     ed = expected_data[6:]
-    _assert_filtered_results(response, ed, 3, 3, 8, status)
+    _assert_filtered_results(response, ed, 3, 3, num_total, status)
+
+
+def test_unknown_filter(test_client: TestClient, load_data4well_retrieval):
+    """Test passing `unknown` filter."""
+
+    expected_data = [
+        {"SUBTRACTION_RUN_15:A1": None},
+        {"TRACTION_RUN_14:B1": None},
+    ]
+    num_total = len(expected_data)
+
+    response = test_client.get(
+        "/pacbio/wells?qc_status=unknown&page_size=5&page_number=1"
+    )
+    _assert_filtered_results(response, expected_data, 5, 1, num_total, "unknown")
+
+    response = test_client.get(
+        "/pacbio/wells?qc_status=unknown&page_size=1&page_number=2"
+    )
+    _assert_filtered_results(response, expected_data[1:], 1, 2, num_total, "unknown")
+
+    response = test_client.get(
+        "/pacbio/wells?qc_status=unknown&page_size=1&page_number=4"
+    )
+    _assert_filtered_results(response, [], 1, 4, num_total, "unknown")
+
+
+def test_aborted_filter(test_client: TestClient, load_data4well_retrieval):
+    """Test passing `aborted` filter."""
+
+    expected_data = [
+        {"TRACTION_RUN_15:A1": None},
+        {"TRACTION_RUN_15:B1": None},
+        {"TRACTION_RUN_15:C1": None},
+        {"TRACTION_RUN_15:D1": None},
+        {"TRACTION_RUN_7:A1": "Failed"},
+        {"TRACTION_RUN_9:A1": None},
+    ]
+    num_total = len(expected_data)
+
+    response = test_client.get(
+        "/pacbio/wells?qc_status=aborted&page_size=6&page_number=1"
+    )
+    _assert_filtered_results(response, expected_data, 6, 1, num_total, "aborted")
+
+    response = test_client.get(
+        "/pacbio/wells?qc_status=aborted&page_size=2&page_number=2"
+    )
+    _assert_filtered_results(response, expected_data[2:4], 2, 2, num_total, "aborted")
+
+    response = test_client.get(
+        "/pacbio/wells?qc_status=aborted&page_size=10&page_number=100"
+    )
+    _assert_filtered_results(response, [], 10, 100, num_total, "aborted")
 
 
 def _assert_filtered_results(
