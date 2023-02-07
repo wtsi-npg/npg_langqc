@@ -57,7 +57,7 @@ export default class LangQc {
           let error = "";
           if (response.status == 401) {
             // May or may not be the only way to get a 401 from the API...
-            error = "Please log in to see data";
+            error = "Please log in to modify data";
           } else {
             let errorMethod = requestMeta.method ? requestMeta.method : "GET";
             error = `API ${errorMethod} error "${response.statusText}"`;
