@@ -147,8 +147,8 @@ class PacBioPagedWellsFactory(PagedStatusResponse):
         description="A SQLAlchemy Session for the ml warehouse database",
     )
 
-    # For MySQL it's OK ot use case-sensitive comparison operators since
-    # its string comparisons are string-insensitive.
+    # For MySQL it's OK to use case-sensitive comparison operators since
+    # its string comparisons for the collation we use are case-insensitive.
     FILTERS: ClassVar = {
         QcFlowStatusEnum.ON_HOLD.name: (QcStateDict.state == "On hold"),
         QcFlowStatusEnum.QC_COMPLETE.name: (QcState.is_preliminary == 0),
