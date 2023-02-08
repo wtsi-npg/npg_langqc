@@ -38,9 +38,8 @@ def test_get_qc_by_product_id(test_client: TestClient, test_data_factory):
     response_data = response.json()
     assert FIRST_GOOD_CHECKSUM in response_data
     assert SECOND_GOOD_CHECKSUM in response_data
-
-    assert response_data[FIRST_GOOD_CHECKSUM]["sequencing"]["qc_state"] == "Passed"
-    assert response_data[SECOND_GOOD_CHECKSUM]["sequencing"]["qc_state"] == "Failed"
+    assert response_data[FIRST_GOOD_CHECKSUM][0]["qc_state"] == "Passed"
+    assert response_data[SECOND_GOOD_CHECKSUM][0]["qc_state"] == "Failed"
 
     response = test_client.post(
         "/products/qc", json=[MISSING_CHECKSUM, FIRST_GOOD_CHECKSUM]
@@ -50,4 +49,4 @@ def test_get_qc_by_product_id(test_client: TestClient, test_data_factory):
     assert MISSING_CHECKSUM not in response_data
     assert FIRST_GOOD_CHECKSUM in response_data
 
-    assert response_data[FIRST_GOOD_CHECKSUM]["sequencing"]["qc_state"] == "Passed"
+    assert response_data[FIRST_GOOD_CHECKSUM][0]["qc_state"] == "Passed"

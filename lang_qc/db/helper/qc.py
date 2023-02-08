@@ -39,7 +39,7 @@ class BulkQcFetch(BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
-    def query_by_id_list(self, ids: List) -> Dict[str, Dict[str, QcState]]:
+    def query_by_id_list(self, ids: List) -> Dict[str, list[QcState]]:
         """
         Fetches sequencing products with matching product IDs (checksums).
         Invalid or nonexistent IDs will be omitted from the return value.
@@ -85,9 +85,8 @@ class BulkQcFetch(BaseModel):
         """
         response = dict()
         for product in seq_products:
+            response[product.id_product] = []
             for qc in product.qc_state:
-                response[product.id_product] = {
-                    qc.qc_type.qc_type: QcState.from_orm(qc)
-                }
+                response[product.id_product].append(QcState.from_orm(qc))
 
         return response

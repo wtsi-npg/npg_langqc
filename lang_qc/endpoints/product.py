@@ -51,7 +51,7 @@ CHECKSUM_RE = re.compile("^[a-fA-F0-9]{64}$")
     Invalid and non-existent IDs will be omitted from the response. The result
     may be an empty object if no valid IDs are found in the request body.
     """,
-    response_model=dict[str, dict[str, QcState]],
+    response_model=dict[str, list[QcState]],
 )
 def bulk_qc_fetch(request_body: list[str], qcdb_session: Session = Depends(get_qc_db)):
     # Validate body as checksums, because pydantic validators seem to be buggy
