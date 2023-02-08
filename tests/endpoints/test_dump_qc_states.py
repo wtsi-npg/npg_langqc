@@ -17,23 +17,22 @@ def test_get_qc_by_product_id(test_client: TestClient, test_data_factory):
     SHORT_CHECKSUM = "AAAAAAAAAAAAAAAAAAA"
     BAD_STRING = "exec('rm -rf /')"
 
-    response = test_client.post("/pacbio/products/qc", json=[MISSING_CHECKSUM])
+    response = test_client.post("/products/qc", json=[MISSING_CHECKSUM])
     assert response.ok is True
     assert response.json() == {}
 
-    response = test_client.post("/pacbio/products/qc", json=[SHORT_CHECKSUM])
+    response = test_client.post("/products/qc", json=[SHORT_CHECKSUM])
     assert response.ok is False
     assert response.status_code == 422
-    print(response.text)
     message = response.json()["detail"]
     assert message == "Checksum must be hexadecimal of length 64"
 
-    response = test_client.post("/pacbio/products/qc", json=[BAD_STRING])
+    response = test_client.post("/products/qc", json=[BAD_STRING])
     assert response.ok is False
     assert response.status_code == 422
 
     response = test_client.post(
-        "/pacbio/products/qc", json=[FIRST_GOOD_CHECKSUM, SECOND_GOOD_CHECKSUM]
+        "/products/qc", json=[FIRST_GOOD_CHECKSUM, SECOND_GOOD_CHECKSUM]
     )
     assert response.ok is True
     response_data = response.json()
@@ -44,7 +43,7 @@ def test_get_qc_by_product_id(test_client: TestClient, test_data_factory):
     assert response_data[SECOND_GOOD_CHECKSUM]["sequencing"]["qc_state"] == "Failed"
 
     response = test_client.post(
-        "/pacbio/products/qc", json=[MISSING_CHECKSUM, FIRST_GOOD_CHECKSUM]
+        "/products/qc", json=[MISSING_CHECKSUM, FIRST_GOOD_CHECKSUM]
     )
     assert response.ok is True
     response_data = response.json()

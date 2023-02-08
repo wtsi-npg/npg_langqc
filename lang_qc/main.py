@@ -28,7 +28,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from pydantic import BaseSettings
 
-from lang_qc.endpoints import config, pacbio_well
+from lang_qc.endpoints import config, pacbio_well, product
 
 
 class Settings(BaseSettings):
@@ -48,6 +48,7 @@ if origins_env is not None:
 
 app = FastAPI(title="LangQC", openapi_url=settings.openapi_url)
 app.include_router(pacbio_well.router)
+app.include_router(product.router)
 app.include_router(config.router)
 app.add_middleware(
     CORSMiddleware,
