@@ -9,14 +9,12 @@
     ProxyPass /ui/ http://longue_vue/ui/
     ProxyPassReverse /ui/ http://longue_vue/ui/
 
-    SetEnvIf Request_Method (GET|HEAD|OPTIONS) harmless
-
     # Require login for modification via API
     <Location /api/pacbio>
         AuthType openid-connect
         <RequireAny>
             Require valid-user
-            Require env harmless
+            Require method GET HEAD OPTIONS
         </RequireAny>
         OIDCUnAuthAction 401
         Header set Cache-Control "private"
