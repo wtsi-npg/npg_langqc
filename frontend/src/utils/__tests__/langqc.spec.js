@@ -12,7 +12,7 @@ describe('Constructing LangQC client', () => {
 
 describe('Example fake remote api call', () => {
 
-    const responseBody = {stuff: 'nonsense'}
+    const responseBody = { stuff: 'nonsense' }
 
     fetch.mockResponse(
         JSON.stringify(responseBody)
@@ -39,8 +39,8 @@ describe('Example fake remote api call', () => {
 
     });
 
-    test('fetchWrapper correctly sets headers for posts', () => {
-        let requestBody = {data: true};
+    test('fetchWrapper correctly sets headers for posts and puts', () => {
+        let requestBody = { data: true };
         let response = client.fetchWrapper('/place', 'POST', requestBody);
         expect(response).resolves.toStrictEqual(responseBody);
 
@@ -51,11 +51,14 @@ describe('Example fake remote api call', () => {
         expect(
             fetch.mock.calls[1][1].body
         ).toStrictEqual(JSON.stringify(requestBody));
+
+        response = client.fetchWrapper('/place', 'PUT', requestBody);
+        expect(response).resolves.toStrictEqual(responseBody);
     });
 
-    test('Posting', () => {
+    test('Claiming with a POST', () => {
         fetch.mockResolvedValue(
-            new Promise( () => {
+            new Promise(() => {
                 return JSON.stringify({
                     "user": "zx80@example.com",
                     "qc_type": "library",
@@ -68,7 +71,7 @@ describe('Example fake remote api call', () => {
 
         client.claimWell('TRACTION-RUN-299', 'B1');
 
-        let request = fetch.mock.calls[2];
+        let request = fetch.mock.calls[3];
         expect(
             request[0]
         ).toEqual(
@@ -85,14 +88,14 @@ describe('Example fake remote api call', () => {
     test('Fetch convenience functions send requests to...', () => {
         // Note that the mock remembers all calls until reset
         client.getClientConfig();
-        expect(fetch.mock.calls[3][0]).toEqual('/api/config');
+        expect(fetch.mock.calls[4][0]).toEqual('/api/config');
 
         client.getRunWellPromise('blah', 'A2');
-        expect(fetch.mock.calls[4][0]).toEqual('/api/pacbio/run/blah/well/A2');
+        expect(fetch.mock.calls[5][0]).toEqual('/api/pacbio/run/blah/well/A2');
     });
 });
 
-describe('URL generation' , () => {
+describe('URL generation', () => {
     let client = new LangQc();
 
     test('buildUrl edges', () => {

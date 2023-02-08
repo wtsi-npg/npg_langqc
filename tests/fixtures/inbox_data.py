@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-from typing import List, Tuple
 
 import pytest
 from ml_warehouse.schema import (
@@ -10,7 +9,6 @@ from ml_warehouse.schema import (
     Study,
 )
 from npg_id_generation.pac_bio import PacBioEntity
-from sqlalchemy import delete, text
 
 from lang_qc.db.qc_schema import (
     ProductLayout,
@@ -23,6 +21,7 @@ from lang_qc.db.qc_schema import (
     SubProductAttr,
     User,
 )
+from tests.fixtures.utils import clean_mlwhdb, clean_qcdb
 
 
 @pytest.fixture
@@ -100,21 +99,14 @@ def inbox_data(mlwhdb_test_session):
 
     yield True
 
-    print("\nTEARDOWN inbox_data")
-    mlwhdb_test_session.execute(text("SET foreign_key_checks=0;"))
-    mlwhdb_test_session.execute(delete(PacBioProductMetrics))
-    mlwhdb_test_session.execute(delete(PacBioRun))
-    mlwhdb_test_session.execute(delete(Study))
-    mlwhdb_test_session.execute(delete(Sample))
-    mlwhdb_test_session.execute(delete(PacBioRunWellMetrics))
-    mlwhdb_test_session.execute(text("SET foreign_key_checks=1;"))
-    mlwhdb_test_session.commit()
+    clean_mlwhdb(mlwhdb_test_session)
 
 
 @pytest.fixture()
 def test_data_factory(mlwhdb_test_session, qcdb_test_session):
     def setup_data(desired_wells):
         # Setup dicts and "filler" data
+
         library_qc_type = QcType(
             qc_type="library", description="Sample/library evaluation"
         )
@@ -154,90 +146,63 @@ def test_data_factory(mlwhdb_test_session, qcdb_test_session):
                 other_user,
             ]
         )
-        qcdb_test_session.commit()
 
         # Start adding the PacBioRunWellMetrics and QcState rows.
-        run_metrics = []
-        states = []
-
         for run_name, wells in desired_wells.items():
             for well_label, state in wells.items():
-                run_metrics.append(
-                    PacBioRunWellMetrics(
-                        pac_bio_run_name=run_name,
-                        well_label=well_label,
-                        instrument_type="PacBio",
-                        polymerase_num_reads=1337,
-                        ccs_execution_mode="None",
-                        well_status="Complete",
-                        run_start=datetime.now() - timedelta(days=3),
-                        run_complete=datetime.now() - timedelta(days=1),
-                        well_start=datetime.now() - timedelta(days=2),
-                        well_complete=datetime.now() - timedelta(days=1),
-                    )
+
+                run_metrics = PacBioRunWellMetrics(
+                    pac_bio_run_name=run_name,
+                    well_label=well_label,
+                    instrument_type="PacBio",
+                    polymerase_num_reads=1337,
+                    ccs_execution_mode="None",
+                    well_status="Complete",
+                    run_start=datetime.now() - timedelta(days=3),
+                    run_complete=datetime.now() - timedelta(days=1),
+                    well_start=datetime.now() - timedelta(days=2),
+                    well_complete=datetime.now() - timedelta(days=1),
                 )
+                mlwhdb_test_session.add(run_metrics)
+
                 if state is not None:
                     pbe = PacBioEntity(run_name=run_name, well_label=well_label)
                     id = pbe.hash_product_id()
                     json = pbe.json()
-                    states.append(
-                        QcState(
-                            created_by="me",
-                            is_preliminary=state in ["On hold", "Claimed"],
-                            qc_state_dict=state_dicts[state],
-                            qc_type=seq_qc_type,
-                            seq_product=SeqProduct(
-                                id_product=id,
-                                seq_platform=seq_platform,
-                                product_layout=[
-                                    ProductLayout(
-                                        sub_product=SubProduct(
-                                            sub_product_attr=run_name_attr,
-                                            sub_product_attr_=well_label_attr,
-                                            value_attr_one=run_name,
-                                            value_attr_two=well_label,
-                                            properties=json,
-                                            properties_digest=id,
-                                        ),
-                                    )
-                                ],
-                            ),
-                            user=user,
-                        )
+
+                    qc_state = QcState(
+                        created_by="me",
+                        is_preliminary=state in ["On hold", "Claimed"],
+                        qc_state_dict=state_dicts[state],
+                        qc_type=seq_qc_type,
+                        seq_product=SeqProduct(
+                            id_product=id,
+                            seq_platform=seq_platform,
+                            product_layout=[
+                                ProductLayout(
+                                    sub_product=SubProduct(
+                                        sub_product_attr=run_name_attr,
+                                        sub_product_attr_=well_label_attr,
+                                        value_attr_one=run_name,
+                                        value_attr_two=well_label,
+                                        properties=json,
+                                        properties_digest=id,
+                                    ),
+                                )
+                            ],
+                        ),
+                        user=user,
                     )
+                    qcdb_test_session.add(qc_state)
+                    #  Feed back to fixture use
+                    desired_wells[run_name][well_label] = qc_state
 
-        for state in states:
-            qcdb_test_session.add(state)
         qcdb_test_session.commit()
-
-        for well in run_metrics:
-            mlwhdb_test_session.add(well)
         mlwhdb_test_session.commit()
 
         return desired_wells
 
     yield setup_data
 
-    print("\nTEARDOWN test_data_factory")
-
-    mlwhdb_test_session.execute(text("SET foreign_key_checks=0;"))
-    mlwhdb_test_session.execute(delete(PacBioProductMetrics))
-    mlwhdb_test_session.execute(delete(PacBioRun))
-    mlwhdb_test_session.execute(delete(Study))
-    mlwhdb_test_session.execute(delete(Sample))
-    mlwhdb_test_session.execute(delete(PacBioRunWellMetrics))
-    mlwhdb_test_session.execute(text("SET foreign_key_checks=1;"))
-    mlwhdb_test_session.commit()
-
-    qcdb_test_session.execute(text("SET foreign_key_checks=0;"))
-    qcdb_test_session.execute(delete(QcState))
-    qcdb_test_session.execute(delete(ProductLayout))
-    qcdb_test_session.execute(delete(SeqProduct))
-    qcdb_test_session.execute(delete(SubProduct))
-    qcdb_test_session.execute(delete(QcType))
-    qcdb_test_session.execute(delete(SubProductAttr))
-    qcdb_test_session.execute(delete(SeqPlatform))
-    qcdb_test_session.execute(delete(User))
-    qcdb_test_session.execute(delete(QcStateDict))
-    qcdb_test_session.execute(text("SET foreign_key_checks=1;"))
-    qcdb_test_session.commit()
+    clean_mlwhdb(mlwhdb_test_session)
+    clean_qcdb(qcdb_test_session)
