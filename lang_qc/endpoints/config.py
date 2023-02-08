@@ -39,14 +39,14 @@ router = APIRouter(
     Returns a dictionary with configuration options.
 
     Under the `qc_flow_states` key returns a list of QcFlowStatus objects,
-    which correspond to known QC flow states. The list is sorted in the temporal
+    which corresponds to known QC flow states. The list is sorted in the temporal
     order of the manual QC process. To ensure that the UI is in synch with the
     back end, this list can be used by the frontend code.
 
     Under the `qc_states` key returns a list of QC states, which should be
     possible to assign via the UI. Each QC state is a dictionary with two entries,
     a `description` and a boolean flag `only_prelim`. This flag is set to `True`
-    for QC dictionary states, which are always preliminary.
+    for those QC dictionary states that cannot be final.
     """,
     response_model=Dict,
 )

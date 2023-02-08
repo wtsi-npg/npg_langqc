@@ -19,6 +19,8 @@ def test_get_config(test_client: TestClient, test_data_factory):
             {"label": "In Progress", "param": "in_progress"},
             {"label": "On Hold", "param": "on_hold"},
             {"label": "QC Complete", "param": "qc_complete"},
+            {"label": "Aborted", "param": "aborted"},
+            {"label": "Unknown", "param": "unknown"},
         ],
         "qc_states": [
             {"description": "Passed", "only_prelim": False},

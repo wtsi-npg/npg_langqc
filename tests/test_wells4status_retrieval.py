@@ -42,6 +42,7 @@ def test_query(qcdb_test_session, mlwhdb_test_session, load_data4well_retrieval)
     query = factory._build_query4status()
     states = qcdb_test_session.execute(query).scalars().all()
     expected_data = [
+        ["Failed", "2022-02-15 10:42:33"],
         ["Claimed", "2022-12-07 07:15:19"],
         ["Claimed", "2022-12-07 09:15:19"],
         ["Failed, Instrument", "2022-12-07 15:13:56"],
@@ -176,7 +177,7 @@ def test_paged_retrieval(
 ):
 
     expected_page_details = {
-        QcFlowStatusEnum.IN_PROGRESS.name: 9,
+        QcFlowStatusEnum.IN_PROGRESS.name: 10,
         QcFlowStatusEnum.ON_HOLD.name: 2,
         QcFlowStatusEnum.QC_COMPLETE.name: 4,
     }
