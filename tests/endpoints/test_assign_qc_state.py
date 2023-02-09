@@ -199,15 +199,15 @@ def test_error_on_unclaimed_well(test_client: TestClient, test_data_factory):
     )
 
 
-def test_error_on_preclaimed_well(test_client: TestClient, test_data_factory):
-    """Test error on assigning a new state to a well claimed by another user."""
+def test_preclaimed_well(test_client: TestClient, test_data_factory):
+    """Other valid users should be able to set new QC states."""
 
     test_data = {"MARATHON": {"A1": "Passed", "B1": None}}
     test_data_factory(test_data)
 
     post_data = {
         "qc_type": "library",
-        "qc_state": "Passed",
+        "qc_state": "Failed",
         "is_preliminary": True,
     }
 
@@ -217,5 +217,5 @@ def test_error_on_preclaimed_well(test_client: TestClient, test_data_factory):
         headers={"OIDC_CLAIM_EMAIL": "cd32@example.com"},
     )
 
-    assert response.status_code == 403
-    assert response.json()["detail"] == "Unauthorised, QC is performed by another user"
+    assert response.status_code == 200
+    assert response.json()["qc_state"] == "Failed"

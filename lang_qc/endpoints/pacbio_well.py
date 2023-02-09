@@ -195,12 +195,6 @@ def assign_qc_state(
             detail="QC state of an unclaimed well cannot be updated",
         )
 
-    if qc_state.user.username != user.username:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Unauthorised, QC is performed by another user",
-        )
-
     qc_state = None
     message = "Error assigning status: "
     try:
