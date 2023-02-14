@@ -1,6 +1,8 @@
-# Copyright (c) 2022 Genome Research Ltd.
+# Copyright (c) 2022, 2023 Genome Research Ltd.
 #
-# Author: Marina Gourtovaia <mg8@sanger.ac.uk>
+# Authors:
+#   Marina Gourtovaia <mg8@sanger.ac.uk>
+#   Kieron Taylor <kt19@sanger.ac.uk>
 #
 # This file is part of npg_langqc.
 #
@@ -20,14 +22,13 @@
 """
 A module bringing together classes used in QC state assignments for a PacBio
 well. A low-level API for the assignment of QC states, which does not depend on
-the web framework.
+the web API.
 """
 
 from datetime import datetime
 from functools import cached_property
 from typing import Dict
 
-from ml_warehouse.schema import PacBioRunWellMetrics
 from npg_id_generation.pac_bio import PacBioEntity
 from pydantic import BaseModel, Field
 from sqlalchemy import and_, select
@@ -67,47 +68,6 @@ class InconsistentInputError(Exception):
     are valid, but are inconsistent or mutually exclusive in regards
     of the QC state that has to be assigned.
     """
-
-
-class WellMetrics(BaseModel):
-    """
-    A data access class for routine SQLAlchemy operations on well data
-    in ml warehouse database.
-    """
-
-    session: Session = Field(
-        title="SQLAlchemy Session",
-        description="A SQLAlchemy Session for the ml warehouse database",
-    )
-    run_name: str = Field(title="Name of the run as known in LIMS")
-    well_label: str = Field(title="Well label as known in LIMS and SMRT Link")
-
-    class Config:
-        allow_mutation = False
-        arbitrary_types_allowed = True
-
-    def get_metrics(self) -> PacBioRunWellMetrics | None:
-        """
-        Returns a well row record from the well metrics table or
-        None if the record does not exist.
-        """
-
-        return self.session.execute(
-            select(PacBioRunWellMetrics).where(
-                and_(
-                    PacBioRunWellMetrics.pac_bio_run_name == self.run_name,
-                    PacBioRunWellMetrics.well_label == self.well_label,
-                )
-            )
-        ).scalar_one_or_none()
-
-    def exists(self) -> bool:
-        """
-        Returns `True` if a record for combination of a well and a run exists,
-        in the well metrics table `False` otherwise.
-        """
-
-        return bool(self.get_metrics())
 
 
 class QcDictDB(BaseModel):

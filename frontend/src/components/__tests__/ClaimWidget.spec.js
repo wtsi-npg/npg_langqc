@@ -30,10 +30,8 @@ describe('Clicking triggers POST and side-effects', () => {
                         initialState: {
                             focusWell: {
                                 runWell: {
-                                    run_info: {
-                                        pac_bio_run_name: 'TEST',
-                                        well_label: 'A1',
-                                    }
+                                    run_name: 'TEST',
+                                    label: 'A1',
                                 }
                             },
                         },

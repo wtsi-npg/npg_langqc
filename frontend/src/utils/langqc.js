@@ -27,7 +27,7 @@ export default class LangQc {
     return this.urls[alias];
   }
 
-  fetchWrapper(route, method='GET', body) {
+  fetchWrapper(route, method = 'GET', body) {
     // Don't use this if you want async efficiency.
     // Returns a promise that ought to contain backend data
 
@@ -35,7 +35,7 @@ export default class LangQc {
       headers: this.commonHeaders,
     }
 
-    if (method == 'POST') {
+    if (method == 'POST' || method == 'PUT') {
       requestMeta.method = method;
       requestMeta.headers = {
         'Content-type': 'application/json',
@@ -57,7 +57,7 @@ export default class LangQc {
           let error = "";
           if (response.status == 401) {
             // May or may not be the only way to get a 401 from the API...
-            error = "Please log in to see data";
+            error = "Please log in to modify data";
           } else {
             let errorMethod = requestMeta.method ? requestMeta.method : "GET";
             error = `API ${errorMethod} error "${response.statusText}"`;
@@ -72,7 +72,7 @@ export default class LangQc {
     );
   }
 
-  getInboxPromise(qc_status='inbox', page_number=1, page_size=10) {
+  getInboxPromise(qc_status = 'inbox', page_number = 1, page_size = 10) {
     return this.fetchWrapper(
       this.buildUrl(
         '/wells',
@@ -82,7 +82,7 @@ export default class LangQc {
   }
 
   getRunWellPromise(name, well) {
-    return this.fetchWrapper(this.buildUrl(['run', name,'well',well]));
+    return this.fetchWrapper(this.buildUrl(['run', name, 'well', well]));
   }
 
   getClientConfig() {
@@ -96,10 +96,10 @@ export default class LangQc {
     )
   }
 
-  setWellQcState(name, well, state, final=false) {
+  setWellQcState(name, well, state, final = false) {
     return this.fetchWrapper(
       this.buildUrl(['run', name, 'well', well, 'qc_assign']),
-      'POST',
+      'PUT',
       {
         qc_state: state,
         is_preliminary: !final,

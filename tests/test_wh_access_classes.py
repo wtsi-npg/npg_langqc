@@ -4,7 +4,6 @@ import pytest
 from ml_warehouse.schema import PacBioRunWellMetrics
 from sqlalchemy import select
 
-from lang_qc.db.helper.well import WellMetrics
 from lang_qc.db.helper.wells import WellWh
 from tests.fixtures.well_data import load_data4well_retrieval, load_dicts_and_users
 
@@ -59,18 +58,17 @@ def test_completed_wells_retrieval(mlwhdb_test_session, load_data4well_retrieval
 
 def test_well_metrics_retrieval(mlwhdb_test_session, load_data4well_retrieval):
 
-    wm = WellMetrics(session=mlwhdb_test_session, run_name="UNKNOWN", well_label="A1")
-    assert wm.get_metrics() is None
-    assert wm.exists() is False
+    wm = WellWh(session=mlwhdb_test_session)
+    assert wm.get_well(run_name="UNKNOWN", well_label="A1") is None
+    assert wm.well_exists(run_name="UNKNOWN", well_label="A1") is False
 
-    wm = WellMetrics(
-        session=mlwhdb_test_session, run_name="TRACTION_RUN_12", well_label="A1"
-    )
-    well = wm.get_metrics()
+    wm = WellWh(session=mlwhdb_test_session)
+    well = wm.get_well(run_name="TRACTION_RUN_12", well_label="A1")
     assert well.pac_bio_run_name == "TRACTION_RUN_12"
     assert well.well_label == "A1"
-    assert well.run_status == "Complete"
+    assert well.run_status == "None"
+    assert well.well_status == "Complete"
     assert well.ccs_execution_mode == "OffInstrument"
     assert well.polymerase_num_reads == 3339714
     assert well.hifi_num_reads == 2226107
-    assert wm.exists() is True
+    assert wm.well_exists(run_name="TRACTION_RUN_12", well_label="A1") is True

@@ -1,6 +1,9 @@
-# Copyright (c) 2022 Genome Research Ltd.
+# Copyright (c) 2022, 2023 Genome Research Ltd.
 #
-# Author: Adam Blanchet <ab59@sanger.ac.uk>
+# Authors:
+#   Adam Blanchet
+#   Marina Gourtovaia <mg8@sanger.ac.uk>
+#   Kieron Taylor <kt19@sanger.ac.uk>
 #
 # This file is part of npg_langqc.
 #
@@ -22,9 +25,10 @@ import os
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from pydantic import BaseSettings
 
-from lang_qc.endpoints import config, pacbio_well
+from lang_qc.endpoints import config, pacbio_well, product
 
 
 class Settings(BaseSettings):
@@ -44,6 +48,7 @@ if origins_env is not None:
 
 app = FastAPI(title="LangQC", openapi_url=settings.openapi_url)
 app.include_router(pacbio_well.router)
+app.include_router(product.router)
 app.include_router(config.router)
 app.add_middleware(
     CORSMiddleware,
@@ -52,3 +57,4 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(GZipMiddleware)

@@ -1,80 +1,85 @@
-# Copyright (c) 2022 Genome Research Ltd.
-#
-# Author: Adam Blanchet <ab59@sanger.ac.uk>
-#
-# This file is part of npg_langqc.
-#
-# npg_langqc is free software: you can redistribute it and/or modify it under
-# the terms of the GNU General Public License as published by the Free Software
-# Foundation; either version 3 of the License, or (at your option) any later
-# version.
-#
-# This program is distributed in the hope that it will be useful, but WITHOUT
-# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
-# details.
-#
-# You should have received a copy of the GNU General Public License along with
-# this program. If not, see <http://www.gnu.org/licenses/>.
-
 from fastapi.testclient import TestClient
 
-from tests.fixtures.inbox_data import inbox_data
+from tests.conftest import insert_from_yaml
+from tests.fixtures.well_data import load_data4well_retrieval, load_dicts_and_users
 
 
-def test_get_well(test_client: TestClient, inbox_data):
-    """Test retrieving a well with and without QC data."""
+def test_get_well_info(
+    test_client: TestClient, mlwhdb_test_session, load_data4well_retrieval
+):
+
+    insert_from_yaml(
+        mlwhdb_test_session, "tests/data/mlwh_pb_run_92", "ml_warehouse.schema"
+    )
 
     response = test_client.get("/pacbio/run/MARATHON/well/A0")
+    assert response.status_code == 404
+    assert response.json()["detail"] == "PacBio well A0 run MARATHON not found."
+
+    response = test_client.get("/pacbio/run/TRACTION-RUN-92/well/A1")
     assert response.status_code == 200
     result = response.json()
 
-    assert result["run_info"]["well_label"] == "A0"
-    assert result["run_info"]["library_type"] == "pipeline type 1"
-    qc_data = {
-        "smrt_link": {"run_uuid": None, "hostname": None},
-        "binding_kit": {"value": None, "label": "Binding Kit"},
-        "control_num_reads": {"value": None, "label": "Number of Control Reads"},
+    assert result["label"] == "A1"
+    assert result["run_name"] == "TRACTION-RUN-92"
+    assert result["run_start_time"] == "2022-04-14T12:52:34"
+    assert result["run_complete_time"] == "2022-04-20T09:16:53"
+    assert result["well_start_time"] == "2022-04-14T13:02:48"
+    assert result["well_complete_time"] == "2022-04-16T12:36:21"
+    assert result["qc_state"] is None
+
+    expected_metrics = {
+        "smrt_link": {
+            "run_uuid": "7f5d45ed-aa93-46a6-92b2-4b11d4bf29da",
+            "hostname": "pacbio01.dnapipelines.sanger.ac.uk",
+        },
+        "binding_kit": {"value": "Sequel II Binding Kit 2.2", "label": "Binding Kit"},
+        "control_num_reads": {"value": 24837, "label": "Number of Control Reads"},
         "control_read_length_mean": {
-            "value": None,
+            "value": 50169,
             "label": "Control Read Length (bp)",
         },
-        "hifi_read_bases": {"value": None, "label": "CCS Yield (Gb)"},
-        "hifi_read_length_mean": {"value": None, "label": "CCS Mean Length (bp)"},
-        "local_base_rate": {"value": None, "label": "Local Base Rate"},
-        "p0_num": {"value": None, "label": "P0 %"},
-        "p1_num": {"value": None, "label": "P1 %"},
-        "p2_num": {"value": None, "label": "P2 %"},
-        "polymerase_read_bases": {"value": None, "label": "Total Cell Yield (Gb)"},
+        "hifi_read_bases": {"value": 27.08, "label": "CCS Yield (Gb)"},
+        "hifi_read_length_mean": {"value": 9411, "label": "CCS Mean Length (bp)"},
+        "local_base_rate": {"value": 2.77, "label": "Local Base Rate"},
+        "p0_num": {"value": 34.94, "label": "P0 %"},
+        "p1_num": {"value": 62.81, "label": "P1 %"},
+        "p2_num": {"value": 2.25, "label": "P2 %"},
+        "polymerase_read_bases": {"value": 645.57, "label": "Total Cell Yield (Gb)"},
         "polymerase_read_length_mean": {
-            "value": None,
+            "value": 128878,
             "label": "Mean Polymerase Read Length (bp)",
         },
-        "movie_minutes": {"value": None, "label": "Run Time (hr)"},
+        "movie_minutes": {"value": 30, "label": "Run Time (hr)"},
     }
-    assert result["metrics"] == qc_data
+    assert result["metrics"] == expected_metrics
 
-    response = test_client.get("/pacbio/run/MARATHON/well/A1")
+    etrack = result["experiment_tracking"]
+    assert etrack is not None
+    assert etrack["num_samples"] == 1
+    assert etrack["study_id"] == ["6457"]
+    assert etrack["study_name"] == "Tree of Life - ASG"
+    assert etrack["sample_id"] == "7880641"
+    assert etrack["sample_name"] == "TOL_ASG12404704"
+    assert etrack["library_type"] == ["PacBio_Ultra_Low_Input"]
+    assert etrack["tag_sequence"] == []
+
+    response = test_client.get("/pacbio/run/TRACTION_RUN_1/well/B1")
     assert response.status_code == 200
     result = response.json()
 
-    qc_data["smrt_link"] = {
-        "run_uuid": "05b0a368-2548-11ed-861d-0242ac120002",
-        "hostname": "esa_host",
+    assert result["label"] == "B1"
+    assert result["run_name"] == "TRACTION_RUN_1"
+    assert result["experiment_tracking"] is None
+    expected_qc_state = {
+        "qc_state": "On hold",
+        "is_preliminary": True,
+        "qc_type": "sequencing",
+        "outcome": None,
+        "id_product": "b5a7d41453097fe3cc59644a679186e64a2147833ecc76a2870c5fe8068835ae",
+        "date_created": "2022-12-08T07:15:19",
+        "date_updated": "2022-12-08T07:15:19",
+        "user": "zx80@example.com",
+        "created_by": "LangQC",
     }
-    qc_data["binding_kit"]["value"] = "Sequel II Binding Kit 2.2"
-    qc_data["control_num_reads"]["value"] = 7400
-    qc_data["control_read_length_mean"]["value"] = 51266
-    qc_data["hifi_read_bases"]["value"] = 28.53
-    qc_data["hifi_read_length_mean"]["value"] = 11619
-    qc_data["local_base_rate"]["value"] = 2.73
-    qc_data["p0_num"]["value"] = 32.47
-    qc_data["p1_num"]["value"] = 65.98
-    qc_data["p2_num"]["value"] = 1.55
-    qc_data["polymerase_read_bases"]["value"] = 534.42
-    qc_data["polymerase_read_length_mean"]["value"] = 101200
-    qc_data["movie_minutes"]["value"] = 30
-
-    assert result["run_info"]["well_label"] == "A1"
-    assert result["run_info"]["library_type"] == "pipeline type 1"
-    assert result["metrics"] == qc_data
+    assert result["qc_state"] == expected_qc_state
