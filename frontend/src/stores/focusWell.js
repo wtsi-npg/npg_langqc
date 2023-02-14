@@ -59,6 +59,11 @@ export const useWellStore = defineStore('focusWell', {
                 return !state.qcState.is_preliminary;
             }
             return null;
+        },
+        getAssessor(state) {
+            if (state.qcState != null && state.qcState.user) {
+                return state.qcState.user;
+            }
         }
     },
     actions: {

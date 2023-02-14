@@ -1,11 +1,12 @@
 <script setup>
-import { onMounted, ref, provide, reactive, readonly} from "vue";
+import { onMounted, ref, provide, reactive, readonly } from "vue";
 import { ElMessage } from 'element-plus';
 
 import QcView from "@/components/QcView.vue";
 import LangQc from "@/utils/langqc.js";
 import QcControls from "@/components/QcControls.vue";
-import { useWellStore } from '@/stores/focusWell.js';
+import { useWellStore } from "@/stores/focusWell.js";
+import { getUserName } from "@/utils/session.js"
 
 const focusWell = useWellStore();
 
@@ -28,6 +29,9 @@ let activeWell = reactive({
   label: null
 });
 
+let user = ref(null);
+getUserName((email) => { user.value = email }).then();
+
 provide('activeTab', activeTab);
 provide('config', appConfig);
 provide('activeWell', readonly(activeWell));
@@ -38,17 +42,17 @@ function loadWellDetail(runName, label) {
 
   let qcState = getQcFromWellCollection(runName, label);
   serviceClient.getRunWellPromise(runName, label)
-  .then(
-    well => focusWell.runWell = well
-  ).catch(
-    (error) => {
-      ElMessage({
-        message: error.message,
-        type: error,
-        duration: 5000
-      })
-    }
-  );
+    .then(
+      well => focusWell.runWell = well
+    ).catch(
+      (error) => {
+        ElMessage({
+          message: error.message,
+          type: error,
+          duration: 5000
+        })
+      }
+    );
   focusWell.updateWellQcState(qcState);
   activeWell.runName = runName;
   activeWell.label = label;
@@ -59,16 +63,18 @@ function getQcFromWellCollection(name, well_label) {
     if (
       well.run_name == name
       && well.label == well_label
-      ) {
-        return well.qc_state;
+    ) {
+      return well.qc_state;
     }
   }
 }
 
 function loadWells(status, page, pageSize) {
   serviceClient.getInboxPromise(status, page, pageSize).then(
-    data => {wellCollection.value = data.wells
-             totalNumberOfWells.value = data.total_number_of_items}
+    data => {
+      wellCollection.value = data.wells
+      totalNumberOfWells.value = data.total_number_of_items
+    }
   ).catch(
     (error) => {
       // Reset table of wells to prevent desired tab from showing data from another
@@ -107,7 +113,7 @@ onMounted(() => {
       data => appConfig.value = data
     );
   } catch (error) {
-    console.log("Stuff went wrong getting data from backend: "+error);
+    console.log("Stuff went wrong getting data from backend: " + error);
     ElMessage({
       message: error.message,
       type: "error"
@@ -118,17 +124,12 @@ onMounted(() => {
 </script>
 
 <template>
-<div>
-  <h2>Runs</h2>
-</div>
+  <div>
+    <h2>Runs</h2>
+  </div>
   <div v-if="appConfig !== null">
-    <el-tabs v-model="activeTab" type="border-card" @tab-change="changeTab" >
-      <el-tab-pane
-        v-for="tab in appConfig.qc_flow_statuses"
-        :key="tab.param"
-        :label="tab.label"
-        :name="tab.param"
-      >
+    <el-tabs v-model="activeTab" type="border-card" @tab-change="changeTab">
+      <el-tab-pane v-for="tab in appConfig.qc_flow_statuses" :key="tab.param" :label="tab.label" :name="tab.param">
         <table>
           <tr>
             <th>Run name</th>
@@ -141,40 +142,34 @@ onMounted(() => {
             <th>Well status</th>
             <th>Run status</th>
           </tr>
-          <tr :key="wellObj.run_name + ':' + wellObj.label" v-for="wellObj in wellCollection" >
+          <tr :key="wellObj.run_name + ':' + wellObj.label" v-for="wellObj in wellCollection">
             <td>{{ wellObj.run_name }}</td>
             <td>
               <button v-on:click="loadWellDetail(wellObj.run_name, wellObj.label)">{{ wellObj.label }}</button>
             </td>
             <td>{{ wellObj.run_start_time }}</td>
-            <td>{{ wellObj.run_complete_time ? wellObj.run_complete_time : '&nbsp;'}}</td>
-            <td>{{ wellObj.qc_state ? wellObj.qc_state.qc_state : '&nbsp;'}}</td>
-            <td>{{ wellObj.qc_state ? wellObj.qc_state.date_updated : '&nbsp;'}}</td>
-            <td>{{ wellObj.qc_state ? wellObj.qc_state.user : '&nbsp;'}}</td>
-            <td>{{ wellObj.well_status ? wellObj.well_status : '&nbsp;'}}</td>
-            <td>{{ wellObj.run_status ? wellObj.run_status : '&nbsp;'}}</td>
+            <td>{{ wellObj.run_complete_time ? wellObj.run_complete_time : '&nbsp;' }}</td>
+            <td>{{ wellObj.qc_state ? wellObj.qc_state.qc_state : '&nbsp;' }}</td>
+            <td>{{ wellObj.qc_state ? wellObj.qc_state.date_updated : '&nbsp;' }}</td>
+            <td>{{ wellObj.qc_state ? wellObj.qc_state.user : '&nbsp;' }}</td>
+            <td>{{ wellObj.well_status ? wellObj.well_status : '&nbsp;' }}</td>
+            <td>{{ wellObj.run_status ? wellObj.run_status : '&nbsp;' }}</td>
           </tr>
         </table>
       </el-tab-pane>
-      <el-pagination
-        v-model:currentPage="activePage"
-        layout="prev, pager, next"
-        v-bind:total="totalNumberOfWells"
-        background
-        :pager-count="5"
-        :page-size="pageSize"
-        :hide-on-single-page="true"
-        @current-change="changePage"
-      ></el-pagination>
+      <el-pagination v-model:currentPage="activePage" layout="prev, pager, next" v-bind:total="totalNumberOfWells"
+        background :pager-count="5" :page-size="pageSize" :hide-on-single-page="true"
+        @current-change="changePage"></el-pagination>
     </el-tabs>
   </div>
   <h2>QC view</h2>
   <div class="qcview" v-if="focusWell.runWell !== null">
     <div class="data">
-      <QcView :runWell="focusWell.runWell"/>
+      <QcView :runWell="focusWell.runWell" />
     </div>
     <aside class="controls">
-      <QcControls @wellChanged="externalTabChange"/>
+      <QcControls @wellChanged="externalTabChange" :assignee="focusWell.getAssessor" :user="user"
+        :state="focusWell.getQcState" />
     </aside>
   </div>
   <div v-else>
@@ -190,9 +185,11 @@ onMounted(() => {
     "metric control";
   grid-column-gap: 10px;
 }
+
 .controls {
   grid-area: control;
 }
+
 .data {
   grid-area: metric;
 }

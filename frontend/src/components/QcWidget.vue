@@ -10,6 +10,10 @@ const focusWell = useWellStore();
 
 let client = new LangQc();
 
+const props = defineProps({
+    disabled: Boolean
+})
+
 // Vars representing the current state of the form until submission
 // updates the focusWell store and the backend API
 let widgetQcSetting = ref(null);
@@ -45,71 +49,57 @@ function syncWidgetToQcState() {
 }
 
 function submitQcState() {
-    let [ name, well ] = focusWell.getRunAndLabel;
+    let [name, well] = focusWell.getRunAndLabel;
 
     client.setWellQcState(name, well, widgetQcSetting.value, widgetFinality.value)
-    .then(
-        (response) => {
-            focusWell.updateWellQcState(response);
-            // Set new "old" settings for the widgets
-            syncWidgetToQcState();
-            ElMessage({
-                message: `Changed QC state to ${widgetQcSetting.value} : ${widgetFinality.value? "Final": "Preliminary"}`,
-                type: 'success',
-                duration: 3000
-            });
-        }
-    ).catch(
-        (error) => {
-            ElMessage({
-                message: error.message,
-                type: 'error',
-                duration: 5000
-            })
-        }
-    )
+        .then(
+            (response) => {
+                focusWell.updateWellQcState(response);
+                // Set new "old" settings for the widgets
+                syncWidgetToQcState();
+                ElMessage({
+                    message: `Changed QC state to ${widgetQcSetting.value} : ${widgetFinality.value ? "Final" : "Preliminary"}`,
+                    type: 'success',
+                    duration: 3000
+                });
+            }
+        ).catch(
+            (error) => {
+                ElMessage({
+                    message: error.message,
+                    type: 'error',
+                    duration: 5000
+                })
+            }
+        )
 }
+
+let amIDisabled = computed(() => {
+    if (focusWell.hasQcState == true && props.disabled == false) {
+        return null
+    } else {
+        return true
+    }
+})
 </script>
 
 <template>
-    <div :data-testId="'previousSetting'" class="item"
-        v-if="focusWell.hasQcState">
-        Current QC state: {{focusWell.getFinality ? "Final": "Preliminary"}} "{{focusWell.getQcValue}}" set by "{{focusWell.getQcState.user}}"
+    <div :data-testId="'previousSetting'" class="item" v-if="focusWell.hasQcState">
+        Current QC state: {{ focusWell.getFinality ? "Final" : "Preliminary" }} "{{ focusWell.getQcValue }}" set by
+        "{{ focusWell.getQcState.user }}"
     </div>
     <div :data-testId="'notHere'" v-else class="item">No QC setting</div>
-    <el-select
-        v-model="widgetQcSetting"
-        :placeholder="widgetQcSetting"
-        :disabled="focusWell.hasQcState ? false : true"
-        :data-testId="'QC state selector'"
-        class="item"
-    >
-        <el-option
-            v-for="item in options"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-        />
+    <el-select v-model="widgetQcSetting" :placeholder="widgetQcSetting" :disabled="amIDisabled"
+        :data-testId="'QC state selector'" class="item">
+        <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value" />
     </el-select>
     <div class="item">
-    Final: <el-switch
-        v-model="widgetFinality"
-        :active-icon="Check"
-        :inactive-icon="Close"
-        inline-prompt
-        size="large"
-        style="--el-switch-off-color: #131313"
-        :data-testId="'QC finality selector'"
-        :disabled="focusWell.hasQcState ? false : true"
-    />
+        Final: <el-switch v-model="widgetFinality" :active-icon="Check" :inactive-icon="Close" inline-prompt
+            size="large" style="--el-switch-off-color: #131313" :data-testId="'QC finality selector'"
+            :disabled="amIDisabled" />
     </div>
-    <el-button
-        type="primary"
-        @click="submitQcState"
-        :data-testId="'QC submit'"
-        :disabled="focusWell.hasQcState ? false : true"
-        class="item"
-    >Submit</el-button>
+    <el-button type="primary" @click="submitQcState" :data-testId="'QC submit'" :disabled="amIDisabled"
+        class="item">Submit</el-button>
 </template>
 
 <style>
