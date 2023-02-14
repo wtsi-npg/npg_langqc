@@ -75,7 +75,7 @@ function submitQcState() {
 }
 
 let amIDisabled = computed(() => {
-    if (focusWell.hasQcState == true && props.disabled == false) {
+    if (focusWell.hasQcState == true && !props.disabled) {
         return null
     } else {
         return true

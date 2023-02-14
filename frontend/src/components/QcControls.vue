@@ -1,49 +1,65 @@
 <script setup>
-import { computed, defineProps, ref } from "vue";
+import { computed, defineProps, ref, watch } from "vue";
 import ClaimWidget from "@/components/ClaimWidget.vue";
 import QcWidget from "@/components/QcWidget.vue";
+import { useWellStore } from "@/stores/focusWell.js";
 
 const emit = defineEmits(['wellChanged']);
+const focusWell = useWellStore();
 
 const props = defineProps({
     assignee: String, // whomever has claimed this QC item
     user: String, // the user for this session
-    state: Object // The state of the selected well, so we can decide which buttons to enable
 });
 
 function changeTab() {
     emit('wellChanged', 'in_progress');
 }
 
-let override = ref(false)
+let override = ref(false);
+function flipOverride() {
+    console.log(override.value);
+    override.value = !override.value;
+    console.log(override.value);
+}
+watch(focusWell, override.value = false); // Turn override off if the well changes
 
-let owner = computed(() => {
+const owner = computed(() => {
     if (props.assignee && props.user && props.assignee == props.user) {
         return true
     } else {
         return false
     }
-})
-
-let cannotClaim = computed(() => {
-    return !props.user || Boolean(props.state)
 });
 
-let modifiable = computed(() => {
-    if (override || (owner && props.state && props.state.is_preliminary === true)) {
-        return true
-    } else {
-        return false
-    }
-})
+const cannotClaim = computed(() => {
+    return (!props.user || focusWell.hasQcState) ? true : null
+});
 
-let canOverride = computed(() => {
-    if ((owner && props.state && !props.state.is_preliminary) || !owner && props.user) {
+const unModifiable = computed(() => {
+    if (
+        override.value == true
+        || (owner && focusWell.hasQcState && !focusWell.getFinality)
+    ) {
+        return null
+    } else {
+        return true
+    }
+});
+
+const canOverride = computed(() => {
+    if (
+        (override.value == false)
+        && (
+            (owner && focusWell.hasQcState && focusWell.getFinality)
+            || (!owner && props.user)
+        )
+    ) {
         return true
     } else {
-        return false
+        return null
     }
-})
+});
 
 
 </script>
@@ -52,8 +68,8 @@ let canOverride = computed(() => {
     <div id="QCcontrols" class="widget-box">
         <el-card shadow="always">
             <ClaimWidget @wellClaimed="changeTab" :disabled="cannotClaim" />
-            <QcWidget :disabled="!modifiable" />
-            <el-button v-if="canOverride" text type="warning" :onclick="override = !override">Override</el-button>
+            <QcWidget :disabled=unModifiable />
+            <el-button v-if="canOverride" text type="warning" @click="flipOverride">Override</el-button>
         </el-card>
     </div>
 </template>

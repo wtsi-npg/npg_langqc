@@ -168,8 +168,7 @@ onMounted(() => {
       <QcView :runWell="focusWell.runWell" />
     </div>
     <aside class="controls">
-      <QcControls @wellChanged="externalTabChange" :assignee="focusWell.getAssessor" :user="user"
-        :state="focusWell.getQcState" />
+      <QcControls @wellChanged="externalTabChange" :assignee="focusWell.getAssessor" :user="user" />
     </aside>
   </div>
   <div v-else>
