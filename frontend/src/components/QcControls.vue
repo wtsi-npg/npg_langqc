@@ -8,7 +8,6 @@ const emit = defineEmits(['wellChanged']);
 const focusWell = useWellStore();
 
 const props = defineProps({
-    assignee: String, // whomever has claimed this QC item
     user: String, // the user for this session
 });
 
@@ -16,16 +15,14 @@ function changeTab() {
     emit('wellChanged', 'in_progress');
 }
 
-let override = ref(false);
+let override = ref(false); // Override interface restrictions on modifying QC states
 function flipOverride() {
-    console.log(override.value);
     override.value = !override.value;
-    console.log(override.value);
 }
-watch(focusWell, override.value = false); // Turn override off if the well changes
+watch(focusWell, () => { override.value = false }); // Turn override off if the well changes
 
 const owner = computed(() => {
-    if (props.assignee && props.user && props.assignee == props.user) {
+    if (focusWell.getAssessor && props.user && focusWell.getAssessor == props.user) {
         return true
     } else {
         return false
@@ -38,8 +35,8 @@ const cannotClaim = computed(() => {
 
 const unModifiable = computed(() => {
     if (
-        override.value == true
-        || (owner && focusWell.hasQcState && !focusWell.getFinality)
+        override.value === true
+        || (owner.value === true && !focusWell.getFinality)
     ) {
         return null
     } else {
@@ -49,19 +46,17 @@ const unModifiable = computed(() => {
 
 const canOverride = computed(() => {
     if (
-        (override.value == false)
+        (override.value === false)
         && (
-            (owner && focusWell.hasQcState && focusWell.getFinality)
-            || (!owner && props.user)
+            (owner.value === true && focusWell.hasQcState && focusWell.getFinality)
+            || (owner.value === false && props.user)
         )
     ) {
         return true
     } else {
-        return null
+        return false
     }
 });
-
-
 </script>
 
 <template>
