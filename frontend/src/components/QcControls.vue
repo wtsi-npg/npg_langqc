@@ -49,7 +49,7 @@ const canOverride = computed(() => {
         (override.value === false)
         && (
             (owner.value === true && focusWell.hasQcState && focusWell.getFinality)
-            || (owner.value === false && props.user)
+            || (owner.value === false && props.user && focusWell.hasQcState)
         )
     ) {
         return true
