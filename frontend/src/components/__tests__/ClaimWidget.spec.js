@@ -18,8 +18,9 @@ describe('Clicking triggers POST and side-effects', () => {
             user: 'loggedInUser'
         })
     );
-    let { widget, wellStore }  = [null, null, null];
+    let { widget, wellStore } = [null, null, null];
 
+    // All subsequent tests expect the claim widget to be enabled
     beforeEach(() => {
         widget = mount(ClaimWidget, {
             global: {
@@ -48,12 +49,10 @@ describe('Clicking triggers POST and side-effects', () => {
         wellStore = useWellStore();
     });
 
-
-
     test('Click normally', async () => {
+        expect(widget.get('button').attributes('disabled')).toBeUndefined()
         await widget.get('button').trigger('click');
         await flushPromises(); // Forces reactivity to shake out
-
         expect(wellStore.getQcValue).toEqual('Claimed');
 
         let request = fetch.mock.calls[0];
@@ -77,3 +76,23 @@ describe('Clicking triggers POST and side-effects', () => {
         expect(widget.emits).not.toBeDefined();
     });
 });
+
+describe('Disablement works as desired', () => {
+    test('Disabled', () => {
+        let widget = mount(ClaimWidget, {
+            global: {
+                plugins: [
+                    ElementPlus,
+                    createTestingPinia({
+                        createSpy: vi.fn,
+                    })
+                ],
+            },
+            props: {
+                'disabled': true
+            }
+        })
+
+        expect(widget.get('button').attributes('disabled')).toBeDefined()
+    })
+})

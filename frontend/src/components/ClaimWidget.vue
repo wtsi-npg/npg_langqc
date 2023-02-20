@@ -1,5 +1,5 @@
 <script setup>
-import { computed, inject } from "vue";
+import { computed } from "vue";
 import { ElMessage } from "element-plus";
 import LangQc from "../utils/langqc.js";
 import { useWellStore } from "@/stores/focusWell.js";
@@ -10,8 +10,6 @@ const emit = defineEmits(['wellClaimed']);
 const props = defineProps({
     disabled: Boolean
 });
-
-const tabGetter = inject('activeTab');
 
 let client = new LangQc();
 
@@ -42,7 +40,7 @@ function claimHandler() {
 }
 
 let amIDisabled = computed(() => {
-    if (tabGetter == 'inbox' || props.disabled == true) {
+    if (props.disabled == true) {
         return true
     } else {
         return null // because Vue3 renders false as attr="false"
