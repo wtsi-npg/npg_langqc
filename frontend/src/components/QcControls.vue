@@ -64,7 +64,7 @@ const canOverride = computed(() => {
         <el-card shadow="always">
             <ClaimWidget @wellClaimed="changeTab" :disabled="cannotClaim" />
             <QcWidget :disabled=unModifiable />
-            <el-button v-if="canOverride" text type="warning" @click="flipOverride">Override</el-button>
+            <el-button id="override" v-if="canOverride" text type="warning" @click="flipOverride">Override</el-button>
         </el-card>
     </div>
 </template>

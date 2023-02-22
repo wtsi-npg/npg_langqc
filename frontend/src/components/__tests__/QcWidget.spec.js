@@ -10,26 +10,26 @@ describe('QC widgets render with no prior QC state, i.e. pending/ready', () => {
     const wrapper = mount(QcWidget, {
         global: {
             plugins: [ElementPlus, createTestingPinia({
-            createSpy: vi.fn,
-            initialState: {
-                focusWell: {
-                    runWell: {
-                        run_info: {
-                            pac_bio_run_name: 'TEST',
-                            well_label: 'A1',
-                        }
+                createSpy: vi.fn,
+                initialState: {
+                    focusWell: {
+                        runWell: {
+                            run_info: {
+                                pac_bio_run_name: 'TEST',
+                                well_label: 'A1',
+                            }
+                        },
+                        qcState: null
                     },
-                    qcState: null
                 },
-            },
-            stubActions: false
+                stubActions: false
             })],
             provide: {
                 config: ref({
                     qc_states: [
-                        {description: "Passed", only_prelim: false},
-                        {description: "Failed", only_prelim: false},
-                        {description: "On hold", only_prelim: true}
+                        { description: "Passed", only_prelim: false },
+                        { description: "Failed", only_prelim: false },
+                        { description: "On hold", only_prelim: true }
                     ]
                 }),
             }
@@ -79,9 +79,24 @@ describe('QC widgets render with no prior QC state, i.e. pending/ready', () => {
         expect(button.attributes('aria-disabled')).toEqual('true');
     });
 
+    test('Radio button is disabled', () => {
+        let button = wrapper.get('[role=switch]');
+        expect(button.attributes('disabled')).toBe("");
+    });
+
     test('Submit button is disabled', () => {
         let button = wrapper.get('button');
         expect(button.attributes('aria-disabled')).toEqual('true');
+    });
+
+    test('Disable via prop turns off all controls', async () => {
+        await wrapper.setProps({
+            'disabled': true
+        });
+
+        expect(wrapper.get('[role=switch]').attributes('disabled')).toEqual('');
+        expect(wrapper.get('button').attributes('disabled')).toEqual('');
+        expect(wrapper.get('[placeholder="Select"]').attributes('disabled')).toEqual('');
     });
 });
 
@@ -89,30 +104,30 @@ describe('QC widget acquires state from prior outcome in run-table', () => {
     const wrapper = mount(QcWidget, {
         global: {
             plugins: [ElementPlus, createTestingPinia({
-            createSpy: vi.fn,
-            initialState: {
-                focusWell: {
-                    runWell: {
-                        run_info: {
-                            pac_bio_run_name: 'TEST',
-                            well_label: 'A1',
+                createSpy: vi.fn,
+                initialState: {
+                    focusWell: {
+                        runWell: {
+                            run_info: {
+                                pac_bio_run_name: 'TEST',
+                                well_label: 'A1',
+                            }
+                        },
+                        qcState: {
+                            qc_state: 'Claimed',
+                            is_preliminary: true,
+                            user: 'user@test.com'
                         }
                     },
-                    qcState: {
-                        qc_state: 'Claimed',
-                        is_preliminary: true,
-                        user: 'user@test.com'
-                    }
                 },
-            },
-            stubActions: false
+                stubActions: false
             })],
             provide: {
                 config: ref({
                     qc_states: [
-                        {description: "Passed", only_prelim: false},
-                        {description: "Failed", only_prelim: false},
-                        {description: "On hold", only_prelim: true}
+                        { description: "Passed", only_prelim: false },
+                        { description: "Failed", only_prelim: false },
+                        { description: "On hold", only_prelim: true }
                     ]
                 }),
             }
@@ -124,10 +139,14 @@ describe('QC widget acquires state from prior outcome in run-table', () => {
         expect(div.text()).toEqual('Current QC state: Preliminary "Claimed" set by "user@test.com"');
     });
 
-    test('Selector is preset to Claimed', () => {
+    test('Selector is preset to Claimed and active', () => {
         let dropdown = wrapper.findAll('[placeholder="Claimed"]').at(0);
         expect(dropdown).toBeDefined();
 
         expect(dropdown.attributes('disabled')).toBeUndefined();
+    });
+
+    test('Submit is not disabled', () => {
+        expect(wrapper.get('[data-testid="QC submit"]').attributes('disabled')).toBeUndefined();
     });
 });
