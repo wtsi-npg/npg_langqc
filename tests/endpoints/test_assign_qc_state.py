@@ -207,7 +207,7 @@ def test_preclaimed_well(test_client: TestClient, test_data_factory):
 
     post_data = {
         "qc_type": "library",
-        "qc_state": "Passed",
+        "qc_state": "Failed",
         "is_preliminary": True,
     }
 
@@ -218,4 +218,4 @@ def test_preclaimed_well(test_client: TestClient, test_data_factory):
     )
 
     assert response.status_code == 200
-    assert response.json()["qc_state"] == "Passed"
+    assert response.json()["qc_state"] == "Failed"
