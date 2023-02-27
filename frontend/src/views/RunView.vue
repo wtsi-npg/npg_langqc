@@ -118,9 +118,7 @@ onMounted(() => {
 </script>
 
 <template>
-<div>
-  <h2>Runs</h2>
-</div>
+  <h2>PacBio Wells</h2>
   <div v-if="appConfig !== null">
     <el-tabs v-model="activeTab" type="border-card" @tab-change="changeTab" >
       <el-tab-pane
@@ -133,26 +131,26 @@ onMounted(() => {
           <tr>
             <th>Run name</th>
             <th>Well label</th>
-            <th>Time started</th>
-            <th>Time completed</th>
             <th>QC state</th>
             <th>QC date</th>
             <th>Assessor</th>
             <th>Well status</th>
             <th>Run status</th>
+            <th>Well time start</th>
+            <th>Well time complete</th>
           </tr>
           <tr :key="wellObj.run_name + ':' + wellObj.label" v-for="wellObj in wellCollection" >
             <td>{{ wellObj.run_name }}</td>
             <td>
               <button v-on:click="loadWellDetail(wellObj.run_name, wellObj.label)">{{ wellObj.label }}</button>
             </td>
-            <td>{{ wellObj.run_start_time }}</td>
-            <td>{{ wellObj.run_complete_time ? wellObj.run_complete_time : '&nbsp;'}}</td>
             <td>{{ wellObj.qc_state ? wellObj.qc_state.qc_state : '&nbsp;'}}</td>
             <td>{{ wellObj.qc_state ? wellObj.qc_state.date_updated : '&nbsp;'}}</td>
             <td>{{ wellObj.qc_state ? wellObj.qc_state.user : '&nbsp;'}}</td>
             <td>{{ wellObj.well_status ? wellObj.well_status : '&nbsp;'}}</td>
             <td>{{ wellObj.run_status ? wellObj.run_status : '&nbsp;'}}</td>
+            <td>{{ wellObj.well_start_time ? wellObj.well_start_time : '&nbsp;'}}</td>
+            <td>{{ wellObj.well_complete_time ? wellObj.well_complete_time : '&nbsp;'}}</td>
           </tr>
         </table>
       </el-tab-pane>
