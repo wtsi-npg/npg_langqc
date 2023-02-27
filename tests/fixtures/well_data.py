@@ -2,6 +2,7 @@ from datetime import date, datetime, timedelta
 
 import pytest
 from ml_warehouse.schema import PacBioRunWellMetrics
+from npg_id_generation.pac_bio import PacBioEntity
 from sqlalchemy import insert, select
 
 from lang_qc.db.helper.well import WellQc
@@ -613,6 +614,9 @@ def load_data4well_retrieval(
             "ccs_execution_mode": record[8],
             "polymerase_num_reads": record[9],
             "hifi_num_reads": record[10],
+            "id_pac_bio_product": PacBioEntity(
+                run_name=record[0], well_label=record[1]
+            ).hash_product_id(),
         }
         for record in MLWH_DATA
     ]

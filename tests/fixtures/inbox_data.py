@@ -40,6 +40,7 @@ def inbox_data(mlwhdb_test_session):
         metrics.instrument_type = "pacbio"
         metrics.ccs_execution_mode = "None"
         metrics.well_status = "Complete"
+        metrics.id_pac_bio_product = PacBioEntity(run_name="MARATHON", well_label=label)
         if label == "A1":
             # Fill in QC data
             metrics.productive_zmws_num = 8007271
@@ -151,9 +152,13 @@ def test_data_factory(mlwhdb_test_session, qcdb_test_session):
         for run_name, wells in desired_wells.items():
             for well_label, state in wells.items():
 
+                pbe = PacBioEntity(run_name=run_name, well_label=well_label)
+                id = pbe.hash_product_id()
+
                 run_metrics = PacBioRunWellMetrics(
                     pac_bio_run_name=run_name,
                     well_label=well_label,
+                    id_pac_bio_product=id,
                     instrument_type="PacBio",
                     polymerase_num_reads=1337,
                     ccs_execution_mode="None",
@@ -166,8 +171,6 @@ def test_data_factory(mlwhdb_test_session, qcdb_test_session):
                 mlwhdb_test_session.add(run_metrics)
 
                 if state is not None:
-                    pbe = PacBioEntity(run_name=run_name, well_label=well_label)
-                    id = pbe.hash_product_id()
                     json = pbe.json()
 
                     qc_state = QcState(
