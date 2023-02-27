@@ -21,7 +21,7 @@ function flipOverride() {
 }
 watch(focusWell, () => { override.value = false }); // Turn override off if the well changes
 
-const owner = computed(() => {
+const isQcOwner = computed(() => {
     if (focusWell.getAssessor && props.user && focusWell.getAssessor == props.user) {
         return true
     } else {
@@ -36,7 +36,7 @@ const cannotClaim = computed(() => {
 const unModifiable = computed(() => {
     if (
         override.value === true
-        || (owner.value === true && !focusWell.getFinality)
+        || (isQcOwner.value === true && !focusWell.getFinality)
     ) {
         return null
     } else {
@@ -48,8 +48,8 @@ const canOverride = computed(() => {
     if (
         (override.value === false)
         && (
-            (owner.value === true && focusWell.hasQcState && focusWell.getFinality)
-            || (owner.value === false && props.user && focusWell.hasQcState)
+            (isQcOwner.value === true && focusWell.hasQcState && focusWell.getFinality)
+            || (isQcOwner.value === false && props.user && focusWell.hasQcState)
         )
     ) {
         return true
