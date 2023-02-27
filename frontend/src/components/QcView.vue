@@ -6,10 +6,8 @@
         runWell: Object, // PacBioRunResult
     });
 
-    const pacBioPort = "8243";
-
     function generateSmrtLink(metric) {
-        return `https://${metric.smrt_link.hostname}:${pacBioPort}/sl/run-qc/${metric.smrt_link.run_uuid}`
+        return `https://${metric.smrt_link.hostname}:${import.meta.env.VITE_SMRTLINK_PORT}/sl/run-qc/${metric.smrt_link.run_uuid}`
     }
 </script>    
     
