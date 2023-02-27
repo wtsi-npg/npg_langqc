@@ -9,6 +9,16 @@
     function generateSmrtLink(metric) {
         return `https://${metric.smrt_link.hostname}:${import.meta.env.VITE_SMRTLINK_PORT}/sl/run-qc/${metric.smrt_link.run_uuid}`
     }
+
+    function generateSequencescapeLink(id, isSampleId) {
+        let url_components = [import.meta.env.VITE_LIMS_SS_SERVER_URL];
+        url_components.push(isSampleId == true ? "samples" : "studies");
+        url_components.push(id);
+        if (isSampleId == false) {
+            url_components.push("properties");
+        }
+        return url_components.join("/");
+    }
 </script>    
     
 <template>
@@ -30,18 +40,24 @@
             </tr>
             <tr v-if="runWell.experiment_tracking">
                 <td>Study</td>
-                <!-- TODO: Use study IDs to convert text to link(s) to the LIMS server web pages for the study -->
-                <td v-if="runWell.experiment_tracking.study_id.length == 1">{{runWell.experiment_tracking.study_name}}</td>
+                <td v-if="runWell.experiment_tracking.study_id.length == 1">
+                    <el-link :href="generateSequencescapeLink(runWell.experiment_tracking.study_id[0], false)" target="_blank" :underline="false">
+                        {{runWell.experiment_tracking.study_name}}
+                    </el-link>
+                </td>
                 <td v-else>Multiple studies: {{runWell.experiment_tracking.study_id.join(", ")}}</td>
             </tr>
             <tr v-if="runWell.experiment_tracking">
                 <td>Sample</td>
-                <!-- TODO: Use sample ID to convert text to a link to the LIMS server web page for this sample -->
-                <td v-if="runWell.experiment_tracking.num_samples == 1">{{runWell.experiment_tracking.sample_name}}</td>
+                <td v-if="runWell.experiment_tracking.num_samples == 1">
+                    <el-link :href="generateSequencescapeLink(runWell.experiment_tracking.sample_id, true)" target="_blank" :underline="false">
+                        {{runWell.experiment_tracking.sample_name}}
+                    </el-link>
+                </td>
                 <!-- TODO: Display a link to the LIMS server web page for a pool here? -->
                 <td v-else>Multiple samples ({{runWell.experiment_tracking.num_samples}})</td>
             </tr>
-            <!-- Tag sequence info can be displayed below when the tag  deplexing info is available -->
+            <!-- Tag sequence info can be displayed below when the tag deplexing info is available -->
         </table>
     </div>
 
