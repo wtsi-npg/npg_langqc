@@ -127,7 +127,6 @@ describe('Check override function works correctly', () => {
         });
 
     test('Override needed', async () => {
-        await wrapper.setProps({ 'user': undefined });
         expect(wrapper.get('[placeholder="Passed"]').attributes('disabled')).toEqual("");
         expect(wrapper.get('[data-testid="QC submit"]').attributes('disabled')).toEqual("");
     })

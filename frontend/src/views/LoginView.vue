@@ -5,7 +5,6 @@ import { getUserName } from "@/utils/session.js"
 let userEmail = ref(null);
 
 onMounted(() => {
-  // getUserName().then((email) => { userEmail.value = email; console.log(email) })
   getUserName((email) => { userEmail.value = email })
 })
 
@@ -22,6 +21,4 @@ onMounted(() => {
   </div>
 </template>
 
-<style>
-
-</style>
+<style></style>

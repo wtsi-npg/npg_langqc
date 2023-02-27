@@ -91,7 +91,7 @@ describe('QC widgets render with no prior QC state, i.e. pending/ready', () => {
 
     test('Disable via prop turns off all controls', async () => {
         await wrapper.setProps({
-            'disabled': true
+            'componentDisabled': true
         });
 
         expect(wrapper.get('[role=switch]').attributes('disabled')).toEqual('');

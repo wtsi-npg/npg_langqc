@@ -11,7 +11,7 @@ const focusWell = useWellStore();
 let client = new LangQc();
 
 const props = defineProps({
-    disabled: Boolean
+    componentDisabled: Boolean
 })
 
 // Vars representing the current state of the form until submission
@@ -75,10 +75,10 @@ function submitQcState() {
 }
 
 let amIDisabled = computed(() => {
-    if (focusWell.hasQcState == true && !props.disabled) {
-        return null
-    } else {
+    if (focusWell.hasQcState === false || props.componentDisabled) {
         return true
+    } else {
+        return null
     }
 })
 </script>
@@ -94,9 +94,8 @@ let amIDisabled = computed(() => {
         <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value" />
     </el-select>
     <div class="item">
-        Final: <el-switch v-model="widgetFinality" :active-icon="Check" :inactive-icon="Close" inline-prompt
-            size="large" style="--el-switch-off-color: #131313" :data-testId="'QC finality selector'"
-            :disabled="amIDisabled" />
+        Final: <el-switch v-model="widgetFinality" :active-icon="Check" :inactive-icon="Close" inline-prompt size="large"
+            style="--el-switch-off-color: #131313" :data-testId="'QC finality selector'" :disabled="amIDisabled" />
     </div>
     <el-button type="primary" @click="submitQcState" :data-testId="'QC submit'" :disabled="amIDisabled"
         class="item">Submit</el-button>

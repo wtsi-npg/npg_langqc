@@ -30,6 +30,7 @@ const isQcOwner = computed(() => {
 });
 
 const cannotClaim = computed(() => {
+    // Is null rather than false to prevent the disabled attribute appearing in rendered HTML
     return (!props.user || focusWell.hasQcState) ? true : null
 });
 
@@ -46,10 +47,10 @@ const unModifiable = computed(() => {
 
 const canOverride = computed(() => {
     if (
-        (override.value === false)
+        override.value === false && props.user && focusWell.hasQcState
         && (
-            (isQcOwner.value === true && focusWell.hasQcState && focusWell.getFinality)
-            || (isQcOwner.value === false && props.user && focusWell.hasQcState)
+            (isQcOwner.value === true && focusWell.getFinality)
+            || (isQcOwner.value === false)
         )
     ) {
         return true
@@ -63,7 +64,7 @@ const canOverride = computed(() => {
     <div id="QCcontrols" class="widget-box">
         <el-card shadow="always">
             <ClaimWidget @wellClaimed="changeTab" :disabled="cannotClaim" />
-            <QcWidget :disabled=unModifiable />
+            <QcWidget :componentDisabled=unModifiable />
             <el-button id="override" v-if="canOverride" text type="warning" @click="flipOverride">Override</el-button>
         </el-card>
     </div>
