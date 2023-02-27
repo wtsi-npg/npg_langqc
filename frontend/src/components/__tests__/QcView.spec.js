@@ -7,6 +7,7 @@ import ElementPlus from 'element-plus';
 import QcView from '../QcView.vue';
 
 describe('Component renders', () => {
+  vi.stubEnv('VITE_SMRTLINK_PORT', '5555')
   test('Good data', () => {
     const wrapper = render(QcView, {
       props: {
@@ -41,7 +42,7 @@ describe('Component renders', () => {
 
     const smrtlink = wrapper.getByText("View in SMRT® Link");
 
-    expect(smrtlink.getAttribute('href')).toBe('https://test.url:8243/sl/run-qc/123456');
+    expect(smrtlink.getAttribute('href')).toBe('https://test.url:5555/sl/run-qc/123456');
   });
 
 });
