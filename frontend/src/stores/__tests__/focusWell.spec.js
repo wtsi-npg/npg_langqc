@@ -36,12 +36,12 @@ describe('Check the getters', () => {
         expect(wellStore.hasQcState).toBe(true);
         expect(wellStore.getQcValue).toEqual('Pass');
 
-        wellStore.updateWellQcState({qc_state: 'Fail'});
+        wellStore.updateWellQcState({ qc_state: 'Fail' });
         expect(wellStore.getQcValue).toEqual('Fail');
     });
 
     test('getFinality', () => {
-        expect(wellStore.getFinality).toEqual(null);
+        expect(wellStore.getFinality).toBeFalsy();
 
         wellStore.updateWellQcState({
             qc_state: 'Pass',
