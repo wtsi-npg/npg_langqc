@@ -40,10 +40,14 @@ provide('activeWell', readonly(activeWell));
 function loadWellDetail(runName, label) {
   // Sets the runWell and QC state for the QcView components below
 
-  let qcState = getQcFromWellCollection(runName, label);
   serviceClient.getRunWellPromise(runName, label)
     .then(
-      well => focusWell.runWell = well
+      (well) => {
+        focusWell.runWell = well;
+        if (well.qc_state != null) {
+          focusWell.updateWellQcState(well.qc_state);
+        }
+      }
     ).catch(
       (error) => {
         ElMessage({
@@ -53,20 +57,8 @@ function loadWellDetail(runName, label) {
         })
       }
     );
-  focusWell.updateWellQcState(qcState);
   activeWell.runName = runName;
   activeWell.label = label;
-}
-
-function getQcFromWellCollection(name, well_label) {
-  for (let well of wellCollection.value) {
-    if (
-      well.run_name == name
-      && well.label == well_label
-    ) {
-      return well.qc_state;
-    }
-  }
 }
 
 function loadWells(status, page, pageSize) {

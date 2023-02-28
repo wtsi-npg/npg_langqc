@@ -38,7 +38,7 @@
     "start-server-and-test": "^1.14.0",
     "testing-library": "^0.0.2",
     "vite": "^3.0.1",
-    "vitest": "latest",
+    "vitest": "^0.29.2",
     "vitest-fetch-mock": "^0.2.1"
   }
 }
