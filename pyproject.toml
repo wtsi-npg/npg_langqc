@@ -12,7 +12,7 @@ license = "GPL-3.0-or-later"
 python = "^3.10"
 fastapi = { version = "^0.78", extras = ["standard"] }
 uvicorn = { version = "^0.17", extras = ["standard"] }
-ml-warehouse = { git = "https://github.com/wtsi-npg/ml-warehouse-python.git", tag="1.1.0" }
+ml-warehouse = { git = "https://github.com/wtsi-npg/ml-warehouse-python.git", tag="1.3.0" }
 SQLAlchemy = { version = ">=1.4.35, < 1.4.46", extras = ["pymysql"] }
 # langqc will be incompatible with sqlalchemy 2.0. Pin version just before the deprecation warnings start
 pydantic = "^1.9.0"
