@@ -19,13 +19,19 @@
         }
         return url_components.join("/");
     }
-</script>    
-    
+</script>
+
 <template>
     <div id="Top tier attributes of run">
         <table class="summary">
             <tr>
-                <td>Run</td><td>{{runWell.run_name}}</td>
+                <td>Run</td>
+                <td v-if="runWell.metrics.smrt_link.hostname">
+                    <el-link :href="generateSmrtLink(runWell.metrics)" :underline="false" icon="Link">
+                        {{ runWell.run_name }}
+                    </el-link>
+                </td>
+                <td v-else>{{ runWell.run_name }}</td>
             </tr>
             <tr>
                 <td>Well</td><td>{{runWell.label}}</td>
@@ -41,8 +47,11 @@
             <tr v-if="runWell.experiment_tracking">
                 <td>Study</td>
                 <td v-if="runWell.experiment_tracking.study_id.length == 1">
-                    <el-link :href="generateSequencescapeLink(runWell.experiment_tracking.study_id[0], false)" target="_blank" :underline="false">
-                        {{runWell.experiment_tracking.study_name}}
+                    <el-link
+                        :href="generateSequencescapeLink(runWell.experiment_tracking.study_id[0], false)"
+                        :underline="false"
+                        icon="Link">
+                        {{ runWell.experiment_tracking.study_name }}
                     </el-link>
                 </td>
                 <td v-else>Multiple studies: {{runWell.experiment_tracking.study_id.join(", ")}}</td>
@@ -50,7 +59,10 @@
             <tr v-if="runWell.experiment_tracking">
                 <td>Sample</td>
                 <td v-if="runWell.experiment_tracking.num_samples == 1">
-                    <el-link :href="generateSequencescapeLink(runWell.experiment_tracking.sample_id, true)" target="_blank" :underline="false">
+                    <el-link
+                        :href="generateSequencescapeLink(runWell.experiment_tracking.sample_id, true)"
+                        :underline="false"
+                        icon="Link">
                         {{runWell.experiment_tracking.sample_name}}
                     </el-link>
                 </td>
@@ -60,11 +72,6 @@
             <!-- Tag sequence info can be displayed below when the tag deplexing info is available -->
         </table>
     </div>
-
-    <p v-if="runWell.metrics.smrt_link.hostname">
-        <a :href="generateSmrtLink(runWell.metrics)">View in SMRT&reg; Link</a>
-    </p>
-    <p v-else>No link to SMRT&reg; Link possible</p>
 
     <div id="Metrics">
         <table>
