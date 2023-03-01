@@ -37,7 +37,7 @@
                 <th>Well</th><td>{{runWell.label}}</td>
             </tr>
             <tr v-if="runWell.well_complete_time">
-                <th>Well complete</th><td>{{runWell.well_complete_time.replace('T',' ')}}</td>
+                <th>Well complete</th><td>{{(new Date(runWell.well_complete_time)).toLocaleString()}}</td>
             </tr>
             <tr v-if="runWell.experiment_tracking">
                 <th>Library type</th>
