@@ -27,7 +27,7 @@
             <tr>
                 <th>Run</th>
                 <td v-if="runWell.metrics.smrt_link.hostname">
-                    <el-link :href="generateSmrtLink(runWell.metrics)" :underline="false" icon="Link" target="_blank">
+                    <el-link :href="generateSmrtLink(runWell.metrics)" :underline="false" icon="ExtLink" target="_blank">
                         {{ runWell.run_name }}
                     </el-link>
                 </td>
@@ -50,7 +50,7 @@
                     <el-link
                         :href="generateSequencescapeLink(runWell.experiment_tracking.study_id[0], false)"
                         :underline="false"
-                        icon="Link"
+                        icon="ExtLink"
                         target="_blank">
                         {{ runWell.experiment_tracking.study_name }}
                     </el-link>
@@ -63,7 +63,7 @@
                     <el-link
                         :href="generateSequencescapeLink(runWell.experiment_tracking.sample_id, true)"
                         :underline="false"
-                        icon="Link"
+                        icon="ExtLink"
                         target="_blank">
                         {{runWell.experiment_tracking.sample_name}}
                     </el-link>

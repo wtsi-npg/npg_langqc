@@ -14,7 +14,7 @@ const pinia = createPinia();
 
 app.use(router);
 app.use(ElementPlus); // Configure global element options here
-app.component('Link', ElementPlusIconsVue.Link);
+app.component('ExtLink', ElementPlusIconsVue.Link);
 app.use(pinia);
 
 app.mount('#app');
