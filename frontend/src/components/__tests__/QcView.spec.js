@@ -39,7 +39,7 @@ describe('Component renders', () => {
       }
     });
 
-    let link = wrapper.getByText("View in SMRT® Link");
+    let link = wrapper.getByText(/Test run/i).parentElement;
     expect(link.getAttribute('href')).toBe('https://test.url:5555/sl/run-qc/123456');
 
     link = wrapper.getByText(/my study/i).parentElement;
