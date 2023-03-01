@@ -22,47 +22,49 @@
 </script>
 
 <template>
-    <div id="Top tier attributes of run">
+    <div id="well_summary">
         <table class="summary">
             <tr>
-                <td>Run</td>
+                <th>Run</th>
                 <td v-if="runWell.metrics.smrt_link.hostname">
-                    <el-link :href="generateSmrtLink(runWell.metrics)" :underline="false" icon="Link">
+                    <el-link :href="generateSmrtLink(runWell.metrics)" :underline="false" icon="Link" target="_blank">
                         {{ runWell.run_name }}
                     </el-link>
                 </td>
                 <td v-else>{{ runWell.run_name }}</td>
             </tr>
             <tr>
-                <td>Well</td><td>{{runWell.label}}</td>
+                <th>Well</th><td>{{runWell.label}}</td>
             </tr>
             <tr v-if="runWell.well_complete_time">
-                <td>Well complete</td><td>{{runWell.well_complete_time.replace('T',' ')}}</td>
+                <th>Well complete</th><td>{{runWell.well_complete_time.replace('T',' ')}}</td>
             </tr>
             <tr v-if="runWell.experiment_tracking">
-                <td>Library type</td>
+                <th>Library type</th>
                 <td v-if="runWell.experiment_tracking.library_type.length == 1">{{runWell.experiment_tracking.library_type[0]}}</td>
                 <td v-else>Multiple library types: {{runWell.experiment_tracking.library_type.join(", ")}}</td>
             </tr>
             <tr v-if="runWell.experiment_tracking">
-                <td>Study</td>
+                <th>Study</th>
                 <td v-if="runWell.experiment_tracking.study_id.length == 1">
                     <el-link
                         :href="generateSequencescapeLink(runWell.experiment_tracking.study_id[0], false)"
                         :underline="false"
-                        icon="Link">
+                        icon="Link"
+                        target="_blank">
                         {{ runWell.experiment_tracking.study_name }}
                     </el-link>
                 </td>
                 <td v-else>Multiple studies: {{runWell.experiment_tracking.study_id.join(", ")}}</td>
             </tr>
             <tr v-if="runWell.experiment_tracking">
-                <td>Sample</td>
+                <th>Sample</th>
                 <td v-if="runWell.experiment_tracking.num_samples == 1">
                     <el-link
                         :href="generateSequencescapeLink(runWell.experiment_tracking.sample_id, true)"
                         :underline="false"
-                        icon="Link">
+                        icon="Link"
+                        target="_blank">
                         {{runWell.experiment_tracking.sample_name}}
                     </el-link>
                 </td>
@@ -99,10 +101,21 @@
     th {
         font-weight: bold;
         background-color: #9292ff;
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+    td {
+        padding-left: 5px;
+        padding-right: 5px;
     }
     table.summary {
         border: 0px;
-        font-weight: bold;
+    }
+    table.summary th {
+        background-color: transparent
+    }
+    #well_summary {
+        margin-bottom: 20px;
     }
     .MetricOrange {
         background-color: #F8CBAD;

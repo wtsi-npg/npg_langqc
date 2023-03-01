@@ -48,12 +48,3 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-
-/** Sledgehammer override for element-plus link formatting
-We would need to use scss too to change the relevant style variables
-Impacts the nav bar and the QcView component
-**/
-.el-link {
-  font-weight: bold;
-  color: black;
-}
