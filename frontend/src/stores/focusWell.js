@@ -44,32 +44,19 @@ export const useWellStore = defineStore('focusWell', {
             }
         },
         getQcValue(state) {
-            if (
-                !isNull(state.runWell)
-                && state.runWell.qc_state != null
-            ) {
-                return state.runWell.qc_state.qc_state;
-            } else {
-                return null;
-            }
+            let qcState = state.getQcState;
+            return qcState != null ? qcState.qc_state : null;
         },
         hasQcState(state) {
-            if (state.runWell.qc_state != null) {
-                return true
-            }
-            return false;
+            return state.getQcState == null ? false : true;
         },
         getFinality(state) {
-            if (state.runWell && state.runWell.qc_state != null) {
-                return !state.runWell.qc_state.is_preliminary;
-            }
-            return false;
+            let qcState = state.getQcState;
+            return qcState != null ? !qcState.is_preliminary : false;
         },
         getAssessor(state) {
-            if (state.runWell.qc_state != null && state.runWell.qc_state.user) {
-                return state.runWell.qc_state.user;
-            }
-            return null;
+            let qcState = state.getQcState;
+            return (qcState != null && qcState.user) ? qcState.user : null;
         }
     },
     actions: {
