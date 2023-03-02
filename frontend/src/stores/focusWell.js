@@ -4,7 +4,6 @@ import { defineStore } from 'pinia';
 export const useWellStore = defineStore('focusWell', {
     state: () => ({
         runWell: null,
-        qcState: null,
         /* Example state doc: {
             "qc_state": "Claimed",
             "is_preliminary": true,
@@ -31,9 +30,9 @@ export const useWellStore = defineStore('focusWell', {
         getQcState(state) {
             if (
                 !isNull(state.runWell)
-                && state.qcState != null
+                && state.runWell.qc_state != null
             ) {
-                return state.qcState;
+                return state.runWell.qc_state;
             } else {
                 return null;
             }
@@ -41,35 +40,35 @@ export const useWellStore = defineStore('focusWell', {
         getQcValue(state) {
             if (
                 !isNull(state.runWell)
-                && state.qcState != null
+                && state.runWell.qc_state != null
             ) {
-                return state.qcState.qc_state;
+                return state.runWell.qc_state.qc_state;
             } else {
                 return null;
             }
         },
         hasQcState(state) {
-            if (state.qcState != null) {
+            if (state.runWell.qc_state != null) {
                 return true
             }
             return false;
         },
         getFinality(state) {
-            if (state.qcState != null) {
-                return !state.qcState.is_preliminary;
+            if (state.runWell && state.runWell.qc_state != null) {
+                return !state.runWell.qc_state.is_preliminary;
             }
             return false;
         },
         getAssessor(state) {
-            if (state.qcState != null && state.qcState.user) {
-                return state.qcState.user;
+            if (state.runWell.qc_state != null && state.runWell.qc_state.user) {
+                return state.runWell.qc_state.user;
             }
             return null;
         }
     },
     actions: {
         updateWellQcState(qcState) {
-            this.qcState = qcState;
+            this.runWell.qc_state = qcState;
         },
         setFocusWell(well) {
             this.runWell = well;

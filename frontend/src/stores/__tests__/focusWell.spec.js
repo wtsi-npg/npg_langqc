@@ -43,6 +43,10 @@ describe('Check the getters', () => {
     test('getFinality', () => {
         expect(wellStore.getFinality).toBeFalsy();
 
+        wellStore.setFocusWell({
+            run_name: 'Whatever',
+            label: 'A1'
+        });
         wellStore.updateWellQcState({
             qc_state: 'Pass',
             user: 'test',
