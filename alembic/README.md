@@ -10,7 +10,7 @@ What you need:
 
 - a database with the schema from which you want to migrate.
 - the URL for that database set in `ALEMBIC_DB_URL`
-- the changes already applied in [lang_qc/db/schema.py](../lang_qc/db/qc_schema.py)
+- the changes already applied in [lang_qc/db/qc_schema.py](../lang_qc/db/qc_schema.py)
 
 Create a revision:
 
@@ -40,7 +40,7 @@ Check what is going to be executed by generating an SQL script. Use
 
 ```alembic upgrade start:end --sql```
 
-where start and end are revision indentifiers. Your SQL script will be printed to
+where start and end are revision identifiers. Your SQL script will be printed to
 standard out. If you need to generate SQL to go from scratch, only specify the
 end revision.
 
