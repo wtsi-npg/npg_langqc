@@ -6,7 +6,7 @@ import ElementPlus from 'element-plus';
 
 import QcControls from '@/components/QcControls.vue';
 
-function mountWithState(well, state) {
+function mountWithState(well) {
     // We cannot shallowMount the QcControls to make the tests simpler, because
     // that stops the rendering of element-plus elements and any nested
     // elements. These tests must therefore satisfy the requirements of all
@@ -17,8 +17,7 @@ function mountWithState(well, state) {
                 createSpy: vi.fn,
                 initialState: {
                     focusWell: {
-                        runWell: well,
-                        qcState: state
+                        runWell: well
                     },
                 },
                 stubActions: false
@@ -38,9 +37,11 @@ function mountWithState(well, state) {
 
 describe('Controls on unclaimed well', () => {
     const wrapper = mountWithState({
-        pac_bio_run_name: 'TEST',
-        well_label: 'A1',
-    }, null);
+        run_info: {
+            pac_bio_run_name: 'TEST',
+            well_label: 'A1',
+        },
+    });
 
     test('No state, no user, no override', () => {
         expect(wrapper.find('button[id="override"]').exists()).toBe(false);
@@ -58,12 +59,12 @@ describe('Controls for a claimed well', () => {
             run_info: {
                 pac_bio_run_name: 'TEST',
                 well_label: 'A1',
+            },
+            qc_state: {
+                qc_state: 'Claimed',
+                is_preliminary: true,
+                user: 'user@test.com'
             }
-        },
-        {
-            qc_state: 'Claimed',
-            is_preliminary: true,
-            user: 'user@test.com'
         });
 
     test('Not logged in, no override', () => {
@@ -87,12 +88,12 @@ describe('Controls for a finalised well', () => {
             run_info: {
                 pac_bio_run_name: 'TEST',
                 well_label: 'A1',
+            },
+            qc_state: {
+                qc_state: 'Passed',
+                is_preliminary: false,
+                user: 'user@test.com'
             }
-        },
-        {
-            qc_state: 'Passed',
-            is_preliminary: false,
-            user: 'user@test.com'
         });
 
     test('Not logged in, no override', () => {
@@ -118,12 +119,12 @@ describe('Check override function works correctly', () => {
             run_info: {
                 pac_bio_run_name: 'TEST',
                 well_label: 'A1',
+            },
+            qc_state: {
+                qc_state: 'Passed',
+                is_preliminary: false,
+                user: 'user@test.com'
             }
-        },
-        {
-            qc_state: 'Passed',
-            is_preliminary: false,
-            user: 'user@test.com'
         });
 
     test('Override needed', async () => {

@@ -18,8 +18,7 @@ describe('QC widgets render with no prior QC state, i.e. pending/ready', () => {
                                 pac_bio_run_name: 'TEST',
                                 well_label: 'A1',
                             }
-                        },
-                        qcState: null
+                        }
                     },
                 },
                 stubActions: false
@@ -111,13 +110,13 @@ describe('QC widget acquires state from prior outcome in run-table', () => {
                             run_info: {
                                 pac_bio_run_name: 'TEST',
                                 well_label: 'A1',
-                            }
+                            },
+                            qc_state: {
+                                qc_state: 'Claimed',
+                                is_preliminary: true,
+                                user: 'user@test.com'
+                            },
                         },
-                        qcState: {
-                            qc_state: 'Claimed',
-                            is_preliminary: true,
-                            user: 'user@test.com'
-                        }
                     },
                 },
                 stubActions: false

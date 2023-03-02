@@ -4,8 +4,13 @@ import { defineStore } from 'pinia';
 export const useWellStore = defineStore('focusWell', {
     state: () => ({
         runWell: null,
-        qcState: null,
-        /* Example state doc: {
+        /* Example state doc:
+        run_info: {
+            run_name: "TRACTION-RUN-nnn",
+            label: "A1",
+            ...
+        }
+        qc_state: {
             "qc_state": "Claimed",
             "is_preliminary": true,
             "qc_type": "sequencing",
@@ -31,45 +36,32 @@ export const useWellStore = defineStore('focusWell', {
         getQcState(state) {
             if (
                 !isNull(state.runWell)
-                && state.qcState != null
+                && state.runWell.qc_state != null
             ) {
-                return state.qcState;
+                return state.runWell.qc_state;
             } else {
                 return null;
             }
         },
-        getQcValue(state) {
-            if (
-                !isNull(state.runWell)
-                && state.qcState != null
-            ) {
-                return state.qcState.qc_state;
-            } else {
-                return null;
-            }
+        getQcValue() {
+            let qcState = this.getQcState;
+            return qcState != null ? qcState.qc_state : null;
         },
-        hasQcState(state) {
-            if (state.qcState != null) {
-                return true
-            }
-            return false;
+        hasQcState() {
+            return this.getQcState == null ? false : true;
         },
-        getFinality(state) {
-            if (state.qcState != null) {
-                return !state.qcState.is_preliminary;
-            }
-            return false;
+        getFinality() {
+            let qcState = this.getQcState;
+            return qcState != null ? !qcState.is_preliminary : false;
         },
-        getAssessor(state) {
-            if (state.qcState != null && state.qcState.user) {
-                return state.qcState.user;
-            }
-            return null;
+        getAssessor() {
+            let qcState = this.getQcState;
+            return (qcState != null && qcState.user) ? qcState.user : null;
         }
     },
     actions: {
         updateWellQcState(qcState) {
-            this.qcState = qcState;
+            this.runWell.qc_state = qcState;
         },
         setFocusWell(well) {
             this.runWell = well;
