@@ -44,9 +44,6 @@ function loadWellDetail(runName, label) {
     .then(
       (well) => {
         focusWell.runWell = well;
-        if (well.qc_state != null) {
-          focusWell.updateWellQcState(well.qc_state);
-        }
       }
     ).catch(
       (error) => {

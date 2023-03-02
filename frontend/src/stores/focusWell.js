@@ -4,7 +4,13 @@ import { defineStore } from 'pinia';
 export const useWellStore = defineStore('focusWell', {
     state: () => ({
         runWell: null,
-        /* Example state doc: {
+        /* Example state doc:
+        run_info: {
+            run_name: "TRACTION-RUN-nnn",
+            label: "A1",
+            ...
+        }
+        qc_state: {
             "qc_state": "Claimed",
             "is_preliminary": true,
             "qc_type": "sequencing",
