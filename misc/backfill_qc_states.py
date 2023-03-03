@@ -7,7 +7,8 @@ import pandas
 from ml_warehouse.schema import PacBioRunWellMetrics
 from sqlalchemy import select
 
-from lang_qc.db.helper.well import WellMetrics, WellQc
+from lang_qc.db.helper.well import WellQc
+from lang_qc.db.helper.wells import WellWh
 from lang_qc.db.mlwh_connection import get_mlwh_db
 from lang_qc.db.qc_connection import get_qc_db
 from lang_qc.util.auth import get_user
@@ -37,11 +38,13 @@ def get_date(date_string, well_metrics):
     else:
         qc_date = well_metrics.run_complete
         if qc_date is None:
+            qc_date = well_metrics.well_complete
+        if qc_date is None:
+            qc_date = well_metrics.well_start
+        if qc_date is None:
             qc_date = well_metrics.run_start
         if qc_date is None:
-            raise Exception(
-                f"Both run complete and start dates are missing for {run} {well}"
-            )
+            raise Exception(f"All dates are missing for {run} {well}")
     return qc_date
 
 
@@ -109,6 +112,8 @@ to_drop = []
 for col_name in ("Run ID", "Well Location", "Movie ID"):
     df[col_name].str.strip()
 
+well_helper = WellWh(session=session)
+
 for index, row in df.iterrows():
 
     run = row["Run ID"]
@@ -116,9 +121,7 @@ for index, row in df.iterrows():
     well_metrics = None
 
     if isinstance(well, str) and well != "":
-        well_metrics = WellMetrics(
-            run_name=run, well_label=well, session=session
-        ).get_metrics()
+        well_metrics = well_helper.get_well(run_name=run, well_label=well)
 
     if well_metrics is None:
         movie_id = row["Movie ID"]
