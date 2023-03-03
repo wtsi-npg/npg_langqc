@@ -36,13 +36,12 @@ def get_date(date_string, well_metrics):
     if isinstance(date_string, str) and date_string:
         qc_date = datetime.strptime(date_string, "%d/%m/%Y")
     else:
-        qc_date = well_metrics.run_complete
-        if qc_date is None:
-            qc_date = well_metrics.well_complete
-        if qc_date is None:
-            qc_date = well_metrics.well_start
-        if qc_date is None:
-            qc_date = well_metrics.run_start
+        qc_date = (
+            well_metrics.run_complete
+            or well_metrics.well_complete
+            or well_metrics.well_start
+            or well_metrics.run_start
+        )
         if qc_date is None:
             raise Exception(f"All dates are missing for {run} {well}")
     return qc_date
@@ -62,7 +61,7 @@ def well_metrics_from_movie(session, movie_id):
     ).scalar_one_or_none()
 
 
-file = "misc/data2export-well_data.tsv"
+file = "misc/well_data.tsv"
 # For now not reading columns with comments, ie
 # 'Run Comments', 'Complex Comments', 'Reason for Failure'
 columns = [
