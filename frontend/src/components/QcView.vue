@@ -6,51 +6,74 @@
         runWell: Object, // PacBioRunResult
     });
 
-    const pacBioPort = "8243";
-
     function generateSmrtLink(metric) {
-        return `https://${metric.smrt_link.hostname}:${pacBioPort}/sl/run-qc/${metric.smrt_link.run_uuid}`
+        return `https://${metric.smrt_link.hostname}:${import.meta.env.VITE_SMRTLINK_PORT}/sl/run-qc/${metric.smrt_link.run_uuid}`
     }
-</script>    
-    
+
+    function generateSequencescapeLink(id, isSampleId) {
+        let url_components = [import.meta.env.VITE_LIMS_SS_SERVER_URL];
+        url_components.push(isSampleId == true ? "samples" : "studies");
+        url_components.push(id);
+        if (isSampleId == false) {
+            url_components.push("properties");
+        }
+        return url_components.join("/");
+    }
+</script>
+
 <template>
-    <div id="Top tier attributes of run">
+    <div id="well_summary">
         <table class="summary">
             <tr>
-                <td>Run</td><td>{{runWell.run_name}}</td>
+                <th>Run</th>
+                <td v-if="runWell.metrics.smrt_link.hostname">
+                    <el-link :href="generateSmrtLink(runWell.metrics)" :underline="false" icon="ExtLink" target="_blank">
+                        {{ runWell.run_name }}
+                    </el-link>
+                </td>
+                <td v-else>{{ runWell.run_name }}</td>
             </tr>
             <tr>
-                <td>Well</td><td>{{runWell.label}}</td>
+                <th>Well</th><td>{{runWell.label}}</td>
             </tr>
             <tr v-if="runWell.well_complete_time">
-                <td>Well complete</td><td>{{runWell.well_complete_time.replace('T',' ')}}</td>
+                <th>Well complete</th><td>{{(new Date(runWell.well_complete_time)).toLocaleString()}}</td>
             </tr>
             <tr v-if="runWell.experiment_tracking">
-                <td>Library type</td>
+                <th>Library type</th>
                 <td v-if="runWell.experiment_tracking.library_type.length == 1">{{runWell.experiment_tracking.library_type[0]}}</td>
                 <td v-else>Multiple library types: {{runWell.experiment_tracking.library_type.join(", ")}}</td>
             </tr>
             <tr v-if="runWell.experiment_tracking">
-                <td>Study</td>
-                <!-- TODO: Use study IDs to convert text to link(s) to the LIMS server web pages for the study -->
-                <td v-if="runWell.experiment_tracking.study_id.length == 1">{{runWell.experiment_tracking.study_name}}</td>
+                <th>Study</th>
+                <td v-if="runWell.experiment_tracking.study_id.length == 1">
+                    <el-link
+                        :href="generateSequencescapeLink(runWell.experiment_tracking.study_id[0], false)"
+                        :underline="false"
+                        icon="ExtLink"
+                        target="_blank">
+                        {{ runWell.experiment_tracking.study_name }}
+                    </el-link>
+                </td>
                 <td v-else>Multiple studies: {{runWell.experiment_tracking.study_id.join(", ")}}</td>
             </tr>
             <tr v-if="runWell.experiment_tracking">
-                <td>Sample</td>
-                <!-- TODO: Use sample ID to convert text to a link to the LIMS server web page for this sample -->
-                <td v-if="runWell.experiment_tracking.num_samples == 1">{{runWell.experiment_tracking.sample_name}}</td>
+                <th>Sample</th>
+                <td v-if="runWell.experiment_tracking.num_samples == 1">
+                    <el-link
+                        :href="generateSequencescapeLink(runWell.experiment_tracking.sample_id, true)"
+                        :underline="false"
+                        icon="ExtLink"
+                        target="_blank">
+                        {{runWell.experiment_tracking.sample_name}}
+                    </el-link>
+                </td>
                 <!-- TODO: Display a link to the LIMS server web page for a pool here? -->
                 <td v-else>Multiple samples ({{runWell.experiment_tracking.num_samples}})</td>
             </tr>
-            <!-- Tag sequence info can be displayed below when the tag  deplexing info is available -->
+            <!-- Tag sequence info can be displayed below when the tag deplexing info is available -->
         </table>
     </div>
-
-    <p v-if="runWell.metrics.smrt_link.hostname">
-        <a :href="generateSmrtLink(runWell.metrics)">View in SMRT&reg; Link</a>
-    </p>
-    <p v-else>No link to SMRT&reg; Link possible</p>
 
     <div id="Metrics">
         <table>
@@ -78,10 +101,21 @@
     th {
         font-weight: bold;
         background-color: #9292ff;
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+    td {
+        padding-left: 5px;
+        padding-right: 5px;
     }
     table.summary {
         border: 0px;
-        font-weight: bold;
+    }
+    table.summary th {
+        background-color: transparent
+    }
+    #well_summary {
+        margin-bottom: 20px;
     }
     .MetricOrange {
         background-color: #F8CBAD;

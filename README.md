@@ -48,7 +48,12 @@ HTTPS_PORT=443 # port on which the deployment will be exposed.
 
 You might want to `chmod 600 /path/to/env/file` as it contains passwords.
 
-Then from the root of this repository, run :
+The env file can contain definitions that are user by the frontend. These definitions
+should be prefixed with `VITE_`, for example `VITE_SOME_PORT="4567"`. To be visible
+to the build of the frontend container, they have to be copied to the `frontend/.env`
+file: `(cat /path/to/env/file | grep VITE_) > frontend/.env` 
+
+To build containers, from the root of this repository, run :
 Build: `docker-compose --env-file /path/to/env/file build`
 Run: `docker-compose --env-file /path/to/env/file up -d`
 

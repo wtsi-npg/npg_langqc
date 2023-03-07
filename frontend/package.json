@@ -18,6 +18,7 @@
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs"
   },
   "dependencies": {
+    "@element-plus/icons-vue": "^2.0.10",
     "element-plus": "^2.2.18",
     "lodash": "^4.17.21",
     "pinia": "^2.0.23",
@@ -38,7 +39,7 @@
     "start-server-and-test": "^1.14.0",
     "testing-library": "^0.0.2",
     "vite": "^3.0.1",
-    "vitest": "latest",
+    "vitest": "^0.29.2",
     "vitest-fetch-mock": "^0.2.1"
   }
 }
