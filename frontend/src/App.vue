@@ -22,7 +22,7 @@ onMounted(() => {
     <!-- Header -->
     <div>
       <img alt="Sanger logo" src="@/assets/sanger-logo.png" style="float:right" class="logo"/>
-      <h2 style="float:left;color:#2D3A87">NPG LangQC for PacBio</h2>
+      <h2 style="float:left;color:#232642">NPG LangQC for PacBio</h2>
     </div>
     <div style="clear:both"/>
 
