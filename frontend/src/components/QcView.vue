@@ -111,6 +111,10 @@
     table.summary {
         border: 0px;
     }
+    .well_selector {
+        text-align: center;
+        margin: auto;
+    }
     table.summary th {
         background-color: transparent
     }
