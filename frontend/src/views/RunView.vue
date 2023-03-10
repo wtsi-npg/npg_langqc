@@ -148,7 +148,7 @@ onMounted(() => {
         @current-change="changePage"></el-pagination>
     </el-tabs>
   </div>
-  <h2>QC view</h2>
+  <h2>Well QC View</h2>
   <div class="qcview" v-if="focusWell.runWell !== null">
     <div class="data">
       <QcView :runWell="focusWell.runWell" />
@@ -158,7 +158,7 @@ onMounted(() => {
     </aside>
   </div>
   <div v-else>
-    <p>QC data will appear here</p>
+    <p>Well QC data will appear here</p>
   </div>
 </template>
 
