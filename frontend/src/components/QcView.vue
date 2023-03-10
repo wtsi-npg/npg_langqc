@@ -78,7 +78,7 @@
     <div id="Metrics">
         <table>
             <tr>
-                <th>QC property</th>
+                <th>Property</th>
                 <th>Value</th>
             </tr>
             <template :key="name" v-for="(sectionClass, name) in groupMetrics(runWell.metrics)">
