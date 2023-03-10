@@ -13,58 +13,59 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
-    <el-container>
-      <el-header direction="horizontal">
-        <img alt="Sanger logo" src="@/assets/sanger-logo.png" height="50" class="logo"/>
+  <!--
+  Setting overflow style here required to unblock an unhelpful default in
+  Element Plus layout container 
+  -->
+  <el-main style="overflow:visible">
 
-        <h1>NPG Long Read QC</h1>
+    <!-- Header -->
+    <div>
+      <img alt="Sanger logo" src="@/assets/sanger-logo.png" style="float:right" class="logo"/>
+      <h2 style="float:left;color:#2D3A87">NPG LangQC for PacBio</h2>
+    </div>
+    <div style="clear:both"/>
 
-        <nav>
-          <!-- Make these RouterLinks again somehow so we don't reload the whole app for nothing -->
-          <el-link type="primary" href="/">Home</el-link>
-          <el-link type="primary" href="about">About</el-link>
-          <!--
-          Using anchors instead of RouterLinks to make the browser fetch the page from the server,
-          triggering the login or logout series of redirects.
-          -->
-          <el-link type="primary" href="/ui/login">Login</el-link>
-          <el-link type="primary" :href="logout_redirect_url">Logout</el-link>
-        </nav>
+    <nav>
+      <!-- Make these RouterLinks again somehow so we don't reload the whole app for nothing -->
+      <el-link type="primary" href="/">Home</el-link>
+      <el-link type="primary" href="about">About</el-link>
+      <!--
+      Using anchors instead of RouterLinks to make the browser fetch the page from the server,
+      triggering the login or logout series of redirects.
+      -->
+       <el-link type="primary" href="/ui/login">Login</el-link>
+      <el-link type="primary" :href="logout_redirect_url">Logout</el-link>
+    </nav>
+    <!-- Header END -->
 
-      </el-header>
-      <el-main style="overflow:visible">
-      <!-- Setting overflow style here required to unblock an unhelpful default in Element Plus layout container -->
-        <RouterView />
-      </el-main>
-      <el-footer>Copyright Genome Research Ltd 2023</el-footer>
-    </el-container>
-  </div>
+    <RouterView />
+  
+  </el-main>
+
+  <el-footer>Copyright Genome Research Ltd 2023</el-footer>
+
 </template>
 
 <style scoped>
 .logo {
   display: inline-block;
-  margin: 0 auto 1rem;
+  margin: 0 auto;
 }
 
 .el-link {
   margin-right: 8px;
+  margin-bottom: 30px;
 }
 
 .el-link .el-icon--right.el-icon {
   vertical-align: text-bottom;
 }
 
-.el-header {
-  height: fit-content;
-}
-
 .el-footer {
   vertical-align: bottom;
 }
 
-.el-header,
 .el-footer,
 .el-main {
   display: block;

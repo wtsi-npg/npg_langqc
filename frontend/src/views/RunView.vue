@@ -113,9 +113,6 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
-    <h2>Runs</h2>
-  </div>
   <div v-if="appConfig !== null">
     <el-tabs v-model="activeTab" type="border-card" @tab-change="changeTab">
       <el-tab-pane v-for="tab in appConfig.qc_flow_statuses" :key="tab.param" :label="tab.label" :name="tab.param">
