@@ -50,6 +50,8 @@ onMounted(() => {
 <style scoped>
 .logo {
   display: inline-block;
+  height: 72px;
+  width: auto;
   margin: 0 auto;
 }
 
