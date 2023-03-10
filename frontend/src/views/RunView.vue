@@ -116,7 +116,7 @@ onMounted(() => {
   <div v-if="appConfig !== null">
     <el-tabs v-model="activeTab" type="border-card" @tab-change="changeTab">
       <el-tab-pane v-for="tab in appConfig.qc_flow_statuses" :key="tab.param" :label="tab.label" :name="tab.param">
-        <table>
+        <table id="run_wells">
           <tr>
             <th>Run name</th>
             <th>Well label</th>
@@ -163,6 +163,11 @@ onMounted(() => {
 </template>
 
 <style>
+
+#run_wells {
+  width: 100%;
+}
+
 .qcview {
   display: grid;
   grid-template-columns: 3fr 1fr;
