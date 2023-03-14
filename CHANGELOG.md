@@ -14,6 +14,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Deprecated
 
 ### Removed
+
+## [1.0.1] - 2022-03-14
+
+### Changed
+
+UI colour scheme and layout, the former to make it more coherent, the latter
+to reduce unused white space on the top of the page.
  
 ## [1.0.0] - 2022-03-06
   

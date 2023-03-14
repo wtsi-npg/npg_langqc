@@ -113,13 +113,10 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
-    <h2>Runs</h2>
-  </div>
   <div v-if="appConfig !== null">
     <el-tabs v-model="activeTab" type="border-card" @tab-change="changeTab">
       <el-tab-pane v-for="tab in appConfig.qc_flow_statuses" :key="tab.param" :label="tab.label" :name="tab.param">
-        <table>
+        <table id="run_wells">
           <tr>
             <th>Run name</th>
             <th>Well label</th>
@@ -133,7 +130,7 @@ onMounted(() => {
           </tr>
           <tr :key="wellObj.run_name + ':' + wellObj.label" v-for="wellObj in wellCollection">
             <td>{{ wellObj.run_name }}</td>
-            <td>
+            <td class="well_selector">
               <button v-on:click="loadWellDetail(wellObj.run_name, wellObj.label)">{{ wellObj.label }}</button>
             </td>
             <td>{{ wellObj.qc_state ? wellObj.qc_state.qc_state : '&nbsp;'}}</td>
@@ -151,7 +148,7 @@ onMounted(() => {
         @current-change="changePage"></el-pagination>
     </el-tabs>
   </div>
-  <h2>QC view</h2>
+  <h2>Well QC View</h2>
   <div class="qcview" v-if="focusWell.runWell !== null">
     <div class="data">
       <QcView :runWell="focusWell.runWell" />
@@ -161,11 +158,16 @@ onMounted(() => {
     </aside>
   </div>
   <div v-else>
-    <p>QC data will appear here</p>
+    <p>Well QC data will appear here</p>
   </div>
 </template>
 
 <style>
+
+#run_wells {
+  width: 100%;
+}
+
 .qcview {
   display: grid;
   grid-template-columns: 3fr 1fr;

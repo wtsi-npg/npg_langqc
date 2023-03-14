@@ -21,6 +21,11 @@
   --vt-c-text-dark-2: rgba(235, 235, 235, 0.64);
 }
 
+:root {
+  --el-color-primary: #597FBA;
+  --el-color-primary-light-5: #B2C9D3;
+}
+
 /* semantic color variables for this project */
 :root {
   --color-background: var(--vt-c-white);
