@@ -101,7 +101,7 @@
     th {
         font-weight: bold;
         text-align: center;
-        background-color: #B2C9D3;
+        background-color: #92b0bd;
         padding: 5px;
     }
     td {
