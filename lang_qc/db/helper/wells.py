@@ -172,7 +172,7 @@ class PacBioPagedWellsFactory(WellWh, PagedStatusResponse):
     def create(self) -> PacBioPagedWells:
         """
         Returns `PacBioPagedWells` object that corresponds to the criteria
-        specified by the `page_size`, `page_number, and `qc_flow_status`
+        specified by the `page_size`, `page_number` and `qc_flow_status`
         attributes.
 
         The `PacBioWell` objects in `wells` attribute of the returned object
