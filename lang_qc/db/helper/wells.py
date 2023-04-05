@@ -30,7 +30,11 @@ from sqlalchemy.orm import Session
 
 from lang_qc.db.helper.well import WellQc
 from lang_qc.db.qc_schema import QcState, QcStateDict, QcType
-from lang_qc.models.pacbio.well import PacBioPagedWells, PacBioWell
+from lang_qc.models.pacbio.well import (
+    PacBioPagedWells,
+    PacBioPagedWellsLite,
+    PacBioWell,
+)
 from lang_qc.models.pager import PagedResponse
 from lang_qc.models.qc_flow_status import QcFlowStatusEnum, QcFlowStatusMixin
 from lang_qc.models.qc_state import QcState as QcStateModel
@@ -133,17 +137,41 @@ class WellWh(BaseModel):
         return self.session.execute(query).scalars().all()
 
 
-class PacBioPagedWellsFactory(WellWh, PagedResponse, QcFlowStatusMixin):
+class PacBioPagedWellsFactoryLite(WellWh, PagedResponse):
     """
-    Factory class to create `PacBioPagedWells` objects that correspond to
+    This class creates `PacBioPagedWellsLite` objects that correspond to
     the criteria given by the attributes of the object, i.e. `page_size`
-    `page_number` and `qc_flow_status` attributes.
+    and `page_number`.
     """
 
     qcdb_session: Session = Field(
         title="SQLAlchemy Session",
         description="A SQLAlchemy Session for the LangQC database",
     )
+
+    class Config:
+        arbitrary_types_allowed = True
+        extra = Extra.forbid
+        allow_mutation = True
+
+    def create(self) -> PacBioPagedWellsLite:
+        """
+        Returns `PacBioPagedWellsLite` object that corresponds to the criteria
+        specified by the `page_size` and `page_number` attributes.
+
+        The `PacBioWell` objects in `wells` attribute of the returned object
+        are sorted by run name and well label.
+        """
+
+        pass
+
+
+class PacBioPagedWellsFactory(PacBioPagedWellsFactoryLite, QcFlowStatusMixin):
+    """
+    This class creates `PacBioPagedWells` objects that correspond to
+    the criteria given by the attributes of the object, i.e. `page_size`
+    `page_number` and `qc_flow_status` attributes.
+    """
 
     # For MySQL it's OK to use case-sensitive comparison operators since
     # its string comparisons for the collation we use are case-insensitive.
@@ -165,7 +193,6 @@ class PacBioPagedWellsFactory(WellWh, PagedResponse, QcFlowStatusMixin):
     }
 
     class Config:
-        arbitrary_types_allowed = True
         extra = Extra.forbid
         allow_mutation = True
 
