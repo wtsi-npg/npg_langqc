@@ -87,6 +87,14 @@ class WellWh(BaseModel):
 
         return bool(self.get_well(run_name, well_label))
 
+    def get_wells_for_runs(self, run_names: List[str]) -> List[PacBioRunWellMetrics]:
+        """
+        Returns a potentially empty list of well records for runs with names
+        given by the run_names argument.
+        """
+
+        pass
+
     def recent_completed_wells(self) -> List[PacBioRunWellMetrics]:
         """
         Get recent completed wells from the mlwh database.
@@ -154,13 +162,46 @@ class PacBioPagedWellsFactoryLite(WellWh, PagedResponse):
         extra = Extra.forbid
         allow_mutation = True
 
-    def create(self) -> PacBioPagedWellsLite:
+    def generate_well_models(
+        self, db_wells_list: List[PacBioRunWellMetrics], qc_flow_status: str = ""
+    ) -> List[PacBioWell]:
+        """
+        Given a list of well db records, generates a list of corresponding
+        PacBioWell objects, which are enhanced with the QC state information
+        if it is available.
+        """
+
+        # Normally QC data is not available for the inbox, aborted, etc.
+        # wells. If some well with a non-inbox status has QC state assigned,
+        # the same well will also be retrieved by the 'in progress' or
+        # 'on hold' or 'qc complete' queries. However, it is useful to display
+        # the QC state if it is available.
+
+        pb_wells = []
+        for db_well in db_wells_list:
+            attrs = {"run_name": db_well.pac_bio_run_name, "label": db_well.well_label}
+            if qc_flow_status != QcFlowStatusEnum.INBOX:
+                qc_state = WellQc(
+                    session=self.qcdb_session,
+                    run_name=db_well.pac_bio_run_name,
+                    well_label=db_well.well_label,
+                ).current_qc_state()
+                if qc_state:
+                    attrs["qc_state"] = qc_state
+            pb_well = PacBioWell.parse_obj(attrs)
+            pb_well.copy_run_tracking_info(db_well)
+            pb_wells.append(pb_well)
+
+        return pb_wells
+
+    def create_for_runs(self, run_names: List[str]) -> PacBioPagedWellsLite:
         """
         Returns `PacBioPagedWellsLite` object that corresponds to the criteria
         specified by the `page_size` and `page_number` attributes.
 
         The `PacBioWell` objects in `wells` attribute of the returned object
-        are sorted by run name and well label.
+        belong to runs specified in the `run_names` list argument and are sorted
+        by the run name and well label.
         """
 
         pass
@@ -314,7 +355,7 @@ class PacBioPagedWellsFactory(PacBioPagedWellsFactoryLite, QcFlowStatusMixin):
         for index in self.slice_data(inbox_wells_indexes):
             inbox_wells.append(recent_wells[index])
 
-        return self._well_models(inbox_wells)
+        return self.generate_well_models(inbox_wells, self.qc_flow_status)
 
     def _aborted_and_unknown_wells(self):
 
@@ -334,28 +375,4 @@ class PacBioPagedWellsFactory(PacBioPagedWellsFactoryLite, QcFlowStatusMixin):
         # Save the number of retrieved rows.
         self.total_number_of_items = len(wells)
 
-        return self._well_models(self.slice_data(wells))
-
-    def _well_models(self, db_wells_list):
-
-        # Normally QC data is not available for the inbox, aborted, etc.
-        # wells. If some well with a non-inbox status has QC state assigned,
-        # the same well will also be retrieved by the 'in progress' or
-        # 'on hold' or 'qc complete' queries. However, it is useful to display
-        # the QC state if it is available.
-        pb_wells = []
-        for db_well in db_wells_list:
-            attrs = {"run_name": db_well.pac_bio_run_name, "label": db_well.well_label}
-            if self.qc_flow_status != QcFlowStatusEnum.INBOX:
-                qc_state = WellQc(
-                    session=self.qcdb_session,
-                    run_name=db_well.pac_bio_run_name,
-                    well_label=db_well.well_label,
-                ).current_qc_state()
-                if qc_state:
-                    attrs["qc_state"] = qc_state
-            pb_well = PacBioWell.parse_obj(attrs)
-            pb_well.copy_run_tracking_info(db_well)
-            pb_wells.append(pb_well)
-
-        return pb_wells
+        return self.generate_well_models(self.slice_data(wells), self.qc_flow_status)
