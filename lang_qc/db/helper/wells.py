@@ -31,8 +31,8 @@ from sqlalchemy.orm import Session
 from lang_qc.db.helper.well import WellQc
 from lang_qc.db.qc_schema import QcState, QcStateDict, QcType
 from lang_qc.models.pacbio.well import PacBioPagedWells, PacBioWell
-from lang_qc.models.pager import PagedStatusResponse
-from lang_qc.models.qc_flow_status import QcFlowStatusEnum
+from lang_qc.models.pager import PagedResponse
+from lang_qc.models.qc_flow_status import QcFlowStatusEnum, QcFlowStatusMixin
 from lang_qc.models.qc_state import QcState as QcStateModel
 
 """
@@ -133,7 +133,7 @@ class WellWh(BaseModel):
         return self.session.execute(query).scalars().all()
 
 
-class PacBioPagedWellsFactory(WellWh, PagedStatusResponse):
+class PacBioPagedWellsFactory(WellWh, PagedResponse, QcFlowStatusMixin):
     """
     Factory class to create `PacBioPagedWells` objects that correspond to
     the criteria given by the attributes of the object, i.e. `page_size`
