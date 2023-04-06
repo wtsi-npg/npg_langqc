@@ -87,13 +87,13 @@ class WellWh(BaseModel):
 
         return bool(self.get_well(run_name, well_label))
 
-    def get_wells_for_runs(self, run_names: List[str]) -> List[PacBioRunWellMetrics]:
+    def get_wells_in_runs(self, run_names: List[str]) -> List[PacBioRunWellMetrics]:
         """
         Returns a potentially empty list of well records for runs with names
         given by the run_names argument.
         """
-
-        pass
+        # TODO: to be implemented
+        return []
 
     def recent_completed_wells(self) -> List[PacBioRunWellMetrics]:
         """
@@ -204,7 +204,15 @@ class PacBioPagedWellsFactoryLite(WellWh, PagedResponse):
         by the run name and well label.
         """
 
-        pass
+        wells = self.get_wells_in_runs(run_names)
+        total_number_of_wells = len(wells)
+        wells = self.slice_data(wells)
+        return PacBioPagedWellsLite(
+            page_number=self.page_number,
+            page_size=self.page_size,
+            total_number_of_items=total_number_of_wells,
+            wells=self.generate_well_models(wells),
+        )
 
 
 class PacBioPagedWellsFactory(PacBioPagedWellsFactoryLite, QcFlowStatusMixin):

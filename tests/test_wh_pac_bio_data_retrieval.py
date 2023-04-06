@@ -72,3 +72,10 @@ def test_well_metrics_retrieval(mlwhdb_test_session, load_data4well_retrieval):
     assert well.polymerase_num_reads == 3339714
     assert well.hifi_num_reads == 2226107
     assert wm.well_exists(run_name="TRACTION_RUN_12", well_label="A1") is True
+
+
+def test_wells_in_runs_retrieval(mlwhdb_test_session, load_data4well_retrieval):
+
+    wm = WellWh(session=mlwhdb_test_session)
+    assert wm.get_wells_in_runs([]) == []
+    assert wm.get_wells_in_runs(["some name"]) == []
