@@ -50,9 +50,9 @@ router = APIRouter(
     Taking an optional 'qc_status' as a query parameter, returns a list of
     wells filtered by QC status. The default QC status is 'inbox'. Possible
     values for this parameter are defined in QcFlowStatusEnum.
-    
+
     The list is paged according to non-optional parameters `page_size` and
-    `page_number`.   
+    `page_number`.
     """,
     responses={
         status.HTTP_422_UNPROCESSABLE_ENTITY: {

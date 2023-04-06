@@ -21,8 +21,6 @@ from typing import List
 
 from pydantic import BaseModel, Field, PositiveInt
 
-from lang_qc.models.qc_flow_status import QcFlowStatusEnum
-
 
 class PagedResponse(BaseModel):
     """
