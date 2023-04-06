@@ -95,9 +95,9 @@ class WellWh(BaseModel):
         # TODO: to be implemented
         return []
 
-    def recent_completed_wells(self) -> List[PacBioRunWellMetrics]:
+    def get_recently_completed_wells(self) -> List[PacBioRunWellMetrics]:
         """
-        Get recent completed wells from the mlwh database.
+        Get recently completed wells from the mlwh database.
         The implementation of the inbox query might change when the QC outcomes
         become available in mlwh.
         """
@@ -263,7 +263,7 @@ class PacBioPagedWellsFactory(PacBioPagedWellsFactoryLite, QcFlowStatusMixin):
 
         wells = []
         if self.qc_flow_status == QcFlowStatusEnum.INBOX:
-            recent_wells = self.recent_completed_wells()
+            recent_wells = self.get_recently_completed_wells()
             wells = self._recent_inbox_wells(recent_wells)
         elif self.qc_flow_status in [
             QcFlowStatusEnum.ABORTED,

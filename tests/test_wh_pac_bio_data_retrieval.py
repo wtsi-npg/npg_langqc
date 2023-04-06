@@ -50,7 +50,7 @@ def test_completed_wells_retrieval(mlwhdb_test_session, load_data4well_retrieval
     mlwhdb_test_session.commit()
 
     retriever = WellWh(session=mlwhdb_test_session)
-    wells = retriever.recent_completed_wells()
+    wells = retriever.get_recently_completed_wells()
     wells_ids = [[well.pac_bio_run_name, well.well_label] for well in wells]
     assert len(wells_ids) == len(expected)
     assert wells_ids == expected
