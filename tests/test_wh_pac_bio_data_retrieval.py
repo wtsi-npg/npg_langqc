@@ -4,7 +4,7 @@ import pytest
 from ml_warehouse.schema import PacBioRunWellMetrics
 from sqlalchemy import select
 
-from lang_qc.db.helper.wells import WellWh
+from lang_qc.db.helper.wells import EmptyListOfRunNamesError, WellWh
 from tests.fixtures.well_data import load_data4well_retrieval, load_dicts_and_users
 
 
@@ -74,8 +74,45 @@ def test_well_metrics_retrieval(mlwhdb_test_session, load_data4well_retrieval):
     assert wm.well_exists(run_name="TRACTION_RUN_12", well_label="A1") is True
 
 
+def test_wells_in_runs_retrieval_boundary_cases(
+    mlwhdb_test_session, load_data4well_retrieval
+):
+
+    wm = WellWh(session=mlwhdb_test_session)
+    with pytest.raises(
+        EmptyListOfRunNamesError, match=r"List of run names cannot be empty"
+    ):
+        wm.get_wells_in_runs([])
+    assert wm.get_wells_in_runs(["some name"]) == []
+
+
 def test_wells_in_runs_retrieval(mlwhdb_test_session, load_data4well_retrieval):
 
     wm = WellWh(session=mlwhdb_test_session)
-    assert wm.get_wells_in_runs([]) == []
-    assert wm.get_wells_in_runs(["some name"]) == []
+
+    wells = wm.get_wells_in_runs(["TRACTION_RUN_1"])
+    assert len(wells) == 4
+    run_name_set = {row.pac_bio_run_name for row in wells}
+    assert run_name_set == {"TRACTION_RUN_1"}
+
+    wells = wm.get_wells_in_runs(["some run", "TRACTION_RUN_1"])
+    assert len(wells) == 4
+    run_name_set = {row.pac_bio_run_name for row in wells}
+    assert run_name_set == {"TRACTION_RUN_1"}
+
+    wells = wm.get_wells_in_runs(["TRACTION_RUN_2", "TRACTION_RUN_1"])
+    assert len(wells) == 8
+
+    # Test that the rows are correctly sorted
+    run_names = [row.pac_bio_run_name for row in wells]
+
+    for i in range(0, 4):
+        assert run_names[i] == "TRACTION_RUN_1"
+    for i in range(4, 8):
+        assert run_names[i] == "TRACTION_RUN_2"
+
+    well_labels = [row.well_label for row in wells]
+    expected_labels = ["A1", "B1", "C1", "D1"]
+    expected_labels.extend(expected_labels)
+    for i in range(0, 8):
+        assert well_labels[i] == expected_labels[i]

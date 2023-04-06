@@ -46,6 +46,10 @@ Here this type is used to mark a purely internal to the class variables.
 """
 
 
+class EmptyListOfRunNamesError(Exception):
+    """Exception to be used when the list of run names is empty."""
+
+
 class WellWh(BaseModel):
     """
     A data access class for routine SQLAlchemy operations on wells data
@@ -90,10 +94,22 @@ class WellWh(BaseModel):
     def get_wells_in_runs(self, run_names: List[str]) -> List[PacBioRunWellMetrics]:
         """
         Returns a potentially empty list of well records for runs with names
-        given by the run_names argument.
+        given by the run_names argument. Errors if the argument run_name is empty
+        or undefined.
         """
-        # TODO: to be implemented
-        return []
+
+        if len(run_names) == 0:
+            raise EmptyListOfRunNamesError("List of run names cannot be empty.")
+
+        query = (
+            select(PacBioRunWellMetrics)
+            .where(PacBioRunWellMetrics.pac_bio_run_name.in_(run_names))
+            .order_by(
+                PacBioRunWellMetrics.pac_bio_run_name,
+                PacBioRunWellMetrics.well_label,
+            )
+        )
+        return self.session.execute(query).scalars().all()
 
     def get_recently_completed_wells(self) -> List[PacBioRunWellMetrics]:
         """
@@ -203,6 +219,9 @@ class PacBioPagedWellsFactoryLite(WellWh, PagedResponse):
         belong to runs specified in the `run_names` list argument and are sorted
         by the run name and well label.
         """
+
+        if len(run_names) == 0:
+            raise EmptyListOfRunNamesError("List of run names cannot be empty.")
 
         wells = self.get_wells_in_runs(run_names)
         total_number_of_wells = len(wells)
