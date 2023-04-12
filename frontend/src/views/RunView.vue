@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, provide, reactive, readonly } from "vue";
+import { onMounted, ref, provide, reactive, readonly, watch } from "vue";
 import { ElMessage } from 'element-plus';
 
 import QcView from "@/components/QcView.vue";
@@ -31,6 +31,27 @@ let activeWell = reactive({
 
 let user = ref(null);
 getUserName((email) => { user.value = email }).then();
+
+watch(() => this.$route.params, (after, before) => {
+  if (after['label']) {
+    activeWell.label = after.label
+  }
+  if (after['run']) {
+    activeWell.runName = after.run
+  }
+  if (after['activeTab']) {
+    activeTab.value = after.activeTab
+  }
+  if (after['page']) {
+    activePage.value = after.page
+  }
+  if (after['userFilter']) {
+    console.log(after.userFilter)
+  }
+  if (after['runFilter']) {
+    console.log(after.runFilter)
+  }
+})
 
 provide('activeTab', activeTab);
 provide('config', appConfig);
