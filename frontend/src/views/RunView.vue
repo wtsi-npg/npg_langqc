@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, provide, reactive, readonly, watch } from "vue";
+import { onMounted, ref, provide, reactive, readonly, watch, watch } from "vue";
 import { useRoute } from "vue-router";
 import { ElMessage } from 'element-plus';
 
