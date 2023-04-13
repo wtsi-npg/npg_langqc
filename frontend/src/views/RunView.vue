@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, ref, provide, reactive, readonly, watch } from "vue";
+import { useRoute } from "vue-router";
 import { ElMessage } from 'element-plus';
 
 import QcView from "@/components/QcView.vue";
@@ -9,6 +10,7 @@ import { useWellStore } from "@/stores/focusWell.js";
 import { getUserName } from "@/utils/session.js"
 
 const focusWell = useWellStore();
+const route = useRoute();
 
 let serviceClient = null;
 
@@ -32,7 +34,7 @@ let activeWell = reactive({
 let user = ref(null);
 getUserName((email) => { user.value = email }).then();
 
-watch(() => this.$route.params, (after, before) => {
+watch(() => route.params, (after, before) => {
   if (after['label']) {
     activeWell.label = after.label
   }
