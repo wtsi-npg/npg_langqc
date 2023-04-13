@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, provide, reactive, readonly, watch, watch } from "vue";
+import { onMounted, ref, provide, reactive, readonly, watch } from "vue";
 import { useRoute } from "vue-router";
 import { ElMessage } from 'element-plus';
 
@@ -10,6 +10,7 @@ import { useWellStore } from "@/stores/focusWell.js";
 import { getUserName } from "@/utils/session.js"
 
 const focusWell = useWellStore();
+const route = useRoute();
 const route = useRoute();
 
 let serviceClient = null;
