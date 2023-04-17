@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, ref, provide, reactive, readonly, watch } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { ElMessage } from 'element-plus';
 
 import QcView from "@/components/QcView.vue";
@@ -11,9 +11,9 @@ import { getUserName } from "@/utils/session.js"
 
 const focusWell = useWellStore();
 const route = useRoute();
-const route = useRoute();
+const router = useRouter();
 
-let serviceClient = null;
+const serviceClient = new LangQc();
 
 // Don't try to render much of anything until data arrives
 // by reacting to these two vars
@@ -35,18 +35,26 @@ let activeWell = reactive({
 let user = ref(null);
 getUserName((email) => { user.value = email }).then();
 
-watch(() => route.params, (after, before) => {
-  if (after['label']) {
-    activeWell.label = after.label
+watch(() => route.query, (after, before) => {
+  console.log(before)
+  if (
+    (after.label || after.run)
+    && (
+      before == undefined
+      || (
+        before.label && before.run && after.label != before.label && after.run != before.run
+      )
+    )
+  ) {
+    console.log('Noticed change in run/label')
+    // Somehow we need to capture the other parameter in case both have not been set
+    loadWellDetail(after.run, after.label)
   }
-  if (after['run']) {
-    activeWell.runName = after.run
+  if (after.activeTab && (before === undefined || after.activeTab != before.activeTab)) {
+    changeTab(after.activeTab)
   }
-  if (after['activeTab']) {
-    activeTab.value = after.activeTab
-  }
-  if (after['page']) {
-    activePage.value = after.page
+  if (after.page && (before == undefined || after.page != before.page)) {
+    changePage(after.page)
   }
   if (after['userFilter']) {
     console.log(after.userFilter)
@@ -54,7 +62,9 @@ watch(() => route.params, (after, before) => {
   if (after['runFilter']) {
     console.log(after.runFilter)
   }
-})
+},
+{immediate: true}
+)
 
 provide('activeTab', activeTab);
 provide('config', appConfig);
@@ -104,12 +114,22 @@ function loadWells(status, page, pageSize) {
 function changeTab(selectedTab) {
   // To be triggered from Tab elements to load different data sets
   // Reset page to 1 on tab change
+  console.log("Changing tab to " + selectedTab)
   activePage.value = 1;
   activeTab.value = selectedTab;
   loadWells(selectedTab, activePage.value, pageSize);
 }
 
+function clickTabChange(selectedTab) {
+  updateUrlQuery({activeTab: selectedTab, page: 1})
+}
+
+function clickPageChange(pageNumber) {
+  updateUrlQuery({page: pageNumber})
+}
+
 function changePage(pageNumber) {
+  console.log("Changing page to " + pageNumber)
   loadWells(activeTab.value, pageNumber, pageSize);
 }
 
@@ -118,8 +138,27 @@ function externalTabChange(tabName) {
   activeTab.value = tabName;
 }
 
+function updateUrlQuery(newParams) {
+  let existingSettings = Object.assign({}, route.query)
+  let changed = false
+  console.log("Old settings")
+  console.log(existingSettings)
+  for (let k in newParams) {
+    if (existingSettings[k] && existingSettings[k] != newParams[k] || !existingSettings[k]) {
+      console.log('Changing parameter ' + k)
+      existingSettings[k] = newParams[k]
+      changed = true
+    }
+  }
+  if (changed) {
+    console.log('New URL settings')
+    let newURL = {path: route.path, query: {...existingSettings}}
+    console.log(newURL)
+    router.push(newURL)
+  }
+}
+
 onMounted(() => {
-  serviceClient = new LangQc();
   try {
     loadWells(activeTab.value, activePage.value, pageSize);
     serviceClient.getClientConfig().then(
@@ -138,7 +177,7 @@ onMounted(() => {
 
 <template>
   <div v-if="appConfig !== null">
-    <el-tabs v-model="activeTab" type="border-card" @tab-change="changeTab">
+    <el-tabs v-model="activeTab" type="border-card" @tab-change="clickTabChange">
       <el-tab-pane v-for="tab in appConfig.qc_flow_statuses" :key="tab.param" :label="tab.label" :name="tab.param">
         <table id="run_wells">
           <tr>
@@ -155,7 +194,7 @@ onMounted(() => {
           <tr :key="wellObj.run_name + ':' + wellObj.label" v-for="wellObj in wellCollection">
             <td>{{ wellObj.run_name }}</td>
             <td class="well_selector">
-              <button v-on:click="loadWellDetail(wellObj.run_name, wellObj.label)">{{ wellObj.label }}</button>
+              <button v-on:click="updateUrlQuery({run: wellObj.run_name, label: wellObj.label})">{{ wellObj.label }}</button>
             </td>
             <td>{{ wellObj.qc_state ? wellObj.qc_state.qc_state : '&nbsp;'}}</td>
             <td>{{ wellObj.qc_state ? wellObj.qc_state.date_updated : '&nbsp;'}}</td>
@@ -169,7 +208,7 @@ onMounted(() => {
       </el-tab-pane>
       <el-pagination v-model:currentPage="activePage" layout="prev, pager, next" v-bind:total="totalNumberOfWells"
         background :pager-count="5" :page-size="pageSize" :hide-on-single-page="true"
-        @current-change="changePage"></el-pagination>
+        @current-change="clickPageChange"></el-pagination>
     </el-tabs>
   </div>
   <h2>Well QC View</h2>
