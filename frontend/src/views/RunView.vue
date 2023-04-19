@@ -38,17 +38,17 @@ getUserName((email) => { user.value = email }).then();
 watch(() => route.query, (after, before) => {
   console.log(before)
   if (
-    (after.label || after.run)
+    (after.qcLabel || after.qcRun)
     && (
       before == undefined
       || (
-        before.label && before.run && after.label != before.label && after.run != before.run
+        before.qcLabel && before.qcRun && (after.qcLabel != before.qcLabel || after.qcRun != before.qcRun)
       )
     )
   ) {
     console.log('Noticed change in run/label')
     // Somehow we need to capture the other parameter in case both have not been set
-    loadWellDetail(after.run, after.label)
+    loadWellDetail(after.qcRun, after.qcLabel)
   }
   if (after.activeTab && (before === undefined || after.activeTab != before.activeTab)) {
     changeTab(after.activeTab)
