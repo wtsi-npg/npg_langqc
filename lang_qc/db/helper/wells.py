@@ -32,11 +32,10 @@ from lang_qc.db.helper.well import WellQc
 from lang_qc.db.qc_schema import QcState, QcStateDict, QcType
 from lang_qc.models.pacbio.well import (
     PacBioPagedWells,
-    PacBioPagedWellsLite,
     PacBioWell,
 )
 from lang_qc.models.pager import PagedResponse
-from lang_qc.models.qc_flow_status import QcFlowStatusEnum, QcFlowStatusMixin
+from lang_qc.models.qc_flow_status import QcFlowStatusEnum
 from lang_qc.models.qc_state import QcState as QcStateModel
 
 """
@@ -161,80 +160,7 @@ class WellWh(BaseModel):
         return self.session.execute(query).scalars().all()
 
 
-class PacBioPagedWellsFactoryLite(WellWh, PagedResponse):
-    """
-    This class creates `PacBioPagedWellsLite` objects that correspond to
-    the criteria given by the attributes of the object, i.e. `page_size`
-    and `page_number`.
-    """
-
-    qcdb_session: Session = Field(
-        title="SQLAlchemy Session",
-        description="A SQLAlchemy Session for the LangQC database",
-    )
-
-    class Config:
-        arbitrary_types_allowed = True
-        extra = Extra.forbid
-        allow_mutation = True
-
-    def generate_well_models(
-        self, db_wells_list: List[PacBioRunWellMetrics], qc_flow_status: str = ""
-    ) -> List[PacBioWell]:
-        """
-        Given a list of well db records, generates a list of corresponding
-        PacBioWell objects, which are enhanced with the QC state information
-        if it is available.
-        """
-
-        # Normally QC data is not available for the inbox, aborted, etc.
-        # wells. If some well with a non-inbox status has QC state assigned,
-        # the same well will also be retrieved by the 'in progress' or
-        # 'on hold' or 'qc complete' queries. However, it is useful to display
-        # the QC state if it is available.
-
-        pb_wells = []
-        for db_well in db_wells_list:
-            attrs = {"run_name": db_well.pac_bio_run_name, "label": db_well.well_label}
-            if qc_flow_status != QcFlowStatusEnum.INBOX:
-                qc_state = WellQc(
-                    session=self.qcdb_session,
-                    run_name=db_well.pac_bio_run_name,
-                    well_label=db_well.well_label,
-                ).current_qc_state()
-                if qc_state:
-                    attrs["qc_state"] = qc_state
-            pb_well = PacBioWell.parse_obj(attrs)
-            pb_well.copy_run_tracking_info(db_well)
-            pb_wells.append(pb_well)
-
-        return pb_wells
-
-    def create_for_runs(self, run_names: List[str]) -> PacBioPagedWellsLite:
-        """
-        Returns `PacBioPagedWellsLite` object that corresponds to the criteria
-        specified by the `page_size` and `page_number` attributes.
-
-        The `PacBioWell` objects in `wells` attribute of the returned object
-        belong to runs specified in the `run_names` list argument and are sorted
-        by the run name and well label.
-        """
-
-        if len(run_names) == 0:
-            raise EmptyListOfRunNamesError("List of run names cannot be empty.")
-
-        wells = self.get_wells_in_runs(run_names)
-        total_number_of_wells = len(wells)
-        wells = self.slice_data(wells)
-        return PacBioPagedWellsLite(
-            page_number=self.page_number,
-            page_size=self.page_size,
-            total_number_of_items=total_number_of_wells,
-            wells=self.generate_well_models(wells),
-        )
-
-
-class PacBioPagedWellsFactory(PacBioPagedWellsFactoryLite, QcFlowStatusMixin):
+class PacBioWellsFactory(WellWh, PagedResponse):
     """
     This class creates `PacBioPagedWells` objects that correspond to
     the criteria given by the attributes of the object, i.e. `page_size`
@@ -260,11 +186,61 @@ class PacBioPagedWellsFactory(PacBioPagedWellsFactoryLite, QcFlowStatusMixin):
         ),
     }
 
+    qcdb_session: Session = Field(
+        title="SQLAlchemy Session",
+        description="A SQLAlchemy Session for the LangQC database",
+    )
+
     class Config:
+        arbitrary_types_allowed = True
         extra = Extra.forbid
         allow_mutation = True
 
-    def create(self) -> PacBioPagedWells:
+    def generate_well_models(
+        self, db_wells_list: List[PacBioRunWellMetrics], can_have_qc
+    ) -> List[PacBioWell]:
+        """
+        Given a list of well db records, generates a list of corresponding
+        PacBioWell objects, which are enhanced with the QC state information
+        if it is available.
+        """
+
+        # Normally QC data is not available for the inbox, aborted, etc.
+        # wells. If some well with a non-inbox status has QC state assigned,
+        # the same well will also be retrieved by the 'in progress' or
+        # 'on hold' or 'qc complete' queries. However, it is useful to display
+        # the QC state if it is available.
+
+        pb_wells = []
+        for db_well in db_wells_list:
+            attrs = {"run_name": db_well.pac_bio_run_name, "label": db_well.well_label}
+            if can_have_qc:
+                qc_state = WellQc(
+                    session=self.qcdb_session,
+                    run_name=db_well.pac_bio_run_name,
+                    well_label=db_well.well_label,
+                ).current_qc_state()
+                if qc_state:
+                    attrs["qc_state"] = qc_state
+            pb_well = PacBioWell.parse_obj(attrs)
+            pb_well.copy_run_tracking_info(db_well)
+            pb_wells.append(pb_well)
+
+        return pb_wells
+
+    def create_for_runs(self, run_name: str) -> List[PacBioWell]:
+        """
+        Returns `PacBioPagedWellsLite` object that corresponds to the criteria
+        specified by the `page_size` and `page_number` attributes.
+
+        The `PacBioWell` objects in `wells` attribute of the returned object
+        belong to runs specified in the `run_names` list argument and are sorted
+        by the run name and well label.
+        """
+
+        wells = self.get_wells_in_runs([run_name])
+        return self.generate_well_models(wells, True)
+    def create_for_qc_status(self, qc_flow_status) -> PacBioPagedWells:
         """
         Returns `PacBioPagedWells` object that corresponds to the criteria
         specified by the `page_size`, `page_number, and `qc_flow_status`
@@ -281,27 +257,26 @@ class PacBioPagedWellsFactory(PacBioPagedWellsFactoryLite, QcFlowStatusMixin):
         """
 
         wells = []
-        if self.qc_flow_status == QcFlowStatusEnum.INBOX:
+        qc_flow_status == QcFlowStatusEnum.INBOX:
             recent_wells = self.get_recently_completed_wells()
             wells = self._recent_inbox_wells(recent_wells)
-        elif self.qc_flow_status in [
+        elif qc_flow_status in [
             QcFlowStatusEnum.ABORTED,
             QcFlowStatusEnum.UNKNOWN,
         ]:
-            wells = self._aborted_and_unknown_wells()
+            wells = self._aborted_and_unknown_wells(qc_flow_status)
         else:
-            wells = self._get_wells()
+            wells = self._get_wells(qc_flow_status)
             self._add_tracking_info(wells)
 
         return PacBioPagedWells(
             page_number=self.page_number,
             page_size=self.page_size,
             total_number_of_items=self.total_number_of_items,
-            qc_flow_status=self.qc_flow_status,
             wells=wells,
         )
 
-    def _build_query4status(self):
+    def _build_query4status(self, qc_flow_status):
 
         # TODO: add filtering by the seq platform
 
@@ -315,23 +290,23 @@ class PacBioPagedWellsFactory(PacBioPagedWellsFactoryLite, QcFlowStatusMixin):
             .order_by(QcState.date_updated.desc())
         )
         # Add status-specific part of the query.
-        return query.where(self.FILTERS[self.qc_flow_status.name])
+        return query.where(self.FILTERS[qc_flow_status.name])
 
-    def _retrieve_qc_states(self):
+    def _retrieve_qc_states(self, qc_flow_status):
 
-        states = self.qcdb_session.execute(self._build_query4status()).scalars().all()
+        states = self.qcdb_session.execute(self._build_query4status(qc_flow_status)).scalars().all()
         # Save the number of retrieved rows - needed to page correctly,
         # also needed by the client to correctly set up the paging widget.
         self.total_number_of_items = len(states)
         # Return the states for the wells we were asked to fetch, max - page_size, min - 0.
         return self.slice_data(states)
 
-    def _get_wells(self) -> List[PacBioWell]:
+    def _get_wells(self, qc_flow_status) -> List[PacBioWell]:
 
         # Note that the run name and well label are sourced from the QC database.
         # They'd better be correct there!
         wells = []
-        for qc_state in self._retrieve_qc_states():
+        for qc_state in self._retrieve_qc_states(qc_flow_status):
             sub_product = qc_state.seq_product.product_layout[0].sub_product
             # TODO: consider adding from_orm method to PacBioWell
             wells.append(
@@ -382,14 +357,14 @@ class PacBioPagedWellsFactory(PacBioPagedWellsFactoryLite, QcFlowStatusMixin):
         for index in self.slice_data(inbox_wells_indexes):
             inbox_wells.append(recent_wells[index])
 
-        return self.generate_well_models(inbox_wells, self.qc_flow_status)
+        return self.generate_well_models(inbox_wells, False)
 
-    def _aborted_and_unknown_wells(self):
+    def _aborted_and_unknown_wells(self, qc_flow_status):
 
         wells = (
             self.session.execute(
                 select(PacBioRunWellMetrics)
-                .where(self.FILTERS[self.qc_flow_status.name])
+                .where(self.FILTERS[qc_flow_status.name])
                 .order_by(
                     PacBioRunWellMetrics.pac_bio_run_name,
                     PacBioRunWellMetrics.well_label,
@@ -402,4 +377,4 @@ class PacBioPagedWellsFactory(PacBioPagedWellsFactoryLite, QcFlowStatusMixin):
         # Save the number of retrieved rows.
         self.total_number_of_items = len(wells)
 
-        return self.generate_well_models(self.slice_data(wells), self.qc_flow_status)
+        return self.generate_well_models(self.slice_data(wells), True)

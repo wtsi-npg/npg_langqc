@@ -68,11 +68,3 @@ class QcFlowStatusEnum(str, Enum):
             statuses.append(QcFlowStatus(label=label, param=member))
 
         return statuses
-
-
-class QcFlowStatusMixin(BaseModel):
-    """
-    A mixin with a single attribute - `qc_flow_status`.
-    """
-
-    qc_flow_status: QcFlowStatusEnum = Field(title="QC flow status")
