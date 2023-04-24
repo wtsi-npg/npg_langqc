@@ -75,7 +75,7 @@ def get_wells_filtered_by_status(
         mlwh_session=mlwh_session,
         page_size=page_size,
         page_number=page_number,
-    ).create(qc_status)
+    ).create_for_qc_status(qc_status)
 
 
 @router.get(

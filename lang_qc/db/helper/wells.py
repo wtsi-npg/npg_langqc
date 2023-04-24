@@ -170,7 +170,9 @@ class PacBioPagedWellsFactory(WellWh, PagedResponse):
         extra = Extra.forbid
         allow_mutation = True
 
-    def create(self, qc_flow_status: QcFlowStatusEnum) -> PacBioPagedWells:
+    def create_for_qc_status(
+        self, qc_flow_status: QcFlowStatusEnum
+    ) -> PacBioPagedWells:
         """
         Returns `PacBioPagedWells` object that corresponds to the criteria
         specified by the `page_size`, `page_number` object's attributes and

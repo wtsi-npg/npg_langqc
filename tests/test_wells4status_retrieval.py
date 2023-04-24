@@ -101,7 +101,7 @@ def test_inbox_wells_retrieval(
         mlwh_session=mlwhdb_test_session,
         page_size=10,
         page_number=1,
-    ).create(status)
+    ).create_for_qc_status(status)
     assert isinstance(paged_wells, PacBioPagedWells)
     assert paged_wells.page_size == 10
     assert paged_wells.page_number == 1
@@ -113,7 +113,7 @@ def test_inbox_wells_retrieval(
         mlwh_session=mlwhdb_test_session,
         page_size=10,
         page_number=2,
-    ).create(status)
+    ).create_for_qc_status(status)
     assert isinstance(paged_wells, PacBioPagedWells)
     assert paged_wells.page_size == 10
     assert paged_wells.page_number == 2
@@ -125,7 +125,7 @@ def test_inbox_wells_retrieval(
         mlwh_session=mlwhdb_test_session,
         page_size=3,
         page_number=3,
-    ).create(status)
+    ).create_for_qc_status(status)
     assert isinstance(paged_wells, PacBioPagedWells)
     assert paged_wells.page_size == 3
     assert paged_wells.page_number == 3
@@ -185,7 +185,7 @@ def test_paged_retrieval(
             page_size=10,
             page_number=1,
         )
-        paged_wells = factory.create(status)
+        paged_wells = factory.create_for_qc_status(status)
         assert isinstance(paged_wells, PacBioPagedWells)
         assert paged_wells.page_size == 10
         assert paged_wells.page_number == 1
@@ -199,7 +199,7 @@ def test_paged_retrieval(
             page_size=2,
             page_number=10,
         )
-        paged_wells = factory.create(status)
+        paged_wells = factory.create_for_qc_status(status)
         assert isinstance(paged_wells, PacBioPagedWells)
         assert paged_wells.page_size == 2
         assert paged_wells.page_number == 10
@@ -212,7 +212,7 @@ def test_paged_retrieval(
             page_size=1,
             page_number=1,
         )
-        paged_wells = factory.create(status)
+        paged_wells = factory.create_for_qc_status(status)
         assert isinstance(paged_wells, PacBioPagedWells)
         assert paged_wells.page_size == 1
         assert paged_wells.page_number == 1
@@ -225,7 +225,7 @@ def test_paged_retrieval(
             page_size=1,
             page_number=2,
         )
-        paged_wells = factory.create(status)
+        paged_wells = factory.create_for_qc_status(status)
         assert isinstance(paged_wells, PacBioPagedWells)
         assert paged_wells.page_size == 1
         assert paged_wells.page_number == 2
@@ -238,7 +238,7 @@ def test_paged_retrieval(
             page_size=10,
             page_number=2,
         )
-        paged_wells = factory.create(status)
+        paged_wells = factory.create_for_qc_status(status)
         assert isinstance(paged_wells, PacBioPagedWells)
         assert paged_wells.page_size == 10
         assert paged_wells.page_number == 2
@@ -252,7 +252,7 @@ def test_paged_retrieval(
         page_size=3,
         page_number=2,
     )
-    paged_wells = factory.create(status)
+    paged_wells = factory.create_for_qc_status(status)
     assert isinstance(paged_wells, PacBioPagedWells)
     assert paged_wells.page_size == 3
     assert paged_wells.page_number == 2
@@ -270,7 +270,7 @@ def test_fully_retrieved_data(
         page_size=5,
         page_number=1,
     )
-    paged_wells = factory.create(QcFlowStatusEnum.QC_COMPLETE)
+    paged_wells = factory.create_for_qc_status(QcFlowStatusEnum.QC_COMPLETE)
 
     well = paged_wells.wells[0]
     assert isinstance(well, PacBioWell)
@@ -327,7 +327,7 @@ def test_partially_retrieved_data(
         page_size=5,
         page_number=2,
     )
-    paged_wells = factory.create(QcFlowStatusEnum.IN_PROGRESS)
+    paged_wells = factory.create_for_qc_status(QcFlowStatusEnum.IN_PROGRESS)
     well = paged_wells.wells[2]
     assert isinstance(well, PacBioWell)
     assert well.run_name == "TRACTION_RUN_1"
