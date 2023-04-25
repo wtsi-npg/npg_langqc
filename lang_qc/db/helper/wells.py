@@ -42,6 +42,10 @@ Here this type is used to mark a purely internal to the class variables.
 """
 
 
+class EmptyListOfRunNamesError(Exception):
+    """Exception to be used when the list of run names is empty."""
+
+
 class WellWh(BaseModel):
     """
     A data access class for routine SQLAlchemy operations on wells data
@@ -130,6 +134,26 @@ class WellWh(BaseModel):
             )
         )
 
+        return self.session.execute(query).scalars().all()
+
+    def get_wells_in_runs(self, run_names: List[str]) -> List[PacBioRunWellMetrics]:
+        """
+        Returns a potentially empty list of well records for runs with names
+        given by the run_names argument. Errors if the argument run_name is empty
+        or undefined.
+        """
+
+        if len(run_names) == 0:
+            raise EmptyListOfRunNamesError("List of run names cannot be empty.")
+
+        query = (
+            select(PacBioRunWellMetrics)
+            .where(PacBioRunWellMetrics.pac_bio_run_name.in_(run_names))
+            .order_by(
+                PacBioRunWellMetrics.pac_bio_run_name,
+                PacBioRunWellMetrics.well_label,
+            )
+        )
         return self.session.execute(query).scalars().all()
 
 
