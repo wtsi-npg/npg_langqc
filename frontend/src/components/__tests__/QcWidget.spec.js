@@ -85,7 +85,7 @@ describe('QC widgets render with no prior QC state, i.e. pending/ready', () => {
 
     test('Submit button is disabled', () => {
         let button = wrapper.get('button');
-        expect(button.attributes('aria-disabled')).toEqual('true');
+        expect(button.attributes('disabled')).toBe("");
     });
 
     test('Disable via prop turns off all controls', async () => {
