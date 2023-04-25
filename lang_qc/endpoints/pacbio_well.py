@@ -25,7 +25,7 @@ from sqlalchemy.orm import Session
 from starlette import status
 
 from lang_qc.db.helper.well import InconsistentInputError, InvalidDictValueError, WellQc
-from lang_qc.db.helper.wells import PacBioPagedWellsFactory, WellWh
+from lang_qc.db.helper.wells import PacBioPagedWellsFactory, RunNotFoundError, WellWh
 from lang_qc.db.mlwh_connection import get_mlwh_db
 from lang_qc.db.qc_connection import get_qc_db
 from lang_qc.db.qc_schema import User
@@ -76,6 +76,43 @@ def get_wells_filtered_by_status(
         page_size=page_size,
         page_number=page_number,
     ).create_for_qc_status(qc_status)
+
+
+@router.get(
+    "/run/{run_name}",
+    summary="Get a list of wells for a run",
+    description="""
+    Returns a list of wells that belong to the run with the run name
+    given by the last component of the URL.
+    The list is paged according to optional parameters `page_size` and
+    `page_number`, which default to 20 and 1 respectively. For the
+    majority of runs all wells will fit into the first page of the
+    default size.
+    """,
+    responses={
+        status.HTTP_404_NOT_FOUND: {"description": "Run not found"},
+    },
+    response_model=PacBioPagedWells,
+)
+def get_wells_in_run(
+    run_name: str,
+    page_size: PositiveInt = 20,
+    page_number: PositiveInt = 1,
+    qcdb_session: Session = Depends(get_qc_db),
+    mlwh_session: Session = Depends(get_mlwh_db),
+):
+
+    response = None
+    try:
+        response = PacBioPagedWellsFactory(
+            qcdb_session=qcdb_session,
+            mlwh_session=mlwh_session,
+            page_size=page_size,
+            page_number=page_number,
+        ).create_for_run(run_name)
+    except RunNotFoundError as err:
+        raise HTTPException(404, detail=f"{err}")
+    return response
 
 
 @router.get(

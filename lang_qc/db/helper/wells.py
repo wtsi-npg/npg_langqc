@@ -46,6 +46,10 @@ class EmptyListOfRunNamesError(Exception):
     """Exception to be used when the list of run names is empty."""
 
 
+class RunNotFoundError(Exception):
+    """Exception to be used when no well metrics data for a run is found."""
+
+
 class WellWh(BaseModel):
     """
     A data access class for routine SQLAlchemy operations on wells data
@@ -230,6 +234,28 @@ class PacBioPagedWellsFactory(WellWh, PagedResponse):
             page_size=self.page_size,
             total_number_of_items=self.total_number_of_items,
             wells=wells,
+        )
+
+    def create_for_run(self, run_name: str) -> PacBioPagedWells:
+        """
+        Returns `PacBioPagedWells` object that corresponds to the criteria
+        specified by the `page_size` and `page_number` attributes.
+        The `PacBioWell` objects in `wells` attribute of the returned object
+        belong to runs specified by the `run_name` argument and are sorted
+        by the run name and well label.
+        """
+
+        wells = self.get_wells_in_runs([run_name])
+        total_number_of_wells = len(wells)
+        if total_number_of_wells == 0:
+            raise RunNotFoundError(f"Metrics data for run '{run_name}' is not found")
+
+        wells = self.slice_data(wells)
+        return PacBioPagedWells(
+            page_number=self.page_number,
+            page_size=self.page_size,
+            total_number_of_items=total_number_of_wells,
+            wells=self._well_models(wells, True),
         )
 
     def _build_query4status(self, qc_flow_status: QcFlowStatusEnum):
