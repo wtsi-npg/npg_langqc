@@ -1,5 +1,7 @@
 #  Long Read QC
 
+DO NOT MERGE
+
 Please see the documents in the [docs](docs) folder for documentation on
 subjects other than development, testing and deployment.
 
