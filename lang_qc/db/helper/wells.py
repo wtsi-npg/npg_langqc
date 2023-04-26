@@ -31,7 +31,7 @@ from sqlalchemy.orm import Session
 from lang_qc.db.helper.well import WellQc
 from lang_qc.db.qc_schema import QcState, QcStateDict, QcType
 from lang_qc.models.pacbio.well import PacBioPagedWells, PacBioWell
-from lang_qc.models.pager import PagedStatusResponse
+from lang_qc.models.pager import PagedResponse
 from lang_qc.models.qc_flow_status import QcFlowStatusEnum
 from lang_qc.models.qc_state import QcState as QcStateModel
 
@@ -133,11 +133,12 @@ class WellWh(BaseModel):
         return self.session.execute(query).scalars().all()
 
 
-class PacBioPagedWellsFactory(WellWh, PagedStatusResponse):
+class PacBioPagedWellsFactory(WellWh, PagedResponse):
     """
     Factory class to create `PacBioPagedWells` objects that correspond to
     the criteria given by the attributes of the object, i.e. `page_size`
-    `page_number` and `qc_flow_status` attributes.
+    `page_number`, and any other criteria that are specified by the
+    arguments of the factory methods of this class.
     """
 
     qcdb_session: Session = Field(
@@ -169,11 +170,13 @@ class PacBioPagedWellsFactory(WellWh, PagedStatusResponse):
         extra = Extra.forbid
         allow_mutation = True
 
-    def create(self) -> PacBioPagedWells:
+    def create_for_qc_status(
+        self, qc_flow_status: QcFlowStatusEnum
+    ) -> PacBioPagedWells:
         """
         Returns `PacBioPagedWells` object that corresponds to the criteria
-        specified by the `page_size`, `page_number, and `qc_flow_status`
-        attributes.
+        specified by the `page_size`, `page_number` object's attributes and
+        `qc_flow_status` argument of this function..
 
         The `PacBioWell` objects in `wells` attribute of the returned object
         are sorted in a way appropriate for the requested `qc_flow_status`.
@@ -186,27 +189,26 @@ class PacBioPagedWellsFactory(WellWh, PagedStatusResponse):
         """
 
         wells = []
-        if self.qc_flow_status == QcFlowStatusEnum.INBOX:
+        if qc_flow_status == QcFlowStatusEnum.INBOX:
             recent_wells = self.recent_completed_wells()
             wells = self._recent_inbox_wells(recent_wells)
-        elif self.qc_flow_status in [
+        elif qc_flow_status in [
             QcFlowStatusEnum.ABORTED,
             QcFlowStatusEnum.UNKNOWN,
         ]:
-            wells = self._aborted_and_unknown_wells()
+            wells = self._aborted_and_unknown_wells(qc_flow_status)
         else:
-            wells = self._get_wells()
+            wells = self._get_wells(qc_flow_status)
             self._add_tracking_info(wells)
 
         return PacBioPagedWells(
             page_number=self.page_number,
             page_size=self.page_size,
             total_number_of_items=self.total_number_of_items,
-            qc_flow_status=self.qc_flow_status,
             wells=wells,
         )
 
-    def _build_query4status(self):
+    def _build_query4status(self, qc_flow_status: QcFlowStatusEnum):
 
         # TODO: add filtering by the seq platform
 
@@ -220,23 +222,27 @@ class PacBioPagedWellsFactory(WellWh, PagedStatusResponse):
             .order_by(QcState.date_updated.desc())
         )
         # Add status-specific part of the query.
-        return query.where(self.FILTERS[self.qc_flow_status.name])
+        return query.where(self.FILTERS[qc_flow_status.name])
 
-    def _retrieve_qc_states(self):
+    def _retrieve_qc_states(self, qc_flow_status: QcFlowStatusEnum):
 
-        states = self.qcdb_session.execute(self._build_query4status()).scalars().all()
+        states = (
+            self.qcdb_session.execute(self._build_query4status(qc_flow_status))
+            .scalars()
+            .all()
+        )
         # Save the number of retrieved rows - needed to page correctly,
         # also needed by the client to correctly set up the paging widget.
         self.total_number_of_items = len(states)
         # Return the states for the wells we were asked to fetch, max - page_size, min - 0.
         return self.slice_data(states)
 
-    def _get_wells(self) -> List[PacBioWell]:
+    def _get_wells(self, qc_flow_status: QcFlowStatusEnum) -> List[PacBioWell]:
 
         # Note that the run name and well label are sourced from the QC database.
         # They'd better be correct there!
         wells = []
-        for qc_state in self._retrieve_qc_states():
+        for qc_state in self._retrieve_qc_states(qc_flow_status):
             sub_product = qc_state.seq_product.product_layout[0].sub_product
             # TODO: consider adding from_orm method to PacBioWell
             wells.append(
@@ -289,12 +295,12 @@ class PacBioPagedWellsFactory(WellWh, PagedStatusResponse):
 
         return self._well_models(inbox_wells)
 
-    def _aborted_and_unknown_wells(self):
+    def _aborted_and_unknown_wells(self, qc_flow_status: QcFlowStatusEnum):
 
         wells = (
             self.session.execute(
                 select(PacBioRunWellMetrics)
-                .where(self.FILTERS[self.qc_flow_status.name])
+                .where(self.FILTERS[qc_flow_status.name])
                 .order_by(
                     PacBioRunWellMetrics.pac_bio_run_name,
                     PacBioRunWellMetrics.well_label,
@@ -307,19 +313,24 @@ class PacBioPagedWellsFactory(WellWh, PagedStatusResponse):
         # Save the number of retrieved rows.
         self.total_number_of_items = len(wells)
 
-        return self._well_models(self.slice_data(wells))
+        return self._well_models(self.slice_data(wells), True)
 
-    def _well_models(self, db_wells_list):
+    def _well_models(
+        self,
+        db_wells_list: List[PacBioRunWellMetrics],
+        qc_state_applicable: bool = False,
+    ):
 
         # Normally QC data is not available for the inbox, aborted, etc.
         # wells. If some well with a non-inbox status has QC state assigned,
         # the same well will also be retrieved by the 'in progress' or
         # 'on hold' or 'qc complete' queries. However, it is useful to display
-        # the QC state if it is available.
+        # the QC state if it is available. The `qc_state_applicable` argument
+        # is a hint to fetch QC state.
         pb_wells = []
         for db_well in db_wells_list:
             attrs = {"run_name": db_well.pac_bio_run_name, "label": db_well.well_label}
-            if self.qc_flow_status != QcFlowStatusEnum.INBOX:
+            if qc_state_applicable:
                 qc_state = WellQc(
                     session=self.qcdb_session,
                     run_name=db_well.pac_bio_run_name,

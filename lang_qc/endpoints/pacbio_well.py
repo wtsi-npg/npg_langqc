@@ -49,9 +49,10 @@ router = APIRouter(
     description="""
          Taking an optional 'qc_status' as a query parameter, returns a list of
          runs with wells filtered by status. The default qc status is 'inbox'.
-         Possible values for this parameter are defined in QcFlowStatusEnum. For the
-         inbox view an optional 'weeks' query parameter can be used, it defaults
-         to one week and defines the number of weeks to look back.
+         Possible values for this parameter are defined in QcFlowStatusEnum.
+
+         The list is paged according to non-optional parameters `page_size` and
+         `page_number`.
     """,
     responses={
         status.HTTP_422_UNPROCESSABLE_ENTITY: {
@@ -74,8 +75,7 @@ def get_wells_filtered_by_status(
         mlwh_session=mlwh_session,
         page_size=page_size,
         page_number=page_number,
-        qc_flow_status=qc_status,
-    ).create()
+    ).create_for_qc_status(qc_status)
 
 
 @router.get(
