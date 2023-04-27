@@ -1,12 +1,12 @@
-from ml_warehouse.schema import (
+from sqlalchemy import delete, text
+
+from lang_qc.db.mlwh_schema import (
     PacBioProductMetrics,
     PacBioRun,
     PacBioRunWellMetrics,
     Sample,
     Study,
 )
-from sqlalchemy import delete, text
-
 from lang_qc.db.qc_schema import (
     ProductLayout,
     QcState,

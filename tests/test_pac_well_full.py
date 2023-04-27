@@ -1,6 +1,6 @@
-from ml_warehouse.schema import PacBioRunWellMetrics
 from sqlalchemy import select
 
+from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
 from lang_qc.models.pacbio.well import PacBioWellFull
 from tests.conftest import compare_dates, insert_from_yaml
 from tests.fixtures.well_data import load_data4well_retrieval, load_dicts_and_users
@@ -11,7 +11,7 @@ def test_creating_experiment_object(
 ):
 
     insert_from_yaml(
-        mlwhdb_test_session, "tests/data/mlwh_pb_run_92", "ml_warehouse.schema"
+        mlwhdb_test_session, "tests/data/mlwh_pb_run_92", "lang_qc.db.mlwh_schema"
     )
 
     # Full mlwh data, no data in the lang_qc database.

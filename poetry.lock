@@ -355,15 +355,6 @@ category = "dev"
 optional = false
 python-versions = "*"
 
-[[package]]
-name = "ml-warehouse"
-version = "1.1.0"
-description = "Python SQLAlchemy bindings to a warehouse housing data from multiple LIM systems."
-category = "main"
-optional = false
-python-versions = ">=3.8"
-develop = false
-
 [package.dependencies]
 cryptography = "*"
 pymysql = "*"
@@ -1253,7 +1244,6 @@ mccabe = [
     {file = "mccabe-0.6.1-py2.py3-none-any.whl", hash = "sha256:ab8a6258860da4b6677da4bd2fe5dc2c659cff31b3ee4f7f5d64e79735b80d42"},
     {file = "mccabe-0.6.1.tar.gz", hash = "sha256:dd8d182285a0fe56bace7f45b5e7d1a6ebcbf524e8f3bd87eb0f125271b8831f"},
 ]
-ml-warehouse = []
 mypy-extensions = [
     {file = "mypy_extensions-0.4.3-py2.py3-none-any.whl", hash = "sha256:090fedd75945a69ae91ce1303b5824f428daf5a028d2f6ab8a299250a846f15d"},
     {file = "mypy_extensions-0.4.3.tar.gz", hash = "sha256:2d82818f5bb3e369420cb3c4060a7970edba416647068eb4c5343488a6c604a8"},

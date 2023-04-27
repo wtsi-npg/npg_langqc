@@ -1,10 +1,10 @@
 from datetime import datetime, timedelta
 
 import pytest
-from ml_warehouse.schema import PacBioRunWellMetrics
 from sqlalchemy import select
 
 from lang_qc.db.helper.wells import EmptyListOfRunNamesError, WellWh
+from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
 from tests.fixtures.well_data import load_data4well_retrieval, load_dicts_and_users
 
 

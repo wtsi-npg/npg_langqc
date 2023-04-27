@@ -20,8 +20,9 @@
 
 from typing import List
 
-from ml_warehouse.schema import PacBioRun
 from pydantic import BaseModel, Extra, Field
+
+from lang_qc.db.mlwh_schema import PacBioRun
 
 
 class PacBioExperiment(BaseModel):

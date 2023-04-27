@@ -23,12 +23,12 @@ import logging
 from datetime import date, datetime, timedelta
 from typing import ClassVar, List
 
-from ml_warehouse.schema import PacBioRunWellMetrics
 from pydantic import BaseModel, Extra, Field
 from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
 from lang_qc.db.helper.well import WellQc
+from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
 from lang_qc.db.qc_schema import QcState, QcStateDict, QcType
 from lang_qc.models.pacbio.well import PacBioPagedWells, PacBioWell
 from lang_qc.models.pager import PagedResponse

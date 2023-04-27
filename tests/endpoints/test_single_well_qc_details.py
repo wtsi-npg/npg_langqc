@@ -9,7 +9,7 @@ def test_get_well_info(
 ):
 
     insert_from_yaml(
-        mlwhdb_test_session, "tests/data/mlwh_pb_run_92", "ml_warehouse.schema"
+        mlwhdb_test_session, "tests/data/mlwh_pb_run_92", "lang_qc.db.mlwh_schema"
     )
 
     response = test_client.get("/pacbio/run/MARATHON/well/A0")
