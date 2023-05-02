@@ -51,9 +51,8 @@ watch(() => route.query, (after, before) => {
     loadWellDetail(after.qcRun, after.qcLabel)
   }
   if (after.activeTab && (before === undefined || after.activeTab != before.activeTab)) {
-    changeTab(after.activeTab)
-  }
-  if (after.page && (before == undefined || after.page != before.page)) {
+    changeTab(after.activeTab, after.page)
+  } else if (after.page && (before == undefined || after.page != before.page)) {
     changePage(after.page)
   }
   if (after['userFilter']) {
@@ -97,6 +96,8 @@ function loadWells(status, page, pageSize) {
     data => {
       wellCollection.value = data.wells
       totalNumberOfWells.value = data.total_number_of_items
+      activePage.value = page;
+      activeTab.value = status;
     }
   ).catch(
     (error) => {
@@ -111,12 +112,10 @@ function loadWells(status, page, pageSize) {
   );
 }
 
-function changeTab(selectedTab) {
+function changeTab(selectedTab, pageNumber) {
   // To be triggered from Tab elements to load different data sets
   // Reset page to 1 on tab change
-  console.log("Changing tab to " + selectedTab)
-  activePage.value = 1;
-  activeTab.value = selectedTab;
+  console.log(`Changing tab to ${selectedTab} ${pageNumber}`)
   loadWells(selectedTab, activePage.value, pageSize);
 }
 
@@ -162,7 +161,9 @@ onMounted(() => {
   try {
     loadWells(activeTab.value, activePage.value, pageSize);
     serviceClient.getClientConfig().then(
-      data => appConfig.value = data
+      data => {
+        appConfig.value = data
+      }
     );
   } catch (error) {
     console.log("Stuff went wrong getting data from backend: " + error);

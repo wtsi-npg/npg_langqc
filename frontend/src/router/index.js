@@ -7,7 +7,7 @@ const router = createRouter({
     {
       path: '/wells/',
       name: 'RunView',
-      component: RunView
+      component: RunView,
     },
     {
       path: '/about',
