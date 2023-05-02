@@ -54,12 +54,12 @@ def test_well_state_helper(qcdb_test_session, load_dicts_and_users):
     user1 = users[0].username
     user2 = users[1].username
 
-    pbi = PacBioEntity(run_name="Run 1", well_label="A")
+    pbi = PacBioEntity(run_name="TRACTION-RUN-450", well_label="A1")
     id = pbi.hash_product_id()
     json = pbi.json()
     time_now = datetime.now()
 
-    helper = WellQc(session=session, run_name="Run 1", well_label="A")
+    helper = WellQc(session=session, run_name="TRACTION-RUN-450", well_label="A1")
 
     assert helper.current_qc_state() is None
 
@@ -78,8 +78,8 @@ def test_well_state_helper(qcdb_test_session, load_dicts_and_users):
     sub_product = state_obj.seq_product.product_layout[0].sub_product
     assert sub_product.properties == json
     assert sub_product.properties_digest == id
-    assert sub_product.value_attr_one == "Run 1"
-    assert sub_product.value_attr_two == "A"
+    assert sub_product.value_attr_one == "TRACTION-RUN-450"
+    assert sub_product.value_attr_two == "A1"
 
     id_seq_product = state_obj.id_seq_product
     hist_objs = _hist_objects(session, id_seq_product)
@@ -176,7 +176,7 @@ def test_well_state_helper(qcdb_test_session, load_dicts_and_users):
     assert state_obj.date_created.year == time_now.year
 
     # ... and on creating a new record.
-    helper = WellQc(session=session, run_name="Run 1", well_label="B")
+    helper = WellQc(session=session, run_name="TRACTION-RUN-450", well_label="B1")
     state_obj = helper.assign_qc_state(**args)
     date_updated = state_obj.date_updated
     assert date_updated.year == past_date.year

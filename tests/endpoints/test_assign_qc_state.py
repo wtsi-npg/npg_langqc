@@ -24,7 +24,7 @@ def test_change_non_existent_well(test_client: TestClient, test_data_factory):
     """
 
     response = test_client.put(
-        "/pacbio/run/NONEXISTENT/well/A0/qc_assign",
+        "/pacbio/run/NONEXISTENT/well/A10/qc_assign",
         post_data,
         headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
     )
