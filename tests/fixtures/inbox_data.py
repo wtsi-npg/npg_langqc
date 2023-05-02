@@ -1,15 +1,15 @@
 from datetime import datetime, timedelta
 
 import pytest
-from ml_warehouse.schema import (
+from npg_id_generation.pac_bio import PacBioEntity
+
+from lang_qc.db.mlwh_schema import (
     PacBioProductMetrics,
     PacBioRun,
     PacBioRunWellMetrics,
     Sample,
     Study,
 )
-from npg_id_generation.pac_bio import PacBioEntity
-
 from lang_qc.db.qc_schema import (
     ProductLayout,
     QcState,

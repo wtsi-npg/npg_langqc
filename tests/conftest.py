@@ -8,11 +8,11 @@ import re
 import pytest
 import yaml
 from fastapi.testclient import TestClient
-from ml_warehouse.schema import Base as MlwhBase
 from sqlalchemy import create_engine, insert, text
 from sqlalchemy.orm import Session, sessionmaker
 
 from lang_qc.db.mlwh_connection import get_mlwh_db
+from lang_qc.db.mlwh_schema import Base as MlwhBase
 from lang_qc.db.qc_connection import get_qc_db
 from lang_qc.db.qc_schema import Base as QcBase
 from lang_qc.main import app

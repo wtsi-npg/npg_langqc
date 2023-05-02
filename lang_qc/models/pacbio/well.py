@@ -22,11 +22,11 @@
 from datetime import datetime
 from typing import List
 
-from ml_warehouse.schema import PacBioRunWellMetrics
 from pydantic import BaseModel, Extra, Field
 from sqlalchemy.orm import Session
 
 from lang_qc.db.helper.well import WellQc
+from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
 from lang_qc.models.pacbio.experiment import PacBioExperiment
 from lang_qc.models.pacbio.qc_data import QCDataWell
 from lang_qc.models.pager import PagedResponse

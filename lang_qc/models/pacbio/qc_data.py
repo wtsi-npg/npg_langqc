@@ -17,8 +17,9 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>
 
-from ml_warehouse.schema import PacBioRunWellMetrics
 from pydantic import BaseModel, Field
+
+from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
 
 
 class QCDataWell(BaseModel):

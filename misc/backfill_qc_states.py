@@ -4,12 +4,12 @@ from datetime import datetime
 
 import numpy
 import pandas
-from ml_warehouse.schema import PacBioRunWellMetrics
 from sqlalchemy import select
 
 from lang_qc.db.helper.well import WellQc
 from lang_qc.db.helper.wells import WellWh
 from lang_qc.db.mlwh_connection import get_mlwh_db
+from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
 from lang_qc.db.qc_connection import get_qc_db
 from lang_qc.util.auth import get_user
 
