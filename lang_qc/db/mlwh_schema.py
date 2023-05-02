@@ -28,7 +28,6 @@ from sqlalchemy.dialects.mysql import VARCHAR as mysqlVARCHAR
 from sqlalchemy.orm import declarative_base, relationship
 
 Base = declarative_base()
-# metadata = Base.metadata
 
 
 class Sample(Base):

@@ -1,4 +1,4 @@
-from sqlalchemy import delete, text
+from sqlalchemy import delete
 
 from lang_qc.db.mlwh_schema import (
     PacBioProductMetrics,
