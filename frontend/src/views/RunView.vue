@@ -36,7 +36,6 @@ let user = ref(null);
 getUserName((email) => { user.value = email }).then();
 
 watch(() => route.query, (after, before) => {
-  console.log(before)
   if (
     (after.qcLabel || after.qcRun)
     && (
@@ -46,7 +45,6 @@ watch(() => route.query, (after, before) => {
       )
     )
   ) {
-    console.log('Noticed change in run/label')
     // Somehow we need to capture the other parameter in case both have not been set
     loadWellDetail(after.qcRun, after.qcLabel)
   }
@@ -55,14 +53,8 @@ watch(() => route.query, (after, before) => {
   } else if (after.page && (before == undefined || after.page != before.page)) {
     changePage(after.page)
   }
-  if (after['userFilter']) {
-    console.log(after.userFilter)
-  }
-  if (after['runFilter']) {
-    console.log(after.runFilter)
-  }
 },
-{immediate: true}
+  { immediate: true }
 )
 
 provide('activeTab', activeTab);
@@ -115,20 +107,18 @@ function loadWells(status, page, pageSize) {
 function changeTab(selectedTab, pageNumber) {
   // To be triggered from Tab elements to load different data sets
   // Reset page to 1 on tab change
-  console.log(`Changing tab to ${selectedTab} ${pageNumber}`)
   loadWells(selectedTab, activePage.value, pageSize);
 }
 
 function clickTabChange(selectedTab) {
-  updateUrlQuery({activeTab: selectedTab, page: 1})
+  updateUrlQuery({ activeTab: selectedTab, page: 1 })
 }
 
 function clickPageChange(pageNumber) {
-  updateUrlQuery({page: pageNumber})
+  updateUrlQuery({ page: pageNumber })
 }
 
 function changePage(pageNumber) {
-  console.log("Changing page to " + pageNumber)
   loadWells(activeTab.value, pageNumber, pageSize);
 }
 
@@ -140,19 +130,14 @@ function externalTabChange(tabName) {
 function updateUrlQuery(newParams) {
   let existingSettings = Object.assign({}, route.query)
   let changed = false
-  console.log("Old settings")
-  console.log(existingSettings)
   for (let k in newParams) {
     if (existingSettings[k] && existingSettings[k] != newParams[k] || !existingSettings[k]) {
-      console.log('Changing parameter ' + k)
       existingSettings[k] = newParams[k]
       changed = true
     }
   }
   if (changed) {
-    console.log('New URL settings')
-    let newURL = {path: route.path, query: {...existingSettings}}
-    console.log(newURL)
+    let newURL = { path: route.path, query: { ...existingSettings } }
     router.push(newURL)
   }
 }
@@ -195,15 +180,16 @@ onMounted(() => {
           <tr :key="wellObj.run_name + ':' + wellObj.label" v-for="wellObj in wellCollection">
             <td>{{ wellObj.run_name }}</td>
             <td class="well_selector">
-              <button v-on:click="updateUrlQuery({run: wellObj.run_name, label: wellObj.label})">{{ wellObj.label }}</button>
+              <button v-on:click="updateUrlQuery({ run: wellObj.run_name, label: wellObj.label })">{{ wellObj.label
+              }}</button>
             </td>
-            <td>{{ wellObj.qc_state ? wellObj.qc_state.qc_state : '&nbsp;'}}</td>
-            <td>{{ wellObj.qc_state ? wellObj.qc_state.date_updated : '&nbsp;'}}</td>
-            <td>{{ wellObj.qc_state ? wellObj.qc_state.user : '&nbsp;'}}</td>
-            <td>{{ wellObj.well_status ? wellObj.well_status : '&nbsp;'}}</td>
-            <td>{{ wellObj.run_status ? wellObj.run_status : '&nbsp;'}}</td>
-            <td>{{ wellObj.well_start_time ? wellObj.well_start_time : '&nbsp;'}}</td>
-            <td>{{ wellObj.well_complete_time ? wellObj.well_complete_time : '&nbsp;'}}</td>
+            <td>{{ wellObj.qc_state ? wellObj.qc_state.qc_state : '&nbsp;' }}</td>
+            <td>{{ wellObj.qc_state ? wellObj.qc_state.date_updated : '&nbsp;' }}</td>
+            <td>{{ wellObj.qc_state ? wellObj.qc_state.user : '&nbsp;' }}</td>
+            <td>{{ wellObj.well_status ? wellObj.well_status : '&nbsp;' }}</td>
+            <td>{{ wellObj.run_status ? wellObj.run_status : '&nbsp;' }}</td>
+            <td>{{ wellObj.well_start_time ? wellObj.well_start_time : '&nbsp;' }}</td>
+            <td>{{ wellObj.well_complete_time ? wellObj.well_complete_time : '&nbsp;' }}</td>
           </tr>
         </table>
       </el-tab-pane>
@@ -227,7 +213,6 @@ onMounted(() => {
 </template>
 
 <style>
-
 #run_wells {
   width: 100%;
 }
