@@ -107,7 +107,7 @@ function loadWells(status, page, pageSize) {
 function changeTab(selectedTab, pageNumber) {
   // To be triggered from Tab elements to load different data sets
   // Reset page to 1 on tab change
-  loadWells(selectedTab, activePage.value, pageSize);
+  loadWells(selectedTab, pageNumber, pageSize);
 }
 
 function clickTabChange(selectedTab) {
