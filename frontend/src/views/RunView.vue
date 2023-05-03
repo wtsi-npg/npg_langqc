@@ -36,6 +36,12 @@ let user = ref(null);
 getUserName((email) => { user.value = email }).then();
 
 watch(() => route.query, (after, before) => {
+
+  let newPage = undefined
+  if (after.page) {
+    newPage = parseInt(after.page)
+  }
+
   if (
     (after.qcLabel || after.qcRun)
     && (
@@ -49,9 +55,9 @@ watch(() => route.query, (after, before) => {
     loadWellDetail(after.qcRun, after.qcLabel)
   }
   if (after.activeTab && (before === undefined || after.activeTab != before.activeTab)) {
-    changeTab(after.activeTab, after.page)
+    changeTab(after.activeTab, newPage)
   } else if (after.page && (before == undefined || after.page != before.page)) {
-    changePage(after.page)
+    changePage(newPage)
   }
 },
   { immediate: true }
@@ -180,7 +186,7 @@ onMounted(() => {
           <tr :key="wellObj.run_name + ':' + wellObj.label" v-for="wellObj in wellCollection">
             <td>{{ wellObj.run_name }}</td>
             <td class="well_selector">
-              <button v-on:click="updateUrlQuery({ run: wellObj.run_name, label: wellObj.label })">{{ wellObj.label
+              <button v-on:click="updateUrlQuery({ qcRun: wellObj.run_name, qcLabel: wellObj.label })">{{ wellObj.label
               }}</button>
             </td>
             <td>{{ wellObj.qc_state ? wellObj.qc_state.qc_state : '&nbsp;' }}</td>
