@@ -56,8 +56,13 @@ watch(() => route.query, (after, before) => {
   }
   if (after.activeTab && (before === undefined || after.activeTab != before.activeTab)) {
     changeTab(after.activeTab, newPage)
+    activeTab.value = after.activeTab;
+    if (before == undefined || after.page != before.page) {
+      activePage.value = newPage;
+    }
   } else if (after.page && (before == undefined || after.page != before.page)) {
     changePage(newPage)
+    activePage.value = newPage;
   }
 },
   { immediate: true }
@@ -94,8 +99,6 @@ function loadWells(status, page, pageSize) {
     data => {
       wellCollection.value = data.wells
       totalNumberOfWells.value = data.total_number_of_items
-      activePage.value = page;
-      activeTab.value = status;
     }
   ).catch(
     (error) => {
@@ -111,8 +114,8 @@ function loadWells(status, page, pageSize) {
 }
 
 function changeTab(selectedTab, pageNumber) {
-  // To be triggered from Tab elements to load different data sets
-  // Reset page to 1 on tab change
+  // To be triggered from URL bar to load different data sets
+  // Retain whatever page we were already looking at on another tab
   loadWells(selectedTab, pageNumber, pageSize);
 }
 
@@ -150,12 +153,14 @@ function updateUrlQuery(newParams) {
 
 onMounted(() => {
   try {
-    loadWells(activeTab.value, activePage.value, pageSize);
     serviceClient.getClientConfig().then(
       data => {
         appConfig.value = data
       }
     );
+    if (!route.query['activeTab']) {
+      updateUrlQuery({activeTab: 'inbox', page: 1})
+    }
   } catch (error) {
     console.log("Stuff went wrong getting data from backend: " + error);
     ElMessage({
