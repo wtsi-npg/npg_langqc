@@ -45,7 +45,9 @@ watch(() => route.query, (after, before) => {
   if (
     (after.qcLabel || after.qcRun)
     && (
-      before == undefined
+      (
+        !before['qcLabel'] && !before['qcRun']
+      )
       || (
         before.qcLabel && before.qcRun && (after.qcLabel != before.qcLabel || after.qcRun != before.qcRun)
       )
