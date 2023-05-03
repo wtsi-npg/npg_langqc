@@ -63,6 +63,11 @@ fetch.mockResponses(
     }),
     { status: 200 }
   ],
+  [
+    // Load client config from API
+    JSON.stringify(configResponse),
+    { status: 200 }
+  ],
   // Get wells data
   [
     JSON.stringify({
@@ -72,11 +77,6 @@ fetch.mockResponses(
       qc_flow_status: "inbox",
       wells: testWells
     }),
-    { status: 200 }
-  ],
-  [
-    // Load client config from API
-    JSON.stringify(configResponse),
     { status: 200 }
   ],
 )
