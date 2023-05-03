@@ -36,6 +36,12 @@ let user = ref(null);
 getUserName((email) => { user.value = email }).then();
 
 watch(() => route.query, (after, before) => {
+
+  let newPage = undefined
+  if (after.page) {
+    newPage = parseInt(after.page)
+  }
+
   if (
     (after.qcLabel || after.qcRun)
     && (
@@ -49,9 +55,9 @@ watch(() => route.query, (after, before) => {
     loadWellDetail(after.qcRun, after.qcLabel)
   }
   if (after.activeTab && (before === undefined || after.activeTab != before.activeTab)) {
-    changeTab(after.activeTab, after.page)
+    changeTab(after.activeTab, newPage)
   } else if (after.page && (before == undefined || after.page != before.page)) {
-    changePage(after.page)
+    changePage(newPage)
   }
 },
   { immediate: true }
