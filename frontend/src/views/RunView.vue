@@ -35,13 +35,22 @@ let activeWell = reactive({
 let user = ref(null);
 getUserName((email) => { user.value = email }).then();
 
-watch(() => route.query, (after, before) => {
+// Page configuration is dictated by URL query ?param
+// Other parts of this component update the URL to trigger navigation within
+// the page.
+// This allows users to bookmark the view and retain the configuration.
 
+// Tricky stuff. Reactivity and URL updates readily create cascades and loops
+// of loading data. Change with caution!
+
+watch(() => route.query, (after, before) => {
+  // URL numbers are strings. Convert to int for the pagination widget
   let newPage = undefined
   if (after.page) {
     newPage = parseInt(after.page)
   }
 
+  // Handle the run and well to show in the QC Viewer
   if (
     (after.qcLabel || after.qcRun)
     && (
@@ -56,6 +65,9 @@ watch(() => route.query, (after, before) => {
     // Somehow we need to capture the other parameter in case both have not been set
     loadWellDetail(after.qcRun, after.qcLabel)
   }
+
+  // Handle changes of tab in the table of wells.
+  // Changes to selected tab negates a page change operation
   if (after.activeTab && (before === undefined || after.activeTab != before.activeTab)) {
     changeTab(after.activeTab, newPage)
     activeTab.value = after.activeTab;
@@ -67,6 +79,8 @@ watch(() => route.query, (after, before) => {
     activePage.value = newPage;
   }
 },
+  // The watch process begins immediately on component load in order to catch
+  // a user-supplied query in the URL
   { immediate: true }
 )
 
@@ -97,6 +111,8 @@ function loadWellDetail(runName, label) {
 }
 
 function loadWells(status, page, pageSize) {
+  // Gets data for the current page of wells in the tab
+
   serviceClient.getInboxPromise(status, page, pageSize).then(
     data => {
       wellCollection.value = data.wells
@@ -116,7 +132,7 @@ function loadWells(status, page, pageSize) {
 }
 
 function changeTab(selectedTab, pageNumber) {
-  // To be triggered from URL bar to load different data sets
+  // To be triggered from URL changes to load different data sets
   // Retain whatever page we were already looking at on another tab
   loadWells(selectedTab, pageNumber, pageSize);
 }
@@ -130,6 +146,7 @@ function clickPageChange(pageNumber) {
 }
 
 function changePage(pageNumber) {
+  // URL-controlled page change
   loadWells(activeTab.value, pageNumber, pageSize);
 }
 
@@ -139,6 +156,10 @@ function externalTabChange(tabName) {
 }
 
 function updateUrlQuery(newParams) {
+  // Merges the current URL query with new parameters
+  // The calling code does not need to replicate all properties from the
+  // previous URL query.
+  // route.query is read-only. We must copy it before modifying
   let existingSettings = Object.assign({}, route.query)
   let changed = false
   for (let k in newParams) {
@@ -160,6 +181,8 @@ onMounted(() => {
         appConfig.value = data
       }
     );
+    // If there are no query properties in the URL, we can "redirect" to a
+    // sensible default
     if (!route.query['activeTab']) {
       updateUrlQuery({activeTab: 'inbox', page: 1})
     }
