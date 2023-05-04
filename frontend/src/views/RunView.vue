@@ -6,6 +6,7 @@ import { ElMessage } from 'element-plus';
 import QcView from "@/components/QcView.vue";
 import LangQc from "@/utils/langqc.js";
 import QcControls from "@/components/QcControls.vue";
+import WellTable from "@/components/WellTable.vue";
 import { useWellStore } from "@/stores/focusWell.js";
 import { getUserName } from "@/utils/session.js"
 import { generateUrl } from "@/utils/url.js";
@@ -185,33 +186,7 @@ onMounted(() => {
   <div v-if="appConfig !== null">
     <el-tabs v-model="activeTab" type="border-card" @tab-change="clickTabChange">
       <el-tab-pane v-for="tab in appConfig.qc_flow_statuses" :key="tab.param" :label="tab.label" :name="tab.param">
-        <table id="run_wells">
-          <tr>
-            <th>Run name</th>
-            <th>Well label</th>
-            <th>QC state</th>
-            <th>QC date</th>
-            <th>Assessor</th>
-            <th>Well status</th>
-            <th>Run status</th>
-            <th>Well time start</th>
-            <th>Well time complete</th>
-          </tr>
-          <tr :key="wellObj.run_name + ':' + wellObj.label" v-for="wellObj in wellCollection">
-            <td>{{ wellObj.run_name }}</td>
-            <td class="well_selector">
-              <button v-on:click="updateUrlQuery({ qcRun: wellObj.run_name, qcLabel: wellObj.label })">{{ wellObj.label
-              }}</button>
-            </td>
-            <td>{{ wellObj.qc_state ? wellObj.qc_state.qc_state : '&nbsp;' }}</td>
-            <td>{{ wellObj.qc_state ? wellObj.qc_state.date_updated : '&nbsp;' }}</td>
-            <td>{{ wellObj.qc_state ? wellObj.qc_state.user : '&nbsp;' }}</td>
-            <td>{{ wellObj.well_status ? wellObj.well_status : '&nbsp;' }}</td>
-            <td>{{ wellObj.run_status ? wellObj.run_status : '&nbsp;' }}</td>
-            <td>{{ wellObj.well_start_time ? wellObj.well_start_time : '&nbsp;' }}</td>
-            <td>{{ wellObj.well_complete_time ? wellObj.well_complete_time : '&nbsp;' }}</td>
-          </tr>
-        </table>
+        <WellTable :wellCollection="wellCollection" @wellSelected="updateUrlQuery"/>
       </el-tab-pane>
       <el-pagination v-model:currentPage="activePage" layout="prev, pager, next" v-bind:total="totalNumberOfWells"
         background :pager-count="5" :page-size="pageSize" :hide-on-single-page="true"
@@ -233,10 +208,6 @@ onMounted(() => {
 </template>
 
 <style>
-#run_wells {
-  width: 100%;
-}
-
 .qcview {
   display: grid;
   grid-template-columns: 3fr 1fr;
