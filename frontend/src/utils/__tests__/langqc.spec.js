@@ -92,6 +92,9 @@ describe('Example fake remote api call', () => {
 
         client.getRunWellPromise('blah', 'A2');
         expect(fetch.mock.calls[5][0]).toEqual('/api/pacbio/run/blah/well/A2');
+
+        client.getWellsForRunPromise('blah')
+        expect(fetch.mock.calls[6][0]).toEqual('/api/pacbio/run/blah?page_size=100&page=1')
     });
 });
 
