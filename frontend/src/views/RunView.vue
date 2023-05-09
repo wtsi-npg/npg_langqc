@@ -70,13 +70,13 @@ watch(() => route.query, (after, before) => {
   // Handle changes of tab in the table of wells.
   // Changes to selected tab negates a page change operation
   if (after.activeTab && (before === undefined || after.activeTab != before.activeTab)) {
-    changeTab(after.activeTab, newPage)
+    loadWells(after.activeTab, newPage, pageSize)
     activeTab.value = after.activeTab;
     if (before == undefined || after.page != before.page) {
       activePage.value = newPage;
     }
   } else if (after.page && (before == undefined || after.page != before.page)) {
-    changePage(newPage)
+    loadWells(activeTab.value, newPage, pageSize)
     activePage.value = newPage;
   }
 },
@@ -132,23 +132,12 @@ function loadWells(status, page, pageSize) {
   );
 }
 
-function changeTab(selectedTab, pageNumber) {
-  // To be triggered from URL changes to load different data sets
-  // Retain whatever page we were already looking at on another tab
-  loadWells(selectedTab, pageNumber, pageSize);
-}
-
 function clickTabChange(selectedTab) {
   updateUrlQuery({ activeTab: selectedTab, page: 1 })
 }
 
 function clickPageChange(pageNumber) {
   updateUrlQuery({ page: pageNumber })
-}
-
-function changePage(pageNumber) {
-  // URL-controlled page change
-  loadWells(activeTab.value, pageNumber, pageSize);
 }
 
 function externalTabChange(tabName) {
