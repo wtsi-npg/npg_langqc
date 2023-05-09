@@ -1,11 +1,11 @@
 import { describe, expect, test, vi } from 'vitest'
-import { mount, flushPromises } from '@vue/test-utils';
+import { mount, flushPromises } from '@vue/test-utils'
 // import {createRouter, createWebHistory} from 'vue-router'
 // or routes arg to render(Component, {routes: []|vue-router obj})
 
 import { createTestingPinia } from '@pinia/testing'
 import ElementPlus from 'element-plus'
-import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter, createWebHistory } from 'vue-router'
 
 import RunView from '@/views/RunView.vue'
 
