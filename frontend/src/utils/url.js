@@ -21,7 +21,7 @@ export function generateUrl(existingSettings, newSettings, path) {
   */
   let changed = false
   for (let k in newSettings) {
-    if (existingSettings[k] && existingSettings[k] != newSettings[k] || !existingSettings[k]) {
+    if (!existingSettings[k] || existingSettings[k] != newSettings[k]) {
       if (newSettings[k] === null) {
         delete existingSettings[k]
       } else {
