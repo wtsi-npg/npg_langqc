@@ -8,6 +8,7 @@ import LangQc from "@/utils/langqc.js";
 import QcControls from "@/components/QcControls.vue";
 import { useWellStore } from "@/stores/focusWell.js";
 import { getUserName } from "@/utils/session.js"
+import { generateUrl } from "@/utils/url.js";
 
 const focusWell = useWellStore();
 const route = useRoute();
@@ -160,17 +161,10 @@ function updateUrlQuery(newParams) {
   // The calling code does not need to replicate all properties from the
   // previous URL query.
   // route.query is read-only. We must copy it before modifying
-  let existingSettings = Object.assign({}, route.query)
-  let changed = false
-  for (let k in newParams) {
-    if (existingSettings[k] && existingSettings[k] != newParams[k] || !existingSettings[k]) {
-      existingSettings[k] = newParams[k]
-      changed = true
-    }
-  }
-  if (changed) {
-    let newURL = { path: route.path, query: { ...existingSettings } }
-    router.push(newURL)
+  const newUrl = generateUrl(Object.assign({}, route.query), newParams, route.path)
+
+  if (newUrl) {
+    router.push(newUrl)
   }
 }
 
