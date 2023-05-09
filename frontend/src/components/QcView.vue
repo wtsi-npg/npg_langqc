@@ -6,8 +6,22 @@
         runWell: Object, // PacBioRunResult
     });
 
-    function generateSmrtLink(metric) {
-        return `https://${metric.smrt_link.hostname}:${import.meta.env.VITE_SMRTLINK_PORT}/sl/run-qc/${metric.smrt_link.run_uuid}`
+    function generateSmrtLink(metric, entity) {
+        if ( metric.smrt_link.hostname) {
+            let url = `https://${metric.smrt_link.hostname}:${import.meta.env.VITE_SMRTLINK_PORT}/sl`;
+            if ( entity == 'run' ) {
+                let run_uuid = metric.smrt_link.run_uuid;
+                if ( run_uuid ) {
+                    return `${url}/run-qc/${run_uuid}`;
+                }
+            } else {
+                let dataset_uuid = metric.smrt_link.dataset_uuid;
+                if ( dataset_uuid ) {
+                    return `${url}/data-management/dataset-detail/${dataset_uuid}?type=ccsreads&show=analyses`;
+                }
+            }
+        }
+        return '';
     }
 
     function generateSequencescapeLink(id, isSampleId) {
@@ -24,17 +38,23 @@
 <template>
     <div id="well_summary">
         <table class="summary">
-            <tr>
+            <tr v-for="run_url in [generateSmrtLink(runWell.metrics, 'run')]">
                 <td>Run</td>
-                <td v-if="runWell.metrics.smrt_link.hostname">
-                    <el-link :href="generateSmrtLink(runWell.metrics)" :underline="false" icon="ExtLink" target="_blank">
+                <td v-if="run_url">
+                    <el-link :href="run_url" :underline="false" icon="ExtLink" target="_blank">
                         {{ runWell.run_name }}
                     </el-link>
                 </td>
                 <td v-else>{{ runWell.run_name }}</td>
             </tr>
-            <tr>
-                <td>Well</td><td>{{runWell.label}}</td>
+            <tr v-for="well_url in [generateSmrtLink(runWell.metrics, 'well')]">
+                <td>Well</td>
+                <td v-if="well_url">
+                    <el-link :href="well_url" :underline="false" icon="ExtLink" target="_blank">
+                        {{ runWell.label }}
+                    </el-link>
+                </td>
+                <td v-else>{{ runWell.label }}</td>
             </tr>
             <tr v-if="runWell.well_complete_time">
                 <td>Well complete</td><td>{{(new Date(runWell.well_complete_time)).toLocaleString()}}</td>
