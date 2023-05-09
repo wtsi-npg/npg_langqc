@@ -52,6 +52,7 @@
   short_insert_percent: 0
   sl_hostname: pacbio01.dnapipelines.sanger.ac.uk
   sl_run_uuid: 7f5d45ed-aa93-46a6-92b2-4b11d4bf29da
+  sl_ccs_uuid: 7f5d45ed-aa93-46a6-92b2-4b11d4bf29ro
   ts_run_name: r64222e_20220414_125138
   unique_molecular_bases: 68501667840
   well_complete: 2022-04-16 12:36:21
@@ -111,6 +112,7 @@
   short_insert_percent: 0
   sl_hostname: pacbio01.dnapipelines.sanger.ac.uk
   sl_run_uuid: 7f5d45ed-aa93-46a6-92b2-4b11d4bf29da
+  sl_ccs_uuid: ~
   ts_run_name: r64222e_20220414_125138
   unique_molecular_bases: 45990051840
   well_complete: 2022-04-17 23:16:35
@@ -170,6 +172,7 @@
   short_insert_percent: 0
   sl_hostname: pacbio01.dnapipelines.sanger.ac.uk
   sl_run_uuid: 7f5d45ed-aa93-46a6-92b2-4b11d4bf29da
+  sl_ccs_uuid: ~
   ts_run_name: r64222e_20220414_125138
   unique_molecular_bases: 37178580992
   well_complete: 2022-04-19 04:22:35
@@ -229,11 +232,10 @@
   short_insert_percent: 0.01
   sl_hostname: pacbio01.dnapipelines.sanger.ac.uk
   sl_run_uuid: 7f5d45ed-aa93-46a6-92b2-4b11d4bf29da
+  sl_ccs_uuid: ~
   ts_run_name: r64222e_20220414_125138
   unique_molecular_bases: 48624848896
   well_complete: 2022-04-20 16:03:18
   well_label: D1
   well_start: 2022-04-18 21:49:38
   well_status: Complete
-
-
