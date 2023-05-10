@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import RunView from '@/views/RunView.vue'
+import WellsByStatus from '@/views/WellsByStatus.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -11,8 +11,8 @@ const router = createRouter({
     },
     {
       path: '/wells',
-      name: 'RunView',
-      component: RunView,
+      name: 'WellsByStatus',
+      component: WellsByStatus,
     },
     {
       path: '/about',

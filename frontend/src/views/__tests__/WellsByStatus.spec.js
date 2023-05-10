@@ -7,14 +7,14 @@ import { createTestingPinia } from '@pinia/testing'
 import ElementPlus from 'element-plus'
 import { createRouter, createWebHistory } from 'vue-router'
 
-import RunView from '@/views/RunView.vue'
+import WellsByStatus from '@/views/WellsByStatus.vue'
 
 // The giga-faking of most of the app:
 
 
 const router = createRouter({
   history: createWebHistory(),
-  routes: [{ path: '/', redirect: '/ui/wells' }, { path: '/ui/wells', component: RunView }]
+  routes: [{ path: '/', redirect: '/ui/wells' }, { path: '/ui/wells', component: WellsByStatus }]
 })
 
 const testWells = []
@@ -81,7 +81,7 @@ fetch.mockResponses(
   ],
 )
 
-const wrapper = mount(RunView, {
+const wrapper = mount(WellsByStatus, {
   global: {
     plugins: [
       ElementPlus,
