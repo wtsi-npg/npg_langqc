@@ -5,7 +5,12 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
-      path: '/wells/',
+      path: '/',
+      name: 'Home',
+      redirect: '/wells'
+    },
+    {
+      path: '/wells',
       name: 'RunView',
       component: RunView,
     },
