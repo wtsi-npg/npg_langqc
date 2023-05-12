@@ -1,24 +1,36 @@
 <script setup>
-    import { defineProps } from "vue";
+
+    import { computed } from "vue";
     import groupMetrics from "../utils/metrics.js";
 
-    defineProps({
+    const props = defineProps({
         runWell: Object, // PacBioRunResult
     });
 
-    function generateSmrtLink(metric) {
-        return `https://${metric.smrt_link.hostname}:${import.meta.env.VITE_SMRTLINK_PORT}/sl/run-qc/${metric.smrt_link.run_uuid}`
-    }
+    const slURL = computed(() => {
+        let hostname = props.runWell.metrics.smrt_link.hostname
+        return `https://${hostname}:${import.meta.env.VITE_SMRTLINK_PORT}/sl`
+    })
 
-    function generateSequencescapeLink(id, isSampleId) {
-        let url_components = [import.meta.env.VITE_LIMS_SS_SERVER_URL];
-        url_components.push(isSampleId == true ? "samples" : "studies");
-        url_components.push(id);
-        if (isSampleId == false) {
-            url_components.push("properties");
-        }
-        return url_components.join("/");
-    }
+    const slRunLink = computed(() => {
+        return [slURL.value,
+                'run-qc',
+                props.runWell.metrics.smrt_link.run_uuid].join("/")
+    })
+
+    const ssLimsStudyLink = computed(() => {
+        return [import.meta.env.VITE_LIMS_SS_SERVER_URL,
+                'studies',
+                props.runWell.experiment_tracking.study_id[0],
+                'properties'].join("/")
+    })
+
+    const ssLimsSampleLink = computed(() => {
+        return [import.meta.env.VITE_LIMS_SS_SERVER_URL,
+                'samples',
+                props.runWell.experiment_tracking.sample_id].join("/")
+    })
+
 </script>
 
 <template>
@@ -27,7 +39,7 @@
             <tr>
                 <td>Run</td>
                 <td v-if="runWell.metrics.smrt_link.hostname">
-                    <el-link :href="generateSmrtLink(runWell.metrics)" :underline="false" icon="ExtLink" target="_blank">
+                    <el-link :href="slRunLink" :underline="false" icon="ExtLink" target="_blank">
                         {{ runWell.run_name }}
                     </el-link>
                 </td>
@@ -48,7 +60,7 @@
                 <td>Study</td>
                 <td v-if="runWell.experiment_tracking.study_id.length == 1">
                     <el-link
-                        :href="generateSequencescapeLink(runWell.experiment_tracking.study_id[0], false)"
+                        :href="ssLimsStudyLink"
                         :underline="false"
                         icon="ExtLink"
                         target="_blank">
@@ -61,7 +73,7 @@
                 <td>Sample</td>
                 <td v-if="runWell.experiment_tracking.num_samples == 1">
                     <el-link
-                        :href="generateSequencescapeLink(runWell.experiment_tracking.sample_id, true)"
+                        :href="ssLimsSampleLink"
                         :underline="false"
                         icon="ExtLink"
                         target="_blank">
