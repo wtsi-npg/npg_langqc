@@ -1,5 +1,5 @@
 import { describe, expect, test, vi } from 'vitest';
-import { render } from '@testing-library/vue';
+import { render, cleanup } from '@testing-library/vue';
 // Pinia and ElementPlus required by ClaimWidget
 import { createTestingPinia } from '@pinia/testing';
 import ElementPlus from 'element-plus';
@@ -62,9 +62,9 @@ describe('Component renders', () => {
     link = wrapper.getByText(/oldsock/i).parentElement;
     expect(link.getAttribute('href')).toBe('https://mylims.com/samples/3456');
 
-    expect(wrapper.html()).toContain('17/01/2021, 08:35:18')
+    expect(wrapper.html()).toMatch(/17\/01\/2021|1\/17\/2021/) //American style dates in CI
 
-    wrapper.unmount();
+    cleanup()
   });
 
 
@@ -91,7 +91,7 @@ describe('Component renders', () => {
     ]
     expected_text.forEach((value) => {expect(html).toContain(value)});
 
-    wrapper.unmount();
+    cleanup()
   });
 
   test('Multiple LIMS entities', () => {
@@ -124,7 +124,7 @@ describe('Component renders', () => {
     ]
     expected_text.forEach((value) => {expect(html).toContain(value)});
 
-    wrapper.unmount();
+    cleanup();
   });
 
   test('No links to SmrtLink', () => {
@@ -150,7 +150,7 @@ describe('Component renders', () => {
     tr = wrapper.getByText(/A1/).parentElement.nodeName;
     expect(tr).toBe('TR');
 
-    wrapper.unmount();
+    cleanup();
 
     props_1['runWell']['metrics']['smrt_link'] = {
       hostname: 'somehost',
@@ -173,5 +173,7 @@ describe('Component renders', () => {
     tr = wrapper.getByText(/A1/).parentElement.nodeName;
     expect(tr).toBe('TR');
   });
+
+  cleanup();
 
 });
