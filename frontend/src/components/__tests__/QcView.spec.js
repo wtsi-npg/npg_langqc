@@ -1,4 +1,4 @@
-import { describe, expect, test, vi } from 'vitest';
+import { describe, expect, test, vi, afterEach } from 'vitest';
 import { render, cleanup } from '@testing-library/vue';
 // Pinia and ElementPlus required by ClaimWidget
 import { createTestingPinia } from '@pinia/testing';
@@ -7,6 +7,10 @@ import ElementPlus from 'element-plus';
 import QcView from '../QcView.vue';
 
 describe('Component renders', () => {
+
+  afterEach(async () => {
+    cleanup()
+  });
 
   vi.stubEnv('VITE_SMRTLINK_PORT', '5555')
   vi.stubEnv('VITE_LIMS_SS_SERVER_URL', 'https://mylims.com')
@@ -64,7 +68,6 @@ describe('Component renders', () => {
 
     expect(wrapper.html()).toMatch(/17\/01\/2021|1\/17\/2021/) //American style dates in CI
 
-    cleanup()
   });
 
 
@@ -91,7 +94,6 @@ describe('Component renders', () => {
     ]
     expected_text.forEach((value) => {expect(html).toContain(value)});
 
-    cleanup()
   });
 
   test('Multiple LIMS entities', () => {
@@ -124,10 +126,9 @@ describe('Component renders', () => {
     ]
     expected_text.forEach((value) => {expect(html).toContain(value)});
 
-    cleanup();
   });
 
-  test('No links to SmrtLink', () => {
+  test('No host name for links to SmrtLink', () => {
 
     props_1['runWell']['metrics']['smrt_link'] = {
       hostname: null,
@@ -135,7 +136,7 @@ describe('Component renders', () => {
       dataset_uuid: '789100'
     };
 
-    let wrapper = render(QcView, {
+    const wrapper = render(QcView, {
       props: props_1,
       global: {
         plugins: [ElementPlus, createTestingPinia({ createSpy: vi.fn})],
@@ -150,7 +151,9 @@ describe('Component renders', () => {
     tr = wrapper.getByText(/A1/).parentElement.nodeName;
     expect(tr).toBe('TR');
 
-    cleanup();
+  });
+
+  test('No UUIDs for links to SmrtLink', () => {
 
     props_1['runWell']['metrics']['smrt_link'] = {
       hostname: 'somehost',
@@ -158,7 +161,7 @@ describe('Component renders', () => {
       dataset_uuid: null
     };
 
-    wrapper = render(QcView, {
+    const wrapper = render(QcView, {
       props: props_1,
       global: {
         plugins: [ElementPlus, createTestingPinia({ createSpy: vi.fn})],
@@ -168,12 +171,11 @@ describe('Component renders', () => {
       }
     });
 
-    tr = wrapper.getByText(/Test run/i).parentElement.nodeName;
+    let tr = wrapper.getByText(/Test run/i).parentElement.nodeName;
     expect(tr).toBe('TR');
     tr = wrapper.getByText(/A1/).parentElement.nodeName;
     expect(tr).toBe('TR');
-  });
 
-  cleanup();
+  });
 
 });
