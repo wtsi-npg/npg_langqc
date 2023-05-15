@@ -27,7 +27,11 @@ describe('Component renders', () => {
       well_complete_time: '2021-01-17T08:35:18',
       experiment_tracking: experiment_init,
       metrics: {
-        smrt_link: {hostname: 'test.url', run_uuid: '123456'},
+        smrt_link: {
+          hostname: 'test.url',
+          run_uuid: '123456',
+          dataset_uuid: '789100'
+        },
         metric1: {value: 9000, label: 'metric_one'},
         metric2: {value: 'VeryBad', label: 'metric_two'}
       }
@@ -47,6 +51,10 @@ describe('Component renders', () => {
 
     let link = wrapper.getByText(/Test run/i).parentElement;
     expect(link.getAttribute('href')).toBe('https://test.url:5555/sl/run-qc/123456');
+    link = wrapper.getByText(/A1/).parentElement;
+    expect(link.getAttribute('href')).toBe(
+      'https://test.url:5555/sl/data-management/dataset-detail/789100?type=ccsreads&show=analyses'
+    );
 
     link = wrapper.getByText(/my study/i).parentElement;
     expect(link.getAttribute('href')).toBe('https://mylims.com/studies/1234/properties');
@@ -121,7 +129,11 @@ describe('Component renders', () => {
 
   test('No links to SmrtLink', () => {
 
-    props_1['runWell']['metrics']['smrt_link'] = {hostname: null, run_uuid: '123456'};
+    props_1['runWell']['metrics']['smrt_link'] = {
+      hostname: null,
+      run_uuid: '123456',
+      dataset_uuid: '789100'
+    };
 
     let wrapper = render(QcView, {
       props: props_1,
@@ -135,10 +147,16 @@ describe('Component renders', () => {
 
     let tr = wrapper.getByText(/Test run/i).parentElement.nodeName;
     expect(tr).toBe('TR'); //parent is not a link
+    tr = wrapper.getByText(/A1/).parentElement.nodeName;
+    expect(tr).toBe('TR');
 
     wrapper.unmount();
 
-    props_1['runWell']['metrics']['smrt_link'] = {hostname: 'somehost', run_uuid: null};
+    props_1['runWell']['metrics']['smrt_link'] = {
+      hostname: 'somehost',
+      run_uuid: null,
+      dataset_uuid: null
+    };
 
     wrapper = render(QcView, {
       props: props_1,
@@ -151,7 +169,9 @@ describe('Component renders', () => {
     });
 
     tr = wrapper.getByText(/Test run/i).parentElement.nodeName;
-    expect(tr).toBe('TR'); //parent i snot a link
+    expect(tr).toBe('TR');
+    tr = wrapper.getByText(/A1/).parentElement.nodeName;
+    expect(tr).toBe('TR');
   });
 
 });

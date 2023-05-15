@@ -25,6 +25,20 @@
         return url
     })
 
+    const slDatasetLink = computed(() => {
+        let url = ''
+        let dataset_uuid = props.runWell.metrics.smrt_link.dataset_uuid
+        if (slURL.value && dataset_uuid) {
+            url = [
+                slURL.value,
+                'data-management',
+                'dataset-detail',
+                dataset_uuid
+            ].join("/") + '?type=ccsreads&show=analyses'
+        }
+        return url
+    })
+
     const ssLimsStudyLink = computed(() => {
         let url = ''
         if (props.runWell.experiment_tracking) {
@@ -86,7 +100,13 @@
                 <td v-else>{{ runWell.run_name }}</td>
             </tr>
             <tr>
-                <td>Well</td><td>{{runWell.label}}</td>
+                <td>Well</td>
+                <td v-if="slDatasetLink">
+                    <el-link :href="slDatasetLink" :underline="false" icon="ExtLink" target="_blank">
+                        {{ runWell.label }}
+                    </el-link>
+                </td>
+                <td v-else>{{ runWell.label }}</td>
             </tr>
             <tr>
                 <td>Well complete</td>
