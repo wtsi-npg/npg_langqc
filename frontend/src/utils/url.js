@@ -52,7 +52,7 @@ export function qcQueryChanged(before, after) {
     )
   ) {
     return true
-  } else if (before['qcLabel'] || before['qcRun']) {
+  } else if (before !== undefined && (before['qcLabel'] || before['qcRun'])) {
     // In case all arguments are removed
     return true
   }
