@@ -9,7 +9,7 @@ import QcControls from "@/components/QcControls.vue";
 import WellTable from "@/components/WellTable.vue";
 import { useWellStore } from "@/stores/focusWell.js";
 import { getUserName } from "@/utils/session.js"
-import { generateUrl } from "@/utils/url.js";
+import { generateUrl, qcQueryChanged } from "@/utils/url.js";
 
 const focusWell = useWellStore();
 const route = useRoute();
@@ -53,18 +53,7 @@ watch(() => route.query, (after, before) => {
   }
 
   // Handle the run and well to show in the QC Viewer
-  if (
-    (after.qcLabel || after.qcRun)
-    && (
-      before === undefined
-      || (
-        !before['qcLabel'] && !before['qcRun']
-      )
-      || (
-        before.qcLabel && before.qcRun && (after.qcLabel != before.qcLabel || after.qcRun != before.qcRun)
-      )
-    )
-  ) {
+  if (qcQueryChanged(before, after) && after && after.qcLabel || after.qcRun ) {
     // Somehow we need to capture the other parameter in case both have not been set
     loadWellDetail(after.qcRun, after.qcLabel)
   }
@@ -95,20 +84,7 @@ provide('activeWell', readonly(activeWell));
 function loadWellDetail(runName, label) {
   // Sets the runWell and QC state for the QcView components below
 
-  serviceClient.getRunWellPromise(runName, label)
-    .then(
-      (well) => {
-        focusWell.runWell = well;
-      }
-    ).catch(
-      (error) => {
-        ElMessage({
-          message: error.message,
-          type: error,
-          duration: 5000
-        })
-      }
-    );
+  focusWell.loadWellDetail(runName, label)
   activeWell.runName = runName;
   activeWell.label = label;
 }

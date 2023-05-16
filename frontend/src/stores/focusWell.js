@@ -1,6 +1,10 @@
 import { isNull } from 'lodash';
 import { defineStore } from 'pinia';
 
+import LangQc from '../utils/langqc';
+
+const apiClient = new LangQc;
+
 export const useWellStore = defineStore('focusWell', {
     state: () => ({
         runWell: null,
@@ -65,6 +69,19 @@ export const useWellStore = defineStore('focusWell', {
         },
         setFocusWell(well) {
             this.runWell = well;
-        }
+        },
+        loadWellDetail(runName, label) {
+            apiClient.getRunWellPromise(runName, label).then(
+                (well) => this.runWell = well
+            ).catch(
+                (error) => {
+                    ElMessage({
+                        message: error.message,
+                        type: error,
+                        duration: 5000
+                    })
+                }
+            )
+        },
     }
 });
