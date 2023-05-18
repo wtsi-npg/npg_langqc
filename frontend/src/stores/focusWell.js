@@ -10,11 +10,8 @@ export const useWellStore = defineStore('focusWell', {
     state: () => ({
         runWell: null,
         /* Example state doc:
-        run_info: {
-            run_name: "TRACTION-RUN-nnn",
-            label: "A1",
-            ...
-        }
+        run_name: "TRACTION-RUN-nnn",
+        label: "A1",
         qc_state: {
             "qc_state": "Claimed",
             "is_preliminary": true,
@@ -25,7 +22,10 @@ export const useWellStore = defineStore('focusWell', {
             "date_updated": "2022-11-17T14:56:52",
             "user": "dog@doggy.www.rrr.com",
             "created_by": "LangQC"
-        } */
+        },
+        metrics: {},
+        experiment_tracking: {}
+        */
     }),
     getters: {
         getRunAndLabel(state) {
@@ -72,7 +72,6 @@ export const useWellStore = defineStore('focusWell', {
             this.runWell = well;
         },
         loadWellDetail(runName, label) {
-            console.log(`Changing stored well to ${runName}:${label}`)
             apiClient.getRunWellPromise(runName, label).then(
                 (well) => this.runWell = well
             ).catch(
