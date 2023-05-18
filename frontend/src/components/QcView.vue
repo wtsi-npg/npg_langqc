@@ -1,5 +1,4 @@
 <script setup>
-    import { defineProps } from "vue";
     import groupMetrics from "../utils/metrics.js";
 
     defineProps({
