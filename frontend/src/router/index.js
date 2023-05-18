@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import WellsByStatus from '@/views/WellsByStatus.vue'
+import WellsByRun from '@/views/WellsByRun.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -13,6 +14,12 @@ const router = createRouter({
       path: '/wells',
       name: 'WellsByStatus',
       component: WellsByStatus,
+    },
+    {
+      path: '/run/:runName',
+      name: 'WellsByRun',
+      component: WellsByRun,
+      props: true
     },
     {
       path: '/about',
