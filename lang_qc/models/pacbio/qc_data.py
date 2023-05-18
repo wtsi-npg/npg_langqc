@@ -72,6 +72,7 @@ class QCDataWell(BaseModel):
             if name == "smrt_link":
                 qc_data[name] = {
                     "run_uuid": obj.sl_run_uuid,
+                    "dataset_uuid": obj.sl_ccs_uuid,
                     "hostname": obj.sl_hostname,
                 }
                 continue

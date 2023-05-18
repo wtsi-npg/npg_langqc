@@ -311,6 +311,10 @@ class PacBioRunWellMetrics(Base):
         mysqlVARCHAR(36, charset="utf8", collation="utf8_unicode_ci"),
         comment="SMRT Link specific run uuid",
     )
+    sl_ccs_uuid = Column(
+        mysqlVARCHAR(36, charset="utf8", collation="utf8_unicode_ci"),
+        comment="SMRT Link specific ccs dataset uuid",
+    )
     ts_run_name = Column(
         mysqlVARCHAR(32, charset="utf8", collation="utf8_unicode_ci"),
         comment="The PacBio run name",
