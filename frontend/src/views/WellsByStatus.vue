@@ -53,7 +53,7 @@ watch(() => route.query, (after, before) => {
   }
 
   // Handle the run and well to show in the QC Viewer
-  if (qcQueryChanged(before, after) && after && after.qcLabel || after.qcRun ) {
+  if (after && (after.qcLabel || after.qcRun) && qcQueryChanged(before, after)) {
     // Somehow we need to capture the other parameter in case both have not been set
     loadWellDetail(after.qcRun, after.qcLabel)
   }

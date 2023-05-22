@@ -25,7 +25,7 @@ let appConfig = ref(null)
 getUserName((email) => { user.value = email }).then();
 
 watch(() => route.query, (after, before) => {
-    if (qcQueryChanged(before, after) && (after['qcLabel'] || after['qcRun'])) {
+    if ((after['qcLabel'] || after['qcRun']) && qcQueryChanged(before, after)) {
       focusWell.loadWellDetail(after.qcRun, after.qcLabel)
     }
   },
