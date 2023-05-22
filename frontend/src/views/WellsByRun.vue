@@ -32,13 +32,7 @@ watch(() => route.query, (after, before) => {
   { immediate: true }
 )
 
-onMounted(() => {
-  serviceClient.getClientConfig().then(
-    data => {
-      appConfig.value = data
-    }
-  )
-
+watch(() => props.runName, () => {
   serviceClient.getWellsForRunPromise(props.runName).then(
     (data) => wellCollection.value = data.wells
   ).catch(error => {
@@ -47,7 +41,16 @@ onMounted(() => {
       type: "warning",
       duration: 5000
     })
-  })
+  })},
+  { immediate: true }
+)
+
+onMounted(() => {
+  serviceClient.getClientConfig().then(
+    data => {
+      appConfig.value = data
+    }
+  )
 })
 
 provide('config', appConfig); // Needed by the QC widget
