@@ -47,7 +47,7 @@ function goToRun(runName) {
       <el-link type="primary" :href="logout_redirect_url">Logout</el-link>
 
       <el-input v-model="input" placeholder="Run Name" @change="goToRun"/>
-      <el-icon><Search @click="goToRun(input)"/></el-icon>
+      <el-icon><Search-icon @click="goToRun(input)"/></el-icon>
     </nav>
     <!-- Header END -->
 
