@@ -161,7 +161,7 @@ onMounted(() => {
 <template>
   <div v-if="appConfig !== null">
     <el-tabs v-model="activeTab" type="border-card" @tab-change="clickTabChange">
-      <el-tab-pane v-for="tab in appConfig.qc_flow_statuses" :key="tab.param" :label="tab.label" :name="tab.param">
+      <el-tab-pane lazy="true" v-for="tab in appConfig.qc_flow_statuses" :key="tab.param" :label="tab.label" :name="tab.param">
         <WellTable :wellCollection="wellCollection" @wellSelected="updateUrlQuery"/>
       </el-tab-pane>
       <el-pagination v-model:currentPage="activePage" layout="prev, pager, next" v-bind:total="totalNumberOfWells"
