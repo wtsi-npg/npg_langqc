@@ -72,17 +72,20 @@ h2 {
   margin: 0 auto;
 }
 
-.el-link, .el-input {
+.el-link {
   margin-right: 8px;
-  margin-bottom: 30px;
 }
 
 .el-input {
-  width: 120pt;
+  width: 15pc;
 }
 
 .el-link .el-icon--right.el-icon {
   vertical-align: text-bottom;
+}
+
+nav {
+  margin-bottom: 2pc;
 }
 
 .el-footer {
