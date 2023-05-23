@@ -41,6 +41,8 @@ watch(() => props.runName, () => {
       type: "warning",
       duration: 5000
     })
+    // Stop table remaining with out of date content
+    wellCollection.value = null
   })},
   { immediate: true }
 )
@@ -74,8 +76,9 @@ function wellSelected(well) {
 </script>
 
 <template>
-  <h2>Wells for run {{ props.runName }}</h2>
-  <WellTable :wellCollection="wellCollection" @wellSelected="wellSelected"/>
+  <h2 v-if="wellCollection">Wells for run {{ props.runName }}</h2>
+  <WellTable v-if="wellCollection" :wellCollection="wellCollection" @wellSelected="wellSelected"/>
+  <h2 v-else>No wells found for run. Search again</h2>
   <h2>Well QC View</h2>
   <div class="qcview" v-if="focusWell.runWell !== null">
     <div class="data">
