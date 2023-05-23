@@ -1,6 +1,6 @@
 import { describe, test, expect } from 'vitest'
 
-import { generateUrl } from '../url'
+import { generateUrl, qcQueryChanged } from '../url'
 
 describe('Test query setting in URL', () => {
   test('Set nothing, change nothing', () => {
@@ -59,5 +59,26 @@ describe('Test query setting in URL', () => {
       path: '/',
       query: {}
     })
+  })
+})
+
+describe('Test QC param check', () => {
+  const testRun = {qcRun: 'test-run', qcLabel: 'A1'}
+  const alteredTestRun = {qcRun: 'test-run', qcLabel: 'B1'}
+
+  test('No before, some after', () => {
+    expect(qcQueryChanged(undefined, testRun)).toBe(true)
+  })
+
+  test('None before, empty query after', () => {
+    expect(qcQueryChanged(undefined, {})).toBe(false)
+  })
+
+  test('Some query before, none after', () => {
+    expect(qcQueryChanged(testRun, {})).toBe(true)
+  })
+
+  test('Change of data from before to after', () => {
+    expect(qcQueryChanged(testRun, alteredTestRun)).toBe(true)
   })
 })

@@ -1,5 +1,5 @@
 <script setup>
-import { computed, defineProps, ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import ClaimWidget from "@/components/ClaimWidget.vue";
 import QcWidget from "@/components/QcWidget.vue";
 import { useWellStore } from "@/stores/focusWell.js";

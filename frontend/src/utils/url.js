@@ -35,3 +35,26 @@ export function generateUrl(existingSettings, newSettings, path) {
   }
   return
 }
+
+export function qcQueryChanged(before, after) {
+  // Compares ?qcLabel and ?qcRun in the URL to tell when new data will be needed
+  // Invoke while watching vue-router.route.query
+  if (
+    (after.qcLabel || after.qcRun)
+    && (
+      before === undefined
+      || (
+        !before['qcLabel'] && !before['qcRun']
+      )
+      || (
+        before.qcLabel && before.qcRun && (after.qcLabel != before.qcLabel || after.qcRun != before.qcRun)
+      )
+    )
+  ) {
+    return true
+  } else if (before !== undefined && (before['qcLabel'] || before['qcRun'])) {
+    // In case all arguments are removed
+    return true
+  }
+  return false
+}

@@ -1,5 +1,4 @@
 <script setup>
-
     import { computed } from "vue";
     import groupMetrics from "../utils/metrics.js";
 
