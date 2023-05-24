@@ -24,7 +24,7 @@ let wellCollection = ref(null);
 
 let activeTab = ref('inbox'); // aka paneName in element-plus
 let activePage = ref(1);
-let pageSize = 10;
+let pageSize = ref(10);
 let totalNumberOfWells = ref(0);
 // Inform app-wide elements when focus has changed.
 // Perhaps we can watch the store instead? We're not transmitting the data
@@ -61,13 +61,13 @@ watch(() => route.query, (after, before) => {
   // Handle changes of tab in the table of wells.
   // Changes to selected tab negates a page change operation
   if (after.activeTab && (before === undefined || after.activeTab != before.activeTab)) {
-    loadWells(after.activeTab, newPage, pageSize)
+    loadWells(after.activeTab, newPage)
     activeTab.value = after.activeTab;
     if (before == undefined || after.page != before.page) {
       activePage.value = newPage;
     }
   } else if (after.page && (before == undefined || after.page != before.page)) {
-    loadWells(activeTab.value, newPage, pageSize)
+    loadWells(activeTab.value, newPage)
     activePage.value = newPage;
   }
 },
@@ -89,10 +89,10 @@ function loadWellDetail(runName, label) {
   activeWell.label = label;
 }
 
-function loadWells(status, page, pageSize) {
+function loadWells(status, page) {
   // Gets data for the current page of wells in the tab
 
-  serviceClient.getInboxPromise(status, page, pageSize).then(
+  serviceClient.getInboxPromise(status, page, pageSize.value).then(
     data => {
       wellCollection.value = data.wells
       totalNumberOfWells.value = data.total_number_of_items
@@ -121,6 +121,11 @@ function clickPageChange(pageNumber) {
 function externalTabChange(tabName) {
   // Triggered in response to events from other components
   activeTab.value = tabName;
+}
+
+function changePageSize(size) {
+  // pageSize.value = size
+  loadWells(activeTab.value, activePage.value)
 }
 
 function updateUrlQuery(newParams) {
@@ -164,9 +169,9 @@ onMounted(() => {
       <el-tab-pane v-for="tab in appConfig.qc_flow_statuses" :key="tab.param" :label="tab.label" :name="tab.param">
         <WellTable :wellCollection="wellCollection" @wellSelected="updateUrlQuery"/>
       </el-tab-pane>
-      <el-pagination v-model:currentPage="activePage" layout="prev, pager, next" v-bind:total="totalNumberOfWells"
-        background :pager-count="5" :page-size="pageSize" :hide-on-single-page="true"
-        @current-change="clickPageChange"></el-pagination>
+      <el-pagination v-model:currentPage="activePage" layout="prev, pager, next, sizes" v-bind:total="totalNumberOfWells"
+        background :pager-count="5" v-model:page-size="pageSize" :hide-on-single-page="true"
+        @current-change="clickPageChange" @size-change="changePageSize"></el-pagination>
     </el-tabs>
   </div>
   <h2>Well QC View</h2>
