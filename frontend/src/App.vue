@@ -72,8 +72,7 @@ function goToRun(runName) {
     </nav>
     <!-- Header END -->
 
-
-    <RouterView />
+    <RouterView v-if="appConfig !== null"/>
 
   </el-main>
 
