@@ -1,17 +1,38 @@
 <script setup>
 import { RouterView } from 'vue-router';
-import { onMounted, ref } from "vue";
+import { onMounted, provide, ref } from "vue";
+import { ElMessage } from "element-plus";
 
 import router from "@/router/index.js";
+import LangQc from "@/utils/langqc.js";
 
 let logout_redirect_url = ref(null);
 let input = ref('');
+let appConfig = ref(null);
+const apiClient = new LangQc();
+
+provide('appConfig', appConfig)
 
 onMounted(() => {
-
   // Construct a logout url, the url to which the user is redirected must be registered
   // in your OIDC provider application.
   logout_redirect_url.value = "/login-redirect?logout=" + encodeURIComponent(location.origin);
+
+  // Load app config
+  try {
+    apiClient.getClientConfig().then(
+      data => {
+        appConfig.value = data
+      }
+    )
+  }
+  catch(error) {
+    console.error("Couldn't get app config from backend API")
+    ElMessage({
+      message: error.message,
+      type: "error"
+    });
+  }
 })
 
 function goToRun(runName) {

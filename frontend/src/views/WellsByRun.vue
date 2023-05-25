@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, watch, ref, provide } from "vue"
+import { watch, ref } from "vue"
 import { ElMessage } from "element-plus"
 import { useRoute, useRouter } from "vue-router"
 
@@ -19,8 +19,7 @@ const focusWell = useWellStore()
 const serviceClient = new LangQc()
 
 let wellCollection = ref(null)
-let user = ref(null);
-let appConfig = ref(null)
+let user = ref(null)
 
 getUserName((email) => { user.value = email }).then();
 
@@ -46,16 +45,6 @@ watch(() => props.runName, () => {
   })},
   { immediate: true }
 )
-
-onMounted(() => {
-  serviceClient.getClientConfig().then(
-    data => {
-      appConfig.value = data
-    }
-  )
-})
-
-provide('config', appConfig); // Needed by the QC widget
 
 function updateUrlQuery(newParams) {
   // Merges the current URL query with new parameters

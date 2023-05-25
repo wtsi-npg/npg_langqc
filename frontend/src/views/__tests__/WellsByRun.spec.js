@@ -1,5 +1,6 @@
 import { describe, expect, test, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
+import { ref } from 'vue'
 
 import { createTestingPinia } from '@pinia/testing'
 import ElementPlus from 'element-plus'
@@ -69,11 +70,6 @@ fetch.mockResponses(
     }),
     { status: 200 }
   ],
-  [
-    // Load client config from API
-    JSON.stringify(configResponse),
-    { status: 200 }
-  ],
 )
 
 const wrapper = mount(WellsByRun, {
@@ -87,6 +83,9 @@ const wrapper = mount(WellsByRun, {
       router
     ],
   },
+  provide: {
+    appConfig: ref(configResponse)
+  },
   props: {
     runName: 'TRACTION-RUN-211'
   }
@@ -97,8 +96,7 @@ describe('Does it work?', async () => {
   test('Check network requests went out', () => {
     expect(fetch.mock.calls[0][0]).toEqual('http://localhost:3000/login-redirect?info=json')
     expect(fetch.mock.calls[1][0]).toEqual('/api/pacbio/run/TRACTION-RUN-211?page_size=100&page=1')
-    expect(fetch.mock.calls[2][0]).toEqual('/api/config')
-    expect(fetch.mock.calls.length).toEqual(3)
+    expect(fetch.mock.calls.length).toEqual(2)
   })
 
   test('Check table was rendered with some data', () => {

@@ -1,5 +1,6 @@
 import { describe, expect, test, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
+import { ref } from 'vue'
 // import {createRouter, createWebHistory} from 'vue-router'
 // or routes arg to render(Component, {routes: []|vue-router obj})
 
@@ -63,11 +64,6 @@ fetch.mockResponses(
     }),
     { status: 200 }
   ],
-  [
-    // Load client config from API
-    JSON.stringify(configResponse),
-    { status: 200 }
-  ],
   // Get wells data
   [
     JSON.stringify({
@@ -91,6 +87,9 @@ const wrapper = mount(WellsByStatus, {
       }),
       router
     ],
+    provide: {
+      appConfig: ref(configResponse)
+    }
   }
 })
 
