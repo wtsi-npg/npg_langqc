@@ -5,7 +5,7 @@ import { ElMessage } from "element-plus";
 import LangQc from "../utils/langqc.js";
 import { useWellStore } from '@/stores/focusWell.js';
 
-const appConfig = inject('config');
+const appConfig = inject('appConfig');
 const focusWell = useWellStore();
 
 let client = new LangQc();

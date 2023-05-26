@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, provide, reactive, readonly, watch } from "vue";
+import { onMounted, ref, inject, provide, reactive, readonly, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage } from 'element-plus';
 
@@ -17,9 +17,8 @@ const router = useRouter();
 
 const serviceClient = new LangQc();
 
+const appConfig = inject('appConfig')
 // Don't try to render much of anything until data arrives
-// by reacting to these two vars
-let appConfig = ref(null); // cache this I suppose
 let wellCollection = ref(null);
 
 let activeTab = ref('inbox'); // aka paneName in element-plus
@@ -77,9 +76,7 @@ watch(() => route.query, (after, before) => {
 )
 
 provide('activeTab', activeTab);
-provide('config', appConfig);
 provide('activeWell', readonly(activeWell));
-
 
 function loadWellDetail(runName, label) {
   // Sets the runWell and QC state for the QcView components below
@@ -136,39 +133,24 @@ function updateUrlQuery(newParams) {
 }
 
 onMounted(() => {
-  try {
-    serviceClient.getClientConfig().then(
-      data => {
-        appConfig.value = data
-      }
-    );
-    // If there are no query properties in the URL, we can "redirect" to a
-    // sensible default
-    if (!route.query['activeTab']) {
-      updateUrlQuery({activeTab: 'inbox', page: 1})
-    }
-  } catch (error) {
-    console.log("Stuff went wrong getting data from backend: " + error);
-    ElMessage({
-      message: error.message,
-      type: "error"
-    });
+  // If there are no query properties in the URL, we can "redirect" to a
+  // sensible default
+  if (!route.query['activeTab']) {
+    updateUrlQuery({activeTab: 'inbox', page: 1})
   }
 });
 
 </script>
 
 <template>
-  <div v-if="appConfig !== null">
-    <el-tabs v-model="activeTab" type="border-card" @tab-change="clickTabChange">
-      <el-tab-pane lazy="true" v-for="tab in appConfig.qc_flow_statuses" :key="tab.param" :label="tab.label" :name="tab.param">
-        <WellTable :wellCollection="wellCollection" @wellSelected="updateUrlQuery"/>
-      </el-tab-pane>
-      <el-pagination v-model:currentPage="activePage" layout="prev, pager, next" v-bind:total="totalNumberOfWells"
-        background :pager-count="5" :page-size="pageSize" :hide-on-single-page="true"
-        @current-change="clickPageChange"></el-pagination>
-    </el-tabs>
-  </div>
+  <el-tabs v-model="activeTab" type="border-card" @tab-change="clickTabChange">
+    <el-tab-pane v-for="tab in appConfig.qc_flow_statuses" :key="tab.param" :label="tab.label" :name="tab.param">
+      <WellTable :wellCollection="wellCollection" @wellSelected="updateUrlQuery"/>
+    </el-tab-pane>
+    <el-pagination v-model:currentPage="activePage" layout="prev, pager, next" v-bind:total="totalNumberOfWells"
+      background :pager-count="5" :page-size="pageSize" :hide-on-single-page="true"
+      @current-change="clickPageChange"></el-pagination>
+  </el-tabs>
   <h2>Well QC View</h2>
   <div class="qcview" v-if="focusWell.runWell !== null">
     <div class="data">

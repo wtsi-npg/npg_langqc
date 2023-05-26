@@ -24,7 +24,7 @@ function mountWithState(well) {
             })],
         },
         provide: {
-            config: ref({
+            appConfig: ref({
                 qc_states: [
                     { description: "Passed", only_prelim: false },
                     { description: "Failed", only_prelim: false },

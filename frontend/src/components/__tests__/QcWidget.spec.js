@@ -24,7 +24,7 @@ describe('QC widgets render with no prior QC state, i.e. pending/ready', () => {
                 stubActions: false
             })],
             provide: {
-                config: ref({
+                appConfig: ref({
                     qc_states: [
                         { description: "Passed", only_prelim: false },
                         { description: "Failed", only_prelim: false },
@@ -122,7 +122,7 @@ describe('QC widget acquires state from prior outcome in run-table', () => {
                 stubActions: false
             })],
             provide: {
-                config: ref({
+                appConfig: ref({
                     qc_states: [
                         { description: "Passed", only_prelim: false },
                         { description: "Failed", only_prelim: false },

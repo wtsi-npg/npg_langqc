@@ -1,5 +1,6 @@
 import { describe, expect, test, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
+import { ref } from 'vue'
 
 import { createTestingPinia } from '@pinia/testing'
 import ElementPlus from 'element-plus'
@@ -16,7 +17,7 @@ const testWells = []
 for (let index = 0; index < 2; index++) {
   testWells.push({
     label: String.fromCharCode(94 + index) + "1",
-    run_name: `TRACTION-RUN-21${index}`,
+    run_name: "TRACTION-RUN-211",
     run_start_time: "2023-04-24T10:10:10",
     run_complete_time: "2023-05-25T02:10:10",
     well_start_time: "2023-04-24T10:10:10",
@@ -58,11 +59,7 @@ fetch.mockResponses(
     }),
     { status: 200 }
   ],
-  [
-    // Load client config from API
-    JSON.stringify(configResponse),
-    { status: 200 }
-  ],
+  // watch() acts before onMount()
   // Get wells data
   [
     JSON.stringify({
@@ -85,11 +82,22 @@ const wrapper = mount(WellsByRun, {
       }),
       router
     ],
+  },
+  provide: {
+    appConfig: ref(configResponse)
+  },
+  props: {
+    runName: 'TRACTION-RUN-211'
   }
 })
 
 describe('Does it work?', async () => {
   await flushPromises()
+  test('Check network requests went out', () => {
+    expect(fetch.mock.calls[0][0]).toEqual('http://localhost:3000/login-redirect?info=json')
+    expect(fetch.mock.calls[1][0]).toEqual('/api/pacbio/run/TRACTION-RUN-211?page_size=100&page=1')
+    expect(fetch.mock.calls.length).toEqual(2)
+  })
 
   test('Check table was rendered with some data', () => {
     const table = wrapper.get('table')

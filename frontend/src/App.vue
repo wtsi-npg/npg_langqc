@@ -1,21 +1,51 @@
 <script setup>
 import { RouterView } from 'vue-router';
-import { onMounted, ref } from "vue";
+import { onMounted, provide, ref } from "vue";
+import { ElMessage } from "element-plus";
+
+import router from "@/router/index.js";
+import LangQc from "@/utils/langqc.js";
 
 let logout_redirect_url = ref(null);
+let input = ref('');
+let appConfig = ref(null);
+const apiClient = new LangQc();
+
+provide('appConfig', appConfig)
 
 onMounted(() => {
-
   // Construct a logout url, the url to which the user is redirected must be registered
   // in your OIDC provider application.
   logout_redirect_url.value = "/login-redirect?logout=" + encodeURIComponent(location.origin);
+
+  // Load app config
+  try {
+    apiClient.getClientConfig().then(
+      data => {
+        appConfig.value = data
+      }
+    )
+  }
+  catch(error) {
+    console.error("Couldn't get app config from backend API")
+    ElMessage({
+      message: error.message,
+      type: "error"
+    });
+  }
 })
+
+function goToRun(runName) {
+  if (runName != '') {
+    router.push({ name: 'WellsByRun', params: { runName: runName }})
+  }
+}
 </script>
 
 <template>
   <!--
   Setting overflow style here required to unblock an unhelpful default in
-  Element Plus layout container 
+  Element Plus layout container
   -->
   <el-main style="overflow:visible">
 
@@ -34,13 +64,16 @@ onMounted(() => {
       Using anchors instead of RouterLinks to make the browser fetch the page from the server,
       triggering the login or logout series of redirects.
       -->
-       <el-link type="primary" href="/ui/login">Login</el-link>
+      <el-link type="primary" href="/ui/login">Login</el-link>
       <el-link type="primary" :href="logout_redirect_url">Logout</el-link>
+
+      <el-input v-model="input" placeholder="Run Name" @change="goToRun"/>
+      <el-icon><Search-icon @click="goToRun(input)"/></el-icon>
     </nav>
     <!-- Header END -->
 
-    <RouterView />
-  
+    <RouterView v-if="appConfig !== null"/>
+
   </el-main>
 
   <el-footer>Copyright Genome Research Ltd 2023</el-footer>
@@ -61,11 +94,18 @@ h2 {
 
 .el-link {
   margin-right: 8px;
-  margin-bottom: 30px;
+}
+
+.el-input {
+  width: 15pc;
 }
 
 .el-link .el-icon--right.el-icon {
   vertical-align: text-bottom;
+}
+
+nav {
+  margin-bottom: 2pc;
 }
 
 .el-footer {

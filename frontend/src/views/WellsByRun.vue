@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, watch, ref, provide } from "vue"
+import { watch, ref } from "vue"
 import { ElMessage } from "element-plus"
 import { useRoute, useRouter } from "vue-router"
 
@@ -19,8 +19,7 @@ const focusWell = useWellStore()
 const serviceClient = new LangQc()
 
 let wellCollection = ref(null)
-let user = ref(null);
-let appConfig = ref(null)
+let user = ref(null)
 
 getUserName((email) => { user.value = email }).then();
 
@@ -32,13 +31,7 @@ watch(() => route.query, (after, before) => {
   { immediate: true }
 )
 
-onMounted(() => {
-  serviceClient.getClientConfig().then(
-    data => {
-      appConfig.value = data
-    }
-  )
-
+watch(() => props.runName, () => {
   serviceClient.getWellsForRunPromise(props.runName).then(
     (data) => wellCollection.value = data.wells
   ).catch(error => {
@@ -47,10 +40,11 @@ onMounted(() => {
       type: "warning",
       duration: 5000
     })
-  })
-})
-
-provide('config', appConfig); // Needed by the QC widget
+    // Stop table remaining with out of date content
+    wellCollection.value = null
+  })},
+  { immediate: true }
+)
 
 function updateUrlQuery(newParams) {
   // Merges the current URL query with new parameters
@@ -71,8 +65,9 @@ function wellSelected(well) {
 </script>
 
 <template>
-  <h2>Wells for run {{ props.runName }}</h2>
-  <WellTable :wellCollection="wellCollection" @wellSelected="wellSelected"/>
+  <h2 v-if="wellCollection">Wells for run {{ props.runName }}</h2>
+  <WellTable v-if="wellCollection" :wellCollection="wellCollection" @wellSelected="wellSelected"/>
+  <h2 v-else>No wells found for run. Search again</h2>
   <h2>Well QC View</h2>
   <div class="qcview" v-if="focusWell.runWell !== null">
     <div class="data">
