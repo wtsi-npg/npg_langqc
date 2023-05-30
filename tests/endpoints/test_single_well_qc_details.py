@@ -9,7 +9,7 @@ def test_get_well_info(
 ):
 
     insert_from_yaml(
-        mlwhdb_test_session, "tests/data/mlwh_pb_run_92", "ml_warehouse.schema"
+        mlwhdb_test_session, "tests/data/mlwh_pb_run_92", "lang_qc.db.mlwh_schema"
     )
 
     response = test_client.get("/pacbio/run/MARATHON/well/A0")
@@ -31,6 +31,7 @@ def test_get_well_info(
     expected_metrics = {
         "smrt_link": {
             "run_uuid": "7f5d45ed-aa93-46a6-92b2-4b11d4bf29da",
+            "dataset_uuid": "7f5d45ed-aa93-46a6-92b2-4b11d4bf29ro",
             "hostname": "pacbio01.dnapipelines.sanger.ac.uk",
         },
         "binding_kit": {"value": "Sequel II Binding Kit 2.2", "label": "Binding Kit"},
@@ -83,3 +84,9 @@ def test_get_well_info(
         "created_by": "LangQC",
     }
     assert result["qc_state"] == expected_qc_state
+
+    response = test_client.get("/pacbio/run/TRACTION-RUN-92/well/D1")
+    assert response.status_code == 200
+    result = response.json()
+
+    assert result["metrics"]["smrt_link"]["dataset_uuid"] is None

@@ -1,11 +1,11 @@
 from datetime import date, datetime, timedelta
 
 import pytest
-from ml_warehouse.schema import PacBioRunWellMetrics
 from npg_id_generation.pac_bio import PacBioEntity
 from sqlalchemy import insert, select
 
 from lang_qc.db.helper.well import WellQc
+from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
 from lang_qc.db.qc_schema import QcStateDict, QcType, SeqPlatform, SubProductAttr, User
 
 QC_TYPES = [

@@ -17,8 +17,9 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>
 
-from ml_warehouse.schema import PacBioRunWellMetrics
 from pydantic import BaseModel, Field
+
+from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
 
 
 class QCDataWell(BaseModel):
@@ -71,6 +72,7 @@ class QCDataWell(BaseModel):
             if name == "smrt_link":
                 qc_data[name] = {
                     "run_uuid": obj.sl_run_uuid,
+                    "dataset_uuid": obj.sl_ccs_uuid,
                     "hostname": obj.sl_hostname,
                 }
                 continue

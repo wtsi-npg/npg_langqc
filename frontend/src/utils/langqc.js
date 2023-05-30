@@ -85,6 +85,14 @@ export default class LangQc {
     return this.fetchWrapper(this.buildUrl(['run', name, 'well', well]));
   }
 
+  getWellsForRunPromise(name) {
+    // Get wells for a single run in one large page
+    // Client not intended to show a paginator for this data
+    return this.fetchWrapper(
+      this.buildUrl(['run', name], ['page_size=100', 'page=1'])
+    )
+  }
+
   getClientConfig() {
     return this.fetchWrapper('/api/config');
   }

@@ -26,13 +26,9 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        mysql-version: ["5.7", "8.0"]
-
     services:
       mysql-mlwh:
-        image: mysql:${{ matrix.mysql-version }}
+        image: mysql:8.0
         ports:
           - 3306:3306
         options: >-
@@ -47,7 +43,7 @@ jobs:
           MYSQL_PASSWORD: "test"
           MYSQL_DATABASE: "mlwarehouse"
       mysql-qcdb:
-        image: mysql:${{ matrix.mysql-version }}
+        image: mysql:8.0
         ports:
           - 3307:3307
         options: >-

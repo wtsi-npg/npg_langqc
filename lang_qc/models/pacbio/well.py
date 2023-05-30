@@ -22,14 +22,14 @@
 from datetime import datetime
 from typing import List
 
-from ml_warehouse.schema import PacBioRunWellMetrics
 from pydantic import BaseModel, Extra, Field
 from sqlalchemy.orm import Session
 
 from lang_qc.db.helper.well import WellQc
+from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
 from lang_qc.models.pacbio.experiment import PacBioExperiment
 from lang_qc.models.pacbio.qc_data import QCDataWell
-from lang_qc.models.pager import PagedStatusResponse
+from lang_qc.models.pager import PagedResponse
 from lang_qc.models.qc_state import QcState
 
 
@@ -81,7 +81,7 @@ class PacBioWell(BaseModel, extra=Extra.forbid):
         self.well_status = db_well.well_status
 
 
-class PacBioPagedWells(PagedStatusResponse, extra=Extra.forbid):
+class PacBioPagedWells(PagedResponse, extra=Extra.forbid):
     """
     A response model for paged data about PacBio wells.
     """
@@ -90,9 +90,8 @@ class PacBioPagedWells(PagedStatusResponse, extra=Extra.forbid):
         default=[],
         title="A list of PacBioWell objects",
         description="""
-        A list of `PacBioWell` objects that corresponds to the QC flow status
-        given by the `qc_flow_status` attribute and the page number and size
-        specified by the `page_size` and `page_number` attributes.
+        A list of `PacBioWell` objects that corresponds to the page number
+        and size specified by the `page_size` and `page_number` attributes.
         """,
     )
 

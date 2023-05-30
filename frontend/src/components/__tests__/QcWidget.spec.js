@@ -24,7 +24,7 @@ describe('QC widgets render with no prior QC state, i.e. pending/ready', () => {
                 stubActions: false
             })],
             provide: {
-                config: ref({
+                appConfig: ref({
                     qc_states: [
                         { description: "Passed", only_prelim: false },
                         { description: "Failed", only_prelim: false },
@@ -85,7 +85,7 @@ describe('QC widgets render with no prior QC state, i.e. pending/ready', () => {
 
     test('Submit button is disabled', () => {
         let button = wrapper.get('button');
-        expect(button.attributes('aria-disabled')).toEqual('true');
+        expect(button.attributes('disabled')).toBe("");
     });
 
     test('Disable via prop turns off all controls', async () => {
@@ -122,7 +122,7 @@ describe('QC widget acquires state from prior outcome in run-table', () => {
                 stubActions: false
             })],
             provide: {
-                config: ref({
+                appConfig: ref({
                     qc_states: [
                         { description: "Passed", only_prelim: false },
                         { description: "Failed", only_prelim: false },
