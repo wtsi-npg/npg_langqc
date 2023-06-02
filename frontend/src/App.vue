@@ -37,7 +37,7 @@ onMounted(() => {
 
 function goToRun(runName) {
   if (runName != '') {
-    router.push({ name: 'WellsByRun', params: { runName: runName }})
+    router.push({ name: 'WellsByRun', params: { runName: [runName] }})
   }
 }
 </script>

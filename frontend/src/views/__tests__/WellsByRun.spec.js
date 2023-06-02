@@ -87,7 +87,7 @@ const wrapper = mount(WellsByRun, {
     appConfig: ref(configResponse)
   },
   props: {
-    runName: 'TRACTION-RUN-211'
+    runName: ['TRACTION-RUN-211']
   }
 })
 

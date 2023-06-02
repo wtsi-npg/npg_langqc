@@ -14,11 +14,11 @@ import { getUserName } from "@/utils/session.js"
 
 const route = useRoute()
 const router = useRouter()
-const props = defineProps(["runName"])
+const props = defineProps({"runName": Array})
 const focusWell = useWellStore()
 const serviceClient = new LangQc()
 
-let wellCollection = ref(null)
+let wellCollection = ref([])
 let user = ref(null)
 
 getUserName((email) => { user.value = email }).then();
@@ -32,17 +32,21 @@ watch(() => route.query, (after, before) => {
 )
 
 watch(() => props.runName, () => {
-  serviceClient.getWellsForRunPromise(props.runName).then(
-    (data) => wellCollection.value = data.wells
-  ).catch(error => {
-    ElMessage({
-      message: error.message,
-      type: "warning",
-      duration: 5000
+  for (let run of props.runName) {
+    wellCollection.value = []
+    serviceClient.getWellsForRunPromise(run).then(
+      (data) => wellCollection.value.push(...data.wells)
+    ).catch(error => {
+      ElMessage({
+        message: error.message,
+        type: "warning",
+        duration: 5000
+      })
+      // Stop table remaining with out of date content
+      wellCollection.value = []
     })
-    // Stop table remaining with out of date content
-    wellCollection.value = null
-  })},
+  }
+  },
   { immediate: true }
 )
 
@@ -65,8 +69,8 @@ function wellSelected(well) {
 </script>
 
 <template>
-  <h2 v-if="wellCollection">Wells for run {{ props.runName }}</h2>
-  <WellTable v-if="wellCollection" :wellCollection="wellCollection" @wellSelected="wellSelected"/>
+  <h2 v-if="wellCollection.length > 0">Wells for run {{ props.runName.toString() }}</h2>
+  <WellTable v-if="wellCollection.length > 0" :wellCollection="wellCollection" @wellSelected="wellSelected"/>
   <h2 v-else>No wells found for run. Search again</h2>
   <h2>Well QC View</h2>
   <div class="qcview" v-if="focusWell.runWell !== null">

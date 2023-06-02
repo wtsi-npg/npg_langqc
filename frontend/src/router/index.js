@@ -16,7 +16,8 @@ const router = createRouter({
       component: WellsByStatus,
     },
     {
-      path: '/run/:runName',
+      path: '/run/:runName+',
+      // + means 1 or more names /run/name1/name2/name3
       name: 'WellsByRun',
       component: WellsByRun,
       props: true
