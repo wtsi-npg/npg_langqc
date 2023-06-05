@@ -32,8 +32,8 @@ watch(() => route.query, (after, before) => {
 )
 
 watch(() => props.runName, () => {
+  wellCollection.value = []
   for (let run of props.runName) {
-    wellCollection.value = []
     serviceClient.getWellsForRunPromise(run).then(
       (data) => wellCollection.value.push(...data.wells)
     ).catch(error => {
