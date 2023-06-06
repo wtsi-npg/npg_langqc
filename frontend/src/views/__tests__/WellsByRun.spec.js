@@ -13,6 +13,17 @@ const router = createRouter({
   routes: [{ path: '/', redirect: '/ui/run' }, { path: '/ui/run', component: WellsByRun }]
 })
 
+const someLinkGeneration = {
+  metrics: {
+    smrt_link: {
+      hostname: 'test.url',
+      run_uuid: '123456',
+      dataset_uuid: '789100'
+    },
+  },
+  qc_state: null,
+}
+
 const testWells = []
 for (let index = 0; index < 2; index++) {
   testWells.push({
@@ -24,8 +35,14 @@ for (let index = 0; index < 2; index++) {
     well_complete_time: "2023-05-25T02:10:10",
     run_status: "Complete",
     well_status: "Complete",
-    qc_state: null
+    ...someLinkGeneration
   })
+}
+
+const secondaryRun = {
+  run_name: 'TRACTION-RUN-210',
+  label: 'B1',
+  ...someLinkGeneration
 }
 
 const configResponse = {
@@ -72,26 +89,29 @@ fetch.mockResponses(
   ],
 )
 
-const wrapper = mount(WellsByRun, {
-  global: {
-    plugins: [
-      ElementPlus,
-      createTestingPinia({
-        createSpy: vi.fn,
-        stubActions: false
-      }),
-      router
-    ],
-  },
-  provide: {
-    appConfig: ref(configResponse)
-  },
-  props: {
-    runName: ['TRACTION-RUN-211']
-  }
-})
+function renderWellsByRun(props) {
+  return mount(WellsByRun, {
+    global: {
+      plugins: [
+        ElementPlus,
+        createTestingPinia({
+          createSpy: vi.fn,
+          stubActions: false
+        }),
+        router
+      ],
+    },
+    provide: {
+      appConfig: ref(configResponse)
+    },
+    props: {
+      runName: props
+    }
+  })
+}
 
 describe('Does it work?', async () => {
+  let wrapper = renderWellsByRun(['TRACTION-RUN-211'])
   await flushPromises()
   test('Check network requests went out', () => {
     expect(fetch.mock.calls[0][0]).toEqual('http://localhost:3000/login-redirect?info=json')
@@ -107,15 +127,9 @@ describe('Does it work?', async () => {
   })
 
   test('Click a well selection, QC View appears (because URL alters)', async () => {
+    // Not providing precisely the right data, but serves for the component
     fetch.mockResponseOnce(
-      JSON.stringify({
-        run_name: 'TRACTION-RUN-210',
-        label: 'B1',
-        qc_state: null,
-        metrics: {
-          smrt_link: {hostname: 'smrtlink-host'}
-        }
-      })
+      JSON.stringify(secondaryRun)
     )
 
     let buttons = wrapper.findAll('button')
@@ -123,5 +137,40 @@ describe('Does it work?', async () => {
     await flushPromises()
 
     expect(wrapper.get('#well_summary').exists()).toBe(true)
+  })
+
+  test('Change from one target run to two' , async () => {
+    fetch.mockResponses(
+      // Get wells for all runs as component reloads data
+      [
+        JSON.stringify({
+          page_size: 100,
+          page_number: 1,
+          total_number_of_items: 2,
+          wells: testWells
+        }),
+        { status: 200 }
+      ],
+      [
+        JSON.stringify({
+          page_size: 100,
+          page_number: 1,
+          total_number_of_items: 1,
+          wells: [secondaryRun]
+        })
+      ]
+    )
+    await wrapper.setProps({runName: ['TRACTION-RUN-211', 'TRACTION-RUN-210']})
+
+    test('Table now contains wells from both runs', () => {
+      const table = wrapper.get('table')
+      expect(table.exists()).toBe(true)
+
+      expect(table.find('TRACTION-RUN-211').exists()).toBe(true)
+      expect(table.find('TRACTION-RUN-210').exists()).toBe(true)
+
+      const rows = table.findAll('tr')
+      expect(rows.length).toEqual(4)
+    })
   })
 })
