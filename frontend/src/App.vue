@@ -2,12 +2,14 @@
 import { RouterView } from 'vue-router';
 import { onMounted, provide, ref } from "vue";
 import { ElMessage } from "element-plus";
+import { Search } from '@element-plus/icons-vue';
 
 import router from "@/router/index.js";
 import LangQc from "@/utils/langqc.js";
 
 let logout_redirect_url = ref(null);
 let input = ref('');
+let searchMode = ref('search');
 let appConfig = ref(null);
 const apiClient = new LangQc();
 
@@ -37,7 +39,29 @@ onMounted(() => {
 
 function goToRun(runName) {
   if (runName != '') {
-    router.push({ name: 'WellsByRun', params: { runName: [runName] }})
+    if (searchMode.value == 'search') {
+      router.push({ name: 'WellsByRun', params: { runName: [runName] }})
+    } else {
+      compareAnotherRun(runName)
+    }
+  }
+}
+
+function compareAnotherRun(supplementalRunName) {
+  console.log(`User entered: ${supplementalRunName}`)
+  if (supplementalRunName != '') {
+    let previousRuns = [...router.currentRoute.value.params.runName]
+    console.log(previousRuns)
+    if (previousRuns.length > 5) {
+      ElMessage({
+        message: 'Too many runs',
+        type: "error"
+      })
+    } else {
+      previousRuns.push(supplementalRunName)
+      console.log(`Now ${previousRuns}`)
+      router.push({ name: 'WellsByRun', params: { runName: previousRuns }})
+    }
   }
 }
 </script>
@@ -67,8 +91,17 @@ function goToRun(runName) {
       <el-link type="primary" href="/ui/login">Login</el-link>
       <el-link type="primary" :href="logout_redirect_url">Logout</el-link>
 
-      <el-input v-model="input" placeholder="Run Name" @change="goToRun"/>
-      <el-icon><Search-icon @click="goToRun(input)"/></el-icon>
+      <el-input v-model="input" placeholder="Run Name" @change="goToRun">
+        <template #prepend>
+          <el-select v-model="searchMode">
+            <el-option value="search"/>
+            <el-option value="plus"/>
+          </el-select>
+        </template>
+        <template #append>
+            <el-button :icon="Search" @click="goToRun(input)"/>
+        </template>
+      </el-input>
     </nav>
     <!-- Header END -->
 
@@ -97,7 +130,11 @@ h2 {
 }
 
 .el-input {
-  width: 15pc;
+  width: 250pt;
+}
+
+.button {
+  padding: 2pt;
 }
 
 .el-link .el-icon--right.el-icon {
