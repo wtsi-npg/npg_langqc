@@ -1,5 +1,5 @@
 <script setup>
-import { RouterView } from 'vue-router';
+import { RouterView, useRoute } from 'vue-router';
 import { onMounted, provide, ref } from "vue";
 import { ElMessage } from "element-plus";
 import { Search } from '@element-plus/icons-vue';
@@ -12,6 +12,8 @@ let input = ref('');
 let searchMode = ref('search');
 let appConfig = ref(null);
 const apiClient = new LangQc();
+
+let route = useRoute()
 
 provide('appConfig', appConfig)
 
@@ -49,7 +51,9 @@ function goToRun(runName) {
 
 function compareAnotherRun(supplementalRunName) {
   if (supplementalRunName != '') {
-    let previousRuns = [...router.currentRoute.value.params.runName]
+    let previousRuns = [...route.params.runName]
+    // Copying runName list to force vue-router to notice a change to
+    // the array
 
     if (previousRuns.length > 5) {
       ElMessage({
@@ -99,7 +103,7 @@ function compareAnotherRun(supplementalRunName) {
         <template #prepend>
           <el-select v-model="searchMode">
             <el-option value="search"/>
-            <el-option value="plus"/>
+            <el-option label="also"/>
           </el-select>
         </template>
         <template #append>
@@ -135,6 +139,10 @@ h2 {
 
 .el-input {
   width: 250pt;
+}
+
+.el-select {
+  width: 70pt;
 }
 
 .button {
