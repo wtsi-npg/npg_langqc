@@ -5,6 +5,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+### Changed
+
+* Modified the search-by-run interface to allow multiple runs to be shown at once
+
 ## [1.1.0] - 2023-05-30
 
 ### Added
