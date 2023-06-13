@@ -48,14 +48,18 @@ function goToRun(runName) {
 }
 
 function compareAnotherRun(supplementalRunName) {
-  console.log(`User entered: ${supplementalRunName}`)
   if (supplementalRunName != '') {
     let previousRuns = [...router.currentRoute.value.params.runName]
-    console.log(previousRuns)
+
     if (previousRuns.length > 5) {
       ElMessage({
-        message: 'Too many runs',
+        message: "Too many runs",
         type: "error"
+      })
+    } else if (previousRuns.includes(supplementalRunName)) {
+      ElMessage({
+        message: "Duplicate run name ignored",
+        type: "info"
       })
     } else {
       previousRuns.push(supplementalRunName)
