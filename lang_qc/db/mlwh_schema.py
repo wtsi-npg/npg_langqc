@@ -350,6 +350,9 @@ class PacBioRunWellMetrics(Base):
         index=True,
         comment="The PacBio ccs exection mode e.g. OnInstument, OffInstument or None",
     )
+    demultiplex_mode = Column(
+        String(32), comment="Demultiplexing mode e.g. OnInstument, OffInstument or None"
+    )
     include_kinetics = Column(
         mysqlTINYINT(1, unsigned=True),
         comment="Include kinetics information where ccs is run",
@@ -497,6 +500,14 @@ class PacBioRunWellMetrics(Base):
     hifi_low_quality_read_quality_median = Column(
         mysqlSMALLINT(5, unsigned=True),
         comment="The median base quality of HiFi bases filtered due to low quality (<Q20)",
+    )
+    hifi_barcoded_reads = Column(
+        mysqlINTEGER(10, unsigned=True),
+        comment="Number of reads with an expected barcode in demultiplexed HiFi data",
+    )
+    hifi_bases_in_barcoded_reads = Column(
+        mysqlBIGINT(20, unsigned=True),
+        comment="Number of bases in reads with an expected barcode in demultiplexed HiFi data",
     )
 
     pac_bio_product_metrics = relationship(
