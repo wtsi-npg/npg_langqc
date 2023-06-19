@@ -36,7 +36,7 @@ def get_mlwh_db() -> Session:
         url = os.environ.get("DB_URL")
         if url is None or url == "":
             raise Exception("ENV['DB_URL'] must be set with a database URL")
-        engine = create_engine(url, future=True, pool_recycle=3600)
+        engine = create_engine(url, pool_recycle=3600)
 
     if session_factory is None:
         session_factory = sessionmaker(engine)
