@@ -22,7 +22,6 @@ black = "^22.3.0"
 flake8 = "^4.0.1"
 pytest = "^7.1.1"
 fastapi = { extras = ["all"], version = "^0.78.0" }
-sqlacodegen = "^3.0.0rc1"
 alembic = "^1.9.2"
 isort = { version = "^5.10.1", extras = ["colors"] }
 pandas = "1.5.2"
