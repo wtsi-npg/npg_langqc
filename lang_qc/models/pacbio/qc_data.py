@@ -21,6 +21,50 @@ from pydantic import BaseModel, Field
 
 from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
 
+# Pydantic prohibits us from defining these as @classmethod or @staticmethod
+# Lots of self deliberately overlooked
+def get_ids_for_smrtlink_url(obj):
+    return {
+        "run_uuid": obj.sl_run_uuid,
+        "dataset_uuid": obj.sl_ccs_uuid,
+        "hostname": obj.sl_hostname,
+    }
+
+def sum_of_productive_reads(obj):
+    return (obj.p0_num or 0) + (obj.p1_num or 0) + (obj.p2_num or 0)
+
+def value_ise(value):
+    return {"value": value}
+
+def movie_minutes(obj, key):
+    return value_ise(round(getattr(obj, key) / 60))
+
+def percentage_reads(obj, key):
+    if getattr(obj, key) == 0:
+        return value_ise(0)
+
+    divisor = sum_of_productive_reads(obj)
+    if divisor != 0:
+        return value_ise(round((getattr(obj, key) / divisor) * 100, 2))
+    return None
+
+def convert_to_gigabase(obj, key):
+    return value_ise(round(getattr(obj, key) / 1000000000, 2))
+
+def rounding(obj, key):
+    return value_ise(round(getattr(obj, key), 2))
+
+
+dispatch = {
+    "movie_minutes": movie_minutes,
+    "p0_num": percentage_reads,
+    "p1_num": percentage_reads,
+    "p2_num": percentage_reads,
+    "hifi_read_bases": convert_to_gigabase,
+    "polymerase_read_bases": convert_to_gigabase,
+    "local_base_rate": rounding
+}
+
 
 class QCDataWell(BaseModel):
 
@@ -51,54 +95,21 @@ class QCDataWell(BaseModel):
         # Introspect the class definition, get a dictionary of specs
         # for properties with property names as the keys.
         attrs = cls.schema()["properties"]
-
-        straight_map_attr_names = {
-            "binding_kit",
-            "control_num_reads",
-            "control_read_length_mean",
-            "hifi_read_length_mean",
-            "local_base_rate",
-            "polymerase_read_length_mean",
-        }
-
         qc_data = {}
 
-        sum_of_productive_reads = (
-            (obj.p0_num or 0) + (obj.p1_num or 0) + (obj.p2_num or 0)
-        )
-
         for name in attrs:
+            if (name == "smrt_link"):
+                # This one is special
+                qc_data[name] = get_ids_for_smrtlink_url(obj)
+            else:
+                qc_data[name] = {}
 
-            if name == "smrt_link":
-                qc_data[name] = {
-                    "run_uuid": obj.sl_run_uuid,
-                    "dataset_uuid": obj.sl_ccs_uuid,
-                    "hostname": obj.sl_hostname,
-                }
-                continue
-
-            value = getattr(obj, name)
-
-            if (value is not None) and (name not in straight_map_attr_names):
-                if name == "movie_minutes":
-                    value = round(value / 60)
-                elif name in ["p0_num", "p1_num", "p2_num"]:
-                    if value == 0:
-                        # We retain zero value whatever the denominator is.
-                        pass
-                    else:
-                        if sum_of_productive_reads != 0:
-                            value = (value / sum_of_productive_reads) * 100
-                        else:
-                            value = None
+                if name in dispatch and getattr(obj, name, None):
+                    qc_data[name] = dispatch[name](obj, name)
                 else:
-                    value = value / 1000000000
+                    qc_data[name]["value"] = getattr(obj, name, None)
 
-            if isinstance(value, float):
-                value = round(value, 2)
-
-            # Label is the value of the title of the property
-            # as defined in this class in the code above.
-            qc_data[name] = {"value": value, "label": attrs[name]["title"]}
+                # Add label to each item
+                qc_data[name]["label"] = attrs[name]["title"]
 
         return cls.parse_obj(qc_data)
