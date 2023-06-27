@@ -9,7 +9,7 @@ const CssMapping = {
 // Logical grouping of metrics to display next to each other
 const StatCategories = ({
     MachineInfo: (['binding_kit', 'movie_minutes']),
-    CCS: (['hifi_read_bases', 'hifi_read_length_mean']),
+    CCS: (['hifi_read_bases', 'hifi_read_length_mean', 'percentage_deplexed_reads', 'percentage_deplexed_bases']),
     ControlRead: (['control_num_reads', 'control_read_length_mean']),
     PolymeraseStats: (['polymerase_read_bases', 'polymerase_read_length_mean', 'p0_num', 'p1_num', 'p2_num', 'local_base_rate'])
 });
