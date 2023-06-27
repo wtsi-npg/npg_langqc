@@ -60,12 +60,7 @@ function compareAnotherRun(supplementalRunName) {
         message: "Too many runs",
         type: "error"
       })
-    } else if (previousRuns.includes(supplementalRunName)) {
-      ElMessage({
-        message: "Duplicate run name ignored",
-        type: "info"
-      })
-    } else {
+    } else if (! previousRuns.includes(supplementalRunName)) {
       previousRuns.push(supplementalRunName)
       console.log(`Now ${previousRuns}`)
       router.push({ name: 'WellsByRun', params: { runName: previousRuns }})

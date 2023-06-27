@@ -21,6 +21,14 @@ const serviceClient = new LangQc()
 let wellCollection = ref([])
 let user = ref(null)
 
+function flatten_data(values) {
+  let collection = []
+  for (let data of values) {
+    collection.push(...data.wells)
+  }
+  return collection
+}
+
 getUserName((email) => { user.value = email }).then();
 
 watch(() => route.query, (after, before) => {
@@ -32,20 +40,19 @@ watch(() => route.query, (after, before) => {
 )
 
 watch(() => props.runName, () => {
-  wellCollection.value = []
+  let promises = []
   for (let run of props.runName) {
-    serviceClient.getWellsForRunPromise(run).then(
-      (data) => wellCollection.value.push(...data.wells)
-    ).catch(error => {
+    promises.push(serviceClient.getWellsForRunPromise(run))
+  }
+  Promise.all(promises).then(
+      (values) => (wellCollection.value = flatten_data(values))
+  ).catch(error => {
       ElMessage({
         message: error.message,
         type: "warning",
-        duration: 5000
+        duration: 10000
       })
-      // Stop table remaining with out of date content
-      wellCollection.value = []
     })
-  }
   },
   { immediate: true }
 )
