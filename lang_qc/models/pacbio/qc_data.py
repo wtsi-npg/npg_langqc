@@ -21,6 +21,7 @@ from pydantic import BaseModel, Field
 
 from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
 
+
 # Pydantic prohibits us from defining these as @classmethod or @staticmethod
 # Lots of self deliberately overlooked
 def get_ids_for_smrtlink_url(obj):
@@ -30,39 +31,64 @@ def get_ids_for_smrtlink_url(obj):
         "hostname": obj.sl_hostname,
     }
 
+
 def sum_of_productive_reads(obj):
     return (obj.p0_num or 0) + (obj.p1_num or 0) + (obj.p2_num or 0)
 
-def value_ise(value):
-    return {"value": value}
 
 def movie_minutes(obj, key):
-    return value_ise(round(getattr(obj, key) / 60))
+    "Convert to hours"
+    return round(getattr(obj, key) / 60)
+
 
 def percentage_reads(obj, key):
     if getattr(obj, key) == 0:
-        return value_ise(0)
-
-    divisor = sum_of_productive_reads(obj)
-    if divisor != 0:
-        return value_ise(round((getattr(obj, key) / divisor) * 100, 2))
+        return 0
+    if (divisor := sum_of_productive_reads(obj)) != 0:
+        return round((getattr(obj, key) / divisor) * 100, 2)
     return None
 
+
 def convert_to_gigabase(obj, key):
-    return value_ise(round(getattr(obj, key) / 1000000000, 2))
+    return round(getattr(obj, key) / 1000000000, 2)
+
 
 def rounding(obj, key):
-    return value_ise(round(getattr(obj, key), 2))
+    return round(getattr(obj, key), 2)
+
+
+def demux_reads(obj, _):
+    if getattr(obj, "demultiplex_mode") == "OnInstrument":
+        return round(
+            getattr(obj, "hifi_barcoded_reads")
+            / getattr(obj, "hifi_num_reads")
+            * 100,
+            2,
+        )
+    return None
+
+
+def demux_bases(obj, _):
+    if getattr(obj, "demultiplex_mode") == "OnInstrument":
+        return round(
+            getattr(obj, "hifi_bases_in_barcoded_reads")
+            / getattr(obj, "hifi_read_bases")
+            * 100,
+            2,
+        )
+    return None
 
 
 dispatch = {
-    "movie_minutes": movie_minutes,
-    "p0_num": percentage_reads,
-    "p1_num": percentage_reads,
-    "p2_num": percentage_reads,
-    "hifi_read_bases": convert_to_gigabase,
-    "polymerase_read_bases": convert_to_gigabase,
-    "local_base_rate": rounding
+    "movie_minutes": (movie_minutes, ["movie_minutes"]),
+    "p0_num": (percentage_reads, ["p0_num", "p1_num", "p2_num"]),
+    "p1_num": (percentage_reads, ["p0_num", "p1_num", "p2_num"]),
+    "p2_num": (percentage_reads, ["p0_num", "p1_num", "p2_num"]),
+    "hifi_read_bases": (convert_to_gigabase, ["hifi_read_bases"]),
+    "polymerase_read_bases": (convert_to_gigabase, ["polymerase_read_bases"]),
+    "local_base_rate": (rounding, ["local_base_rate"]),
+    "percentage_deplexed_reads": (demux_reads, ["hifi_barcoded_reads", "hifi_num_reads"]),
+    "percentage_deplexed_bases": (demux_bases, ["hifi_bases_in_barcoded_reads", "hifi_read_bases"]),
 }
 
 
@@ -85,6 +111,12 @@ class QCDataWell(BaseModel):
         default=None, title="Mean Polymerase Read Length (bp)"
     )
     movie_minutes: dict = Field(default=None, title="Run Time (hr)")
+    percentage_deplexed_reads: dict = Field(
+        default=None, title="Percentage of reads deplexed"
+    )
+    percentage_deplexed_bases: dict = Field(
+        default=None, title="Percentage of bases deplexed"
+    )
 
     class Config:
         orm_mode = True
@@ -98,18 +130,20 @@ class QCDataWell(BaseModel):
         qc_data = {}
 
         for name in attrs:
-            if (name == "smrt_link"):
+            if name == "smrt_link":
                 # This one is special
                 qc_data[name] = get_ids_for_smrtlink_url(obj)
             else:
                 qc_data[name] = {}
+                qc_data[name]["value"] = None
+                qc_data[name]["label"] = attrs[name]["title"]
 
-                if name in dispatch and getattr(obj, name, None):
-                    qc_data[name] = dispatch[name](obj, name)
+                if name in dispatch:
+                    callable, obj_keys = dispatch[name]
+                    # Check all keys required for dispatch have values
+                    if (all(getattr(obj, key, None) for key in obj_keys)):
+                        qc_data[name]["value"] = callable(obj, name)
                 else:
                     qc_data[name]["value"] = getattr(obj, name, None)
-
-                # Add label to each item
-                qc_data[name]["label"] = attrs[name]["title"]
 
         return cls.parse_obj(qc_data)
