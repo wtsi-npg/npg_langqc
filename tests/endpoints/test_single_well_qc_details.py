@@ -52,9 +52,14 @@ def test_get_well_info(
             "label": "Mean Polymerase Read Length (bp)",
         },
         "movie_minutes": {"value": 30, "label": "Run Time (hr)"},
-        "percentage_deplexed_reads": {"value": None, "label": "Percentage of reads deplexed"},
-        "percentage_deplexed_bases": {"value": None, "label": "Percentage of bases deplexed"},
-
+        "percentage_deplexed_reads": {
+            "value": None,
+            "label": "Percentage of reads deplexed",
+        },
+        "percentage_deplexed_bases": {
+            "value": None,
+            "label": "Percentage of bases deplexed",
+        },
     }
     assert result["metrics"] == expected_metrics
 

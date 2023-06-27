@@ -60,9 +60,7 @@ def rounding(obj, key):
 def demux_reads(obj, _):
     if getattr(obj, "demultiplex_mode") == "OnInstrument":
         return round(
-            getattr(obj, "hifi_barcoded_reads")
-            / getattr(obj, "hifi_num_reads")
-            * 100,
+            getattr(obj, "hifi_barcoded_reads") / getattr(obj, "hifi_num_reads") * 100,
             2,
         )
     return None
@@ -87,8 +85,14 @@ dispatch = {
     "hifi_read_bases": (convert_to_gigabase, ["hifi_read_bases"]),
     "polymerase_read_bases": (convert_to_gigabase, ["polymerase_read_bases"]),
     "local_base_rate": (rounding, ["local_base_rate"]),
-    "percentage_deplexed_reads": (demux_reads, ["hifi_barcoded_reads", "hifi_num_reads"]),
-    "percentage_deplexed_bases": (demux_bases, ["hifi_bases_in_barcoded_reads", "hifi_read_bases"]),
+    "percentage_deplexed_reads": (
+        demux_reads,
+        ["hifi_barcoded_reads", "hifi_num_reads"],
+    ),
+    "percentage_deplexed_bases": (
+        demux_bases,
+        ["hifi_bases_in_barcoded_reads", "hifi_read_bases"],
+    ),
 }
 
 
@@ -141,7 +145,7 @@ class QCDataWell(BaseModel):
                 if name in dispatch:
                     callable, obj_keys = dispatch[name]
                     # Check all keys required for dispatch have values
-                    if (all(getattr(obj, key, None) for key in obj_keys)):
+                    if all(getattr(obj, key, None) for key in obj_keys):
                         qc_data[name]["value"] = callable(obj, name)
                 else:
                     qc_data[name]["value"] = getattr(obj, name, None)
