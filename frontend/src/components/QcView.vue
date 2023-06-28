@@ -55,7 +55,7 @@
     const ssLimsStudyIds = computed(() => {
         if (props.runWell.experiment_tracking) {
             return props.runWell.experiment_tracking.study_id.join(", ")
-        } 
+        }
         return ''
     })
 
@@ -80,6 +80,13 @@
     const ssLimsLibraryTypes = computed(() => {
         if (props.runWell.experiment_tracking) {
             return props.runWell.experiment_tracking.library_type.join(", ")
+        }
+        return ''
+    })
+
+    const poolName = computed(() => {
+        if (props.runWell.experiment_tracking && props.runWell.experiment_tracking.library_tube_barcode) {
+            return props.runWell.experiment_tracking.library_tube_barcode
         }
         return ''
     })
@@ -140,7 +147,10 @@
                 <!-- TODO: Display a link to the LIMS server web page for a pool here? -->
                 <td v-else>No sample information</td>
             </tr>
-            <!-- Tag sequence info can be displayed below when the tag deplexing info is available -->
+            <tr>
+                <td>Pool name</td>
+                <td>{{ poolName }}</td>
+            </tr>
         </table>
     </div>
 

@@ -238,6 +238,15 @@ class PacBioRun(Base):
         String(255, "utf8_unicode_ci"),
         Computed("(ifnull(`tag2_identifier`,-(1)))", persisted=False),
     )
+    plate_number = Column(
+        mysqlINTEGER(11),
+        comment="""The number of the plate that goes onto the sequencing machine.
+        Necessary as an identifier for multi-plate support."""
+    )
+    pac_bio_library_tube_barcode = Column(
+        String(255),
+        comment="The barcode of the originating library tube"
+    )
 
     sample = relationship("Sample", back_populates="pac_bio_run")
     study = relationship("Study", back_populates="pac_bio_run")
