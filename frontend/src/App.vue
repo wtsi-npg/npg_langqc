@@ -67,6 +67,10 @@ function compareAnotherRun(supplementalRunName) {
     }
   }
 }
+
+function notInWellsByRun() {
+  return route.name == 'WellsByRun' ? false : true
+}
 </script>
 
 <template>
@@ -100,7 +104,7 @@ function compareAnotherRun(supplementalRunName) {
             <template #content>Display one run (search)<br />Add one more run (also)</template>
             <el-select v-model="searchMode">
               <el-option value="search"/>
-              <el-option label="also"/>
+              <el-option :disabled="notInWellsByRun()" label="also" value="also"/>
             </el-select>
           </el-tooltip>
         </template>
