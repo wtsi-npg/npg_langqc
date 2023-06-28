@@ -241,11 +241,10 @@ class PacBioRun(Base):
     plate_number = Column(
         mysqlINTEGER(11),
         comment="""The number of the plate that goes onto the sequencing machine.
-        Necessary as an identifier for multi-plate support."""
+        Necessary as an identifier for multi-plate support.""",
     )
     pac_bio_library_tube_barcode = Column(
-        String(255),
-        comment="The barcode of the originating library tube"
+        String(255), comment="The barcode of the originating library tube"
     )
 
     sample = relationship("Sample", back_populates="pac_bio_run")

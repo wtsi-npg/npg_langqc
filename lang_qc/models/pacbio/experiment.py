@@ -94,6 +94,7 @@ class PacBioExperiment(BaseModel):
         """,
     )
     library_tube_barcode: str = Field(
+        default=None,
         title="Pool name",
         description="""
         The library tube barcode, AKA pool name
