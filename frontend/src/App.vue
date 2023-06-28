@@ -101,10 +101,13 @@ function compareAnotherRun(supplementalRunName) {
 
       <el-input v-model="input" placeholder="Run Name" @change="goToRun">
         <template #prepend>
-          <el-select v-model="searchMode">
-            <el-option value="search"/>
-            <el-option label="also"/>
-          </el-select>
+          <el-tooltip content="Top center" placement="top">
+            <template #content>Display one run (search)<br />Add one more run (also)</template>
+            <el-select v-model="searchMode">
+              <el-option value="search"/>
+              <el-option label="also"/>
+            </el-select>
+          </el-tooltip>
         </template>
         <template #append>
             <el-button :icon="Search" @click="goToRun(input)"/>
