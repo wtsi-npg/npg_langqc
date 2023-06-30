@@ -22,7 +22,7 @@ describe('Component renders', () => {
     sample_name: 'oldSock',
     num_samples: 1,
     library_type:['Pacbio_HiFi'],
-    library_tube_barcode: "TRAC-2-3456"
+    pool_name: "TRAC-2-3456"
   };
 
   let props_1 = {

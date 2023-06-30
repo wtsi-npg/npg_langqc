@@ -85,8 +85,8 @@
     })
 
     const poolName = computed(() => {
-        if (props.runWell.experiment_tracking && props.runWell.experiment_tracking.library_tube_barcode) {
-            return props.runWell.experiment_tracking.library_tube_barcode
+        if (props.runWell.experiment_tracking && props.runWell.experiment_tracking.pool_name) {
+            return props.runWell.experiment_tracking.pool_name
         }
         return ''
     })

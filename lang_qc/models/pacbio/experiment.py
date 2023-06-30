@@ -93,11 +93,11 @@ class PacBioExperiment(BaseModel):
         unlikely case of multiple library types.
         """,
     )
-    library_tube_barcode: str = Field(
+    pool_name: str = Field(
         default=None,
         title="Pool name",
         description="""
-        The library tube barcode, AKA pool name
+        The pac_bio_library_tube_barcode from TRACTION, AKA pool name
         """,
     )
 
@@ -133,7 +133,7 @@ class PacBioExperiment(BaseModel):
             lims_data["library_type"].add(row.pipeline_id_lims)
             study_name = row.study.name
             if pool_name := row.pac_bio_library_tube_barcode:
-                lims_data["library_tube_barcode"] = pool_name
+                lims_data["pool_name"] = pool_name
             if num_samples == 1:
                 if tag := row.tag_sequence:
                     lims_data["tag_sequence"].append(tag)
