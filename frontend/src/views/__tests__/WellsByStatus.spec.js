@@ -21,7 +21,7 @@ const router = createRouter({
 const testWells = []
 for (let index = 0; index < 10; index++) {
   testWells.push({
-    label: String.fromCharCode(94 + index) + "1",
+    label: String.fromCharCode(97 + index) + "1",
     run_name: `TRACTION-RUN-21${(index / 10).toFixed(0)}`,
     run_start_time: "2023-04-24T10:10:10",
     run_complete_time: "2023-05-25T02:10:10",

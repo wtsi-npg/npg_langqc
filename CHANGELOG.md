@@ -5,8 +5,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+### Added
+
 * Display the library_tube_barcode / Pool name in the QC View
 * Calculate and display deplexing percentages when the library type is appropriate
+
+### Changed
+
+* Modified the search-by-run interface to allow multiple runs to be shown at once
 
 ## [1.1.0] - 2023-05-30
 

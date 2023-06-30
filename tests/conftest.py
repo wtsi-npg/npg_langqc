@@ -85,7 +85,7 @@ def create_mlwhdb_test_sessionfactory(config):
     url = mysql_url(
         config, "MySQL MLWH", "test", "test", "127.0.0.1", "3306", "mlwarehouse"
     )
-    engine = create_engine(url, future=True)
+    engine = create_engine(url)
     TestingSessionLocal = sessionmaker(bind=engine)
     with engine.connect() as conn:
         # Workaround for invalid default values for dates.
@@ -118,7 +118,7 @@ def create_qcdb_test_sessionfactory(config):
     """
 
     url = mysql_url(config, "MySQL QCDB", "test", "test", "127.0.0.1", "3307", "langqc")
-    engine = create_engine(url, future=True)
+    engine = create_engine(url)
     TestingSessionLocal = sessionmaker(bind=engine)
     with engine.connect() as conn:
         # Workaround for invalid default values for dates.
