@@ -16,9 +16,9 @@ The frontend was developed as a single page application using the `Vue 3` framew
 
 ### Environment
 
-The whole application has been containerised with Docker and the development and production instances are hosted on virtual machines in Openstack.
+The whole application has been containerised with Docker and the development and production instances are hosted on virtual machines in OpenStack.
 
-Deployment has been automated to a degree via Openstack API and Ansible playbook, see the gitlab-hosted `langqc_deploy` project for deployment instructions.
+Deployment has been automated to a degree via OpenStack API and Ansible playbook, see the gitlab-hosted `langqc_deploy` project for deployment instructions.
 
 ### Authentication
 
