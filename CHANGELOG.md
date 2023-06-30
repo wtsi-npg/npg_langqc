@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 * Display the library_tube_barcode / Pool name in the QC View
-* Calculate and display deplexing percentages when the library type is appropriate
+* Calculate and display deplexing percentages when appropriate
 
 ### Changed
 
