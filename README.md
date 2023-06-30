@@ -3,6 +3,10 @@
 Please see the documents in the [docs](docs) folder for documentation on
 subjects other than development, testing and deployment.
 
+- [Background](docs/background.md)
+- [The QC process](docs/qc_process.md)
+- [The QC database schema](docs/qc_schema_explained.md)
+
 ## Install and run locally
 
 You can install the package with `pip install .` from the repository's root.
@@ -51,30 +55,11 @@ You might want to `chmod 600 /path/to/env/file` as it contains passwords.
 The env file can contain definitions that are user by the frontend. These definitions
 should be prefixed with `VITE_`, for example `VITE_SOME_PORT="4567"`. To be visible
 to the build of the frontend container, they have to be copied to the `frontend/.env`
-file: `(cat /path/to/env/file | grep VITE_) > frontend/.env` 
+file: `(cat /path/to/env/file | grep VITE_) > frontend/.env`
 
 To build containers, from the root of this repository, run :
 Build: `docker-compose --env-file /path/to/env/file build`
 Run: `docker-compose --env-file /path/to/env/file up -d`
-
-Finally, you can setup a systemd service in `/etc/systemd/system/npg_langqc.service` (change the paths accordingly):
-
-```conf
-[Unit]
-Description=%i service with docker compose
-Requires=docker.service
-After=docker.service
-
-[Service]
-Type=oneshot
-RemainAfterExit=true
-WorkingDirectory=/path/to/repository/root
-ExecStart=/usr/local/bin/docker-compose --env-file /path/to/env/file up -d --remove-orphans
-ExecStop=/usr/local/bin/docker-compose --env-file /path/to/env/file  down
-
-[Install]
-WantedBy=multi-user.target
-```
 
 ### Development setup
 
@@ -164,45 +149,4 @@ docker run \
   -v ${CERT_FOLDER}:/certs \
   -v ${CONFIG_FOLDER}:/config \
   ghcr.io/wtsi-npg/npg_langqc:devel
-```
-
----------------------------------------------------------------------------------------------------
-
-The next steps are to set the server up as a SystemD service.
-
-### Step 5
-
-Create a service file `/etc/systemd/system/npg_langqc.service`, with the following
-contents:
-
-```conf
-[Unit]
-Description=npg_langqc Docker container
-Wants=docker.service
-
-[Service]
-Restart=always
-ExecStart=/usr/bin/docker start -a npg_langqc
-ExecStop=/usr/bin/docker stop -t 10 npg_langqc
-
-[Install]
-WantedBy=multi-user.target
-```
-
-### Step 6
-
-Enable and start the service:
-
-```bash
-sudo systemctl enable npg_langqc.service
-sudo systemctl start npg_langqc.service
-```
-
-### Step 7
-
-Verify everything is working:
-
-```bash
-systemctl status npg_langqc.service
-journalctl -xe
 ```
