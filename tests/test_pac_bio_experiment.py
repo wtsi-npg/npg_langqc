@@ -30,6 +30,7 @@ def test_creating_experiment_object(mlwhdb_test_session):
     assert lims.sample_name == "TOL_ASG12404704"
     assert lims.library_type == ["PacBio_Ultra_Low_Input"]
     assert lims.tag_sequence == []
+    assert lims.pool_name == "TRAC-2-506"
 
     query = (
         select(PacBioRun)
@@ -46,6 +47,7 @@ def test_creating_experiment_object(mlwhdb_test_session):
     assert lims.sample_name == "DTOL12273960"
     assert lims.library_type == ["PacBio_Ultra_Low_Input"]
     assert lims.tag_sequence == ["GATATATATGTGTGTAT"]
+    assert lims.pool_name == "TRAC-2-506"
 
     query = (
         select(PacBioRun)
@@ -62,6 +64,7 @@ def test_creating_experiment_object(mlwhdb_test_session):
     assert lims.sample_name is None
     assert lims.library_type == ["Pacbio_HiFi_mplx"]
     assert lims.tag_sequence == []
+    assert lims.pool_name == "TRAC-2-533"
 
     query = (
         select(PacBioRun)
@@ -78,6 +81,7 @@ def test_creating_experiment_object(mlwhdb_test_session):
     assert lims.sample_name is None
     assert lims.library_type == ["PacBio_Ultra_Low_Input"]
     assert lims.tag_sequence == []
+    assert lims.pool_name == "TRAC-2-506"
 
     query = (
         select(PacBioRun)

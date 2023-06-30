@@ -22,6 +22,80 @@ from pydantic import BaseModel, Field
 from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
 
 
+# Pydantic prohibits us from defining these as @classmethod or @staticmethod
+# Lots of self deliberately overlooked
+def get_ids_for_smrtlink_url(obj):
+    return {
+        "run_uuid": obj.sl_run_uuid,
+        "dataset_uuid": obj.sl_ccs_uuid,
+        "hostname": obj.sl_hostname,
+    }
+
+
+def sum_of_productive_reads(obj):
+    return (obj.p0_num or 0) + (obj.p1_num or 0) + (obj.p2_num or 0)
+
+
+def movie_minutes(obj, key):
+    "Convert to hours"
+    return round(getattr(obj, key) / 60)
+
+
+def percentage_reads(obj, key):
+    if getattr(obj, key) == 0:
+        return 0
+    if (divisor := sum_of_productive_reads(obj)) != 0:
+        return round((getattr(obj, key) / divisor) * 100, 2)
+    return None
+
+
+def convert_to_gigabase(obj, key):
+    return round(getattr(obj, key) / 1000000000, 2)
+
+
+def rounding(obj, key):
+    return round(getattr(obj, key), 2)
+
+
+def demux_reads(obj, _):
+    if getattr(obj, "demultiplex_mode") == "OnInstrument":
+        return round(
+            getattr(obj, "hifi_barcoded_reads") / getattr(obj, "hifi_num_reads") * 100,
+            2,
+        )
+    return None
+
+
+def demux_bases(obj, _):
+    if getattr(obj, "demultiplex_mode") == "OnInstrument":
+        return round(
+            getattr(obj, "hifi_bases_in_barcoded_reads")
+            / getattr(obj, "hifi_read_bases")
+            * 100,
+            2,
+        )
+    return None
+
+
+dispatch = {
+    "movie_minutes": (movie_minutes, ["movie_minutes"]),
+    "p0_num": (percentage_reads, ["p0_num", "p1_num", "p2_num"]),
+    "p1_num": (percentage_reads, ["p0_num", "p1_num", "p2_num"]),
+    "p2_num": (percentage_reads, ["p0_num", "p1_num", "p2_num"]),
+    "hifi_read_bases": (convert_to_gigabase, ["hifi_read_bases"]),
+    "polymerase_read_bases": (convert_to_gigabase, ["polymerase_read_bases"]),
+    "local_base_rate": (rounding, ["local_base_rate"]),
+    "percentage_deplexed_reads": (
+        demux_reads,
+        ["hifi_barcoded_reads", "hifi_num_reads"],
+    ),
+    "percentage_deplexed_bases": (
+        demux_bases,
+        ["hifi_bases_in_barcoded_reads", "hifi_read_bases"],
+    ),
+}
+
+
 class QCDataWell(BaseModel):
 
     smrt_link: dict = Field(title="URL components for a SMRT Link page")
@@ -41,6 +115,12 @@ class QCDataWell(BaseModel):
         default=None, title="Mean Polymerase Read Length (bp)"
     )
     movie_minutes: dict = Field(default=None, title="Run Time (hr)")
+    percentage_deplexed_reads: dict = Field(
+        default=None, title="Percentage of reads deplexed"
+    )
+    percentage_deplexed_bases: dict = Field(
+        default=None, title="Percentage of bases deplexed"
+    )
 
     class Config:
         orm_mode = True
@@ -51,54 +131,23 @@ class QCDataWell(BaseModel):
         # Introspect the class definition, get a dictionary of specs
         # for properties with property names as the keys.
         attrs = cls.schema()["properties"]
-
-        straight_map_attr_names = {
-            "binding_kit",
-            "control_num_reads",
-            "control_read_length_mean",
-            "hifi_read_length_mean",
-            "local_base_rate",
-            "polymerase_read_length_mean",
-        }
-
         qc_data = {}
 
-        sum_of_productive_reads = (
-            (obj.p0_num or 0) + (obj.p1_num or 0) + (obj.p2_num or 0)
-        )
-
         for name in attrs:
-
             if name == "smrt_link":
-                qc_data[name] = {
-                    "run_uuid": obj.sl_run_uuid,
-                    "dataset_uuid": obj.sl_ccs_uuid,
-                    "hostname": obj.sl_hostname,
-                }
-                continue
+                # This one is special
+                qc_data[name] = get_ids_for_smrtlink_url(obj)
+            else:
+                qc_data[name] = {}
+                qc_data[name]["value"] = None
+                qc_data[name]["label"] = attrs[name]["title"]
 
-            value = getattr(obj, name)
-
-            if (value is not None) and (name not in straight_map_attr_names):
-                if name == "movie_minutes":
-                    value = round(value / 60)
-                elif name in ["p0_num", "p1_num", "p2_num"]:
-                    if value == 0:
-                        # We retain zero value whatever the denominator is.
-                        pass
-                    else:
-                        if sum_of_productive_reads != 0:
-                            value = (value / sum_of_productive_reads) * 100
-                        else:
-                            value = None
+                if name in dispatch:
+                    callable, obj_keys = dispatch[name]
+                    # Check all keys required for dispatch have values
+                    if all(getattr(obj, key, None) for key in obj_keys):
+                        qc_data[name]["value"] = callable(obj, name)
                 else:
-                    value = value / 1000000000
-
-            if isinstance(value, float):
-                value = round(value, 2)
-
-            # Label is the value of the title of the property
-            # as defined in this class in the code above.
-            qc_data[name] = {"value": value, "label": attrs[name]["title"]}
+                    qc_data[name]["value"] = getattr(obj, name, None)
 
         return cls.parse_obj(qc_data)

@@ -238,6 +238,9 @@ class PacBioRun(Base):
         String(255, "utf8_unicode_ci"),
         Computed("(ifnull(`tag2_identifier`,-(1)))", persisted=False),
     )
+    pac_bio_library_tube_barcode = Column(
+        String(255), comment="The barcode of the originating library tube"
+    )
 
     sample = relationship("Sample", back_populates="pac_bio_run")
     study = relationship("Study", back_populates="pac_bio_run")
@@ -349,6 +352,9 @@ class PacBioRunWellMetrics(Base):
         mysqlVARCHAR(32, charset="utf8", collation="utf8_unicode_ci"),
         index=True,
         comment="The PacBio ccs exection mode e.g. OnInstument, OffInstument or None",
+    )
+    demultiplex_mode = Column(
+        String(32), comment="Demultiplexing mode e.g. OnInstument, OffInstument or None"
     )
     include_kinetics = Column(
         mysqlTINYINT(1, unsigned=True),
@@ -497,6 +503,14 @@ class PacBioRunWellMetrics(Base):
     hifi_low_quality_read_quality_median = Column(
         mysqlSMALLINT(5, unsigned=True),
         comment="The median base quality of HiFi bases filtered due to low quality (<Q20)",
+    )
+    hifi_barcoded_reads = Column(
+        mysqlINTEGER(10, unsigned=True),
+        comment="Number of reads with an expected barcode in demultiplexed HiFi data",
+    )
+    hifi_bases_in_barcoded_reads = Column(
+        mysqlBIGINT(20, unsigned=True),
+        comment="Number of bases in reads with an expected barcode in demultiplexed HiFi data",
     )
 
     pac_bio_product_metrics = relationship(
