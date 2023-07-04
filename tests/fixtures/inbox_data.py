@@ -11,7 +11,6 @@ from lang_qc.db.mlwh_schema import (
     Study,
 )
 from lang_qc.db.qc_schema import (
-    ProductLayout,
     QcState,
     QcStateDict,
     QcType,
@@ -181,17 +180,15 @@ def test_data_factory(mlwhdb_test_session, qcdb_test_session):
                         seq_product=SeqProduct(
                             id_product=id,
                             seq_platform=seq_platform,
-                            product_layout=[
-                                ProductLayout(
-                                    sub_product=SubProduct(
-                                        sub_product_attr=run_name_attr,
-                                        sub_product_attr_=well_label_attr,
-                                        value_attr_one=run_name,
-                                        value_attr_two=well_label,
-                                        properties=json,
-                                        properties_digest=id,
-                                    ),
-                                )
+                            sub_products=[
+                                SubProduct(
+                                    sub_product_attr=run_name_attr,
+                                    sub_product_attr_=well_label_attr,
+                                    value_attr_one=run_name,
+                                    value_attr_two=well_label,
+                                    properties=json,
+                                    properties_digest=id,
+                                ),
                             ],
                         ),
                         user=user,
