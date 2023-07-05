@@ -35,7 +35,6 @@ from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
 
 from lang_qc.db.qc_schema import (
-    ProductLayout,
     QcState,
     QcStateDict,
     QcStateHist,
@@ -385,16 +384,14 @@ class WellQc(QcDictDB):
         well_product = SeqProduct(
             id_product=product_id,
             id_seq_platform=id_seq_platform,
-            product_layout=[
-                ProductLayout(
-                    sub_product=SubProduct(
-                        id_attr_one=product_attr_id_rn,
-                        value_attr_one=self.run_name,
-                        id_attr_two=product_attr_id_wl,
-                        value_attr_two=self.well_label,
-                        properties=product_json,
-                        properties_digest=product_id,
-                    )
+            sub_products=[
+                SubProduct(
+                    id_attr_one=product_attr_id_rn,
+                    value_attr_one=self.run_name,
+                    id_attr_two=product_attr_id_wl,
+                    value_attr_two=self.well_label,
+                    properties=product_json,
+                    properties_digest=product_id,
                 )
             ],
         )
