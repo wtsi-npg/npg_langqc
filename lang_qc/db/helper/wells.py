@@ -293,7 +293,7 @@ class PacBioPagedWellsFactory(WellWh, PagedResponse):
         # They'd better be correct there!
         wells = []
         for qc_state in self._retrieve_qc_states(qc_flow_status):
-            sub_product = qc_state.seq_product.product_layout[0].sub_product
+            sub_product = qc_state.seq_product.sub_products[0]
             # TODO: consider adding from_orm method to PacBioWell
             wells.append(
                 PacBioWell(

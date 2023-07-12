@@ -74,8 +74,8 @@ def test_well_state_helper(qcdb_test_session, load_dicts_and_users):
 
     assert state_obj.seq_product.seq_platform.name == "PacBio"
     assert state_obj.seq_product.id_product == id
-    assert len(state_obj.seq_product.product_layout) == 1
-    sub_product = state_obj.seq_product.product_layout[0].sub_product
+    assert len(state_obj.seq_product.sub_products) == 1
+    sub_product = state_obj.seq_product.sub_products[0]
     assert sub_product.properties == json
     assert sub_product.properties_digest == id
     assert sub_product.value_attr_one == "TRACTION-RUN-450"

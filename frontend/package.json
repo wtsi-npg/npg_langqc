@@ -1,6 +1,6 @@
 {
   "name": "npg-longue-vue",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "UI for LangQC",
   "author": "Kieron Taylor <kt19@sanger.ac.uk>",
   "license": "GPL-3.0-or-later",
@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.0.10",
-    "element-plus": "^2.2.18",
+    "element-plus": "^2.3.7",
     "lodash": "^4.17.21",
     "pinia": "^2.0.23",
     "vue": "^3.2.37",

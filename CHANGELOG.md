@@ -3,7 +3,16 @@
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased] - yyyy-mm-dd
+## [1.2.0] - 2023-07-12
+
+### Added
+
+* Display the library_tube_barcode / Pool name in the QC View
+* Calculate and display deplexing percentages when appropriate
+
+### Changed
+
+* Modified the search-by-run interface to allow multiple runs to be shown at once
 
 ## [1.1.0] - 2023-05-30
 

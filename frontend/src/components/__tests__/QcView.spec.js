@@ -21,7 +21,8 @@ describe('Component renders', () => {
     sample_id: '3456',
     sample_name: 'oldSock',
     num_samples: 1,
-    library_type:['Pacbio_HiFi']
+    library_type:['Pacbio_HiFi'],
+    pool_name: "TRAC-2-3456"
   };
 
   let props_1 = {
@@ -68,6 +69,7 @@ describe('Component renders', () => {
 
     expect(wrapper.html()).toMatch(/17\/01\/2021|1\/17\/2021/) //American style dates in CI
 
+    expect(wrapper.getByText('TRAC-2-3456')).toBeDefined()
   });
 
 

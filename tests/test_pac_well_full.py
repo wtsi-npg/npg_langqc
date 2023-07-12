@@ -1,6 +1,4 @@
-from sqlalchemy import select
-
-from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
+from lang_qc.db.helper.wells import WellWh
 from lang_qc.models.pacbio.well import PacBioWellFull
 from tests.conftest import compare_dates, insert_from_yaml
 from tests.fixtures.well_data import load_data4well_retrieval, load_dicts_and_users
@@ -13,15 +11,11 @@ def test_creating_experiment_object(
     insert_from_yaml(
         mlwhdb_test_session, "tests/data/mlwh_pb_run_92", "lang_qc.db.mlwh_schema"
     )
+    helper = WellWh(session=mlwhdb_test_session)
 
     # Full mlwh data, no data in the lang_qc database.
     run_name = "TRACTION-RUN-92"
-    query = (
-        select(PacBioRunWellMetrics)
-        .where(PacBioRunWellMetrics.pac_bio_run_name == run_name)
-        .where(PacBioRunWellMetrics.well_label == "A1")
-    )
-    well_row = mlwhdb_test_session.execute(query).scalars().one()
+    well_row = helper.get_well(run_name, "A1")
 
     pb_well = PacBioWellFull.from_orm(well_row, qcdb_test_session)
     assert pb_well.run_name == run_name
@@ -39,12 +33,7 @@ def test_creating_experiment_object(
     # Only run_well mlwh data (no products), and data in the lang_qc database.
     # Very sketchy mlwh qc metrics data
     run_name = "TRACTION_RUN_1"
-    query = (
-        select(PacBioRunWellMetrics)
-        .where(PacBioRunWellMetrics.pac_bio_run_name == run_name)
-        .where(PacBioRunWellMetrics.well_label == "B1")
-    )
-    well_row = mlwhdb_test_session.execute(query).scalars().one()
+    well_row = helper.get_well(run_name, "B1")
 
     pb_well = PacBioWellFull.from_orm(well_row, qcdb_test_session)
     assert pb_well.run_name == run_name
@@ -58,12 +47,7 @@ def test_creating_experiment_object(
     # Only run_well mlwh data (no products), no data in the lang_qc database.
     # Very sketchy mlwh qc metrics data
     run_name = "TRACTION_RUN_10"
-    query = (
-        select(PacBioRunWellMetrics)
-        .where(PacBioRunWellMetrics.pac_bio_run_name == run_name)
-        .where(PacBioRunWellMetrics.well_label == "C1")
-    )
-    well_row = mlwhdb_test_session.execute(query).scalars().one()
+    well_row = helper.get_well(run_name, "C1")
 
     pb_well = PacBioWellFull.from_orm(well_row, qcdb_test_session)
     assert pb_well.run_name == run_name

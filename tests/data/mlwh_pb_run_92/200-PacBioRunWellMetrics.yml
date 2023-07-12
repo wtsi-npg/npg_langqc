@@ -10,7 +10,10 @@
   control_num_reads: 24837
   control_read_length_mean: 50169
   created_by: eg18
+  demultiplex_mode: ~
   heteroduplex_analysis: ~
+  hifi_barcoded_reads: ~
+  hifi_bases_in_barcoded_reads: ~
   hifi_low_quality_num_reads: 260532
   hifi_low_quality_read_bases: 2670039556
   hifi_low_quality_read_length_mean: 10248
@@ -70,7 +73,10 @@
   control_num_reads: 42962
   control_read_length_mean: 51810
   created_by: eg18
+  demultiplex_mode: ~
   heteroduplex_analysis: ~
+  hifi_barcoded_reads: ~
+  hifi_bases_in_barcoded_reads: ~
   hifi_low_quality_num_reads: 204155
   hifi_low_quality_read_bases: 1887795985
   hifi_low_quality_read_length_mean: 9246
@@ -130,6 +136,7 @@
   control_num_reads: 40787
   control_read_length_mean: 49421
   created_by: eg18
+  demultiplex_mode: ~
   heteroduplex_analysis: ~
   hifi_low_quality_num_reads: 173039
   hifi_low_quality_read_bases: 1743404181
@@ -141,6 +148,8 @@
   hifi_read_bases: 16029605719
   hifi_read_length_mean: 9439
   hifi_read_quality_median: 40
+  hifi_barcoded_reads: ~
+  hifi_bases_in_barcoded_reads: ~
   id_pac_bio_product: a65eae06f3048a186aeb9104d0a8d3f46ca59dff7747eec9918fcfa85587a3c2
   id_pac_bio_rw_metrics_tmp: 1734
   include_kinetics: 0
@@ -190,7 +199,10 @@
   control_num_reads: 24842
   control_read_length_mean: 44982
   created_by: eg18
+  demultiplex_mode: ~
   heteroduplex_analysis: ~
+  hifi_barcoded_reads: ~
+  hifi_bases_in_barcoded_reads: ~
   hifi_low_quality_num_reads: 193115
   hifi_low_quality_read_bases: 1672216211
   hifi_low_quality_read_length_mean: 8659

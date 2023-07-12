@@ -3,7 +3,7 @@ name = "npg_langqc"
 packages = [
   { include = "lang_qc" },
 ]
-version = "1.1.0"
+version = "1.2.0"
 description = "FastAPI application for Long Read QC"
 authors = ["Adam Blanchet", "Marina Gourtovaia mg8@sanger.ac.uk", "Kieron Taylor kt19@sanger.ac.uk"]
 license = "GPL-3.0-or-later"
@@ -13,8 +13,7 @@ python = "^3.10"
 fastapi = { version = "^0.78", extras = ["standard"] }
 uvicorn = { version = "^0.17", extras = ["standard"] }
 cryptography = { version = "^40.0.2" }
-SQLAlchemy = { version = ">=1.4.35, < 1.4.46", extras = ["pymysql"] }
-# langqc will be incompatible with sqlalchemy 2.0. Pin version just before the deprecation warnings start
+SQLAlchemy = { version = "^2.0.1", extras = ["pymysql"] }
 pydantic = "^1.9.0"
 npg_id_generation = { git = "https://github.com/wtsi-npg/npg_id_generation.git", tag="3.0.0" }
 
@@ -23,7 +22,6 @@ black = "^22.3.0"
 flake8 = "^4.0.1"
 pytest = "^7.1.1"
 fastapi = { extras = ["all"], version = "^0.78.0" }
-sqlacodegen = "^3.0.0rc1"
 alembic = "^1.9.2"
 isort = { version = "^5.10.1", extras = ["colors"] }
 pandas = "1.5.2"
@@ -31,9 +29,6 @@ pandas = "1.5.2"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
-
-[tool.black]
-extend-exclude = "lang_qc/db/qc_schema.py"
 
 [tool.isort]
 profile = "black"

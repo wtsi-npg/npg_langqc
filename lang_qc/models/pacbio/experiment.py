@@ -93,6 +93,13 @@ class PacBioExperiment(BaseModel):
         unlikely case of multiple library types.
         """,
     )
+    pool_name: str = Field(
+        default=None,
+        title="Pool name",
+        description="""
+        The pac_bio_library_tube_barcode from TRACTION, AKA pool name
+        """,
+    )
 
     class Config:
         orm_mode = True
@@ -125,12 +132,12 @@ class PacBioExperiment(BaseModel):
             lims_data["study_id"].add(row.study.id_study_lims)
             lims_data["library_type"].add(row.pipeline_id_lims)
             study_name = row.study.name
+            if pool_name := row.pac_bio_library_tube_barcode:
+                lims_data["pool_name"] = pool_name
             if num_samples == 1:
-                tag = row.tag_sequence
-                if tag:
+                if tag := row.tag_sequence:
                     lims_data["tag_sequence"].append(tag)
-                    tag = row.tag2_sequence
-                    if tag:
+                    if tag := row.tag2_sequence:
                         lims_data["tag_sequence"].append(tag)
                 lims_data["sample_id"] = row.sample.id_sample_lims
                 lims_data["sample_name"] = row.sample.name
