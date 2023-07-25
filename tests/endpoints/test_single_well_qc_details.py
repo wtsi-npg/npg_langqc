@@ -27,6 +27,8 @@ def test_get_well_info(
     assert result["well_start_time"] == "2022-04-14T13:02:48"
     assert result["well_complete_time"] == "2022-04-16T12:36:21"
     assert result["qc_state"] is None
+    assert result["instrument_name"] == "64222E"
+    assert result["instrument_type"] == "Sequel2e"
 
     expected_metrics = {
         "smrt_link": {
@@ -79,6 +81,8 @@ def test_get_well_info(
 
     assert result["label"] == "B1"
     assert result["run_name"] == "TRACTION_RUN_1"
+    assert result["instrument_name"] == "1234"
+    assert result["instrument_type"] == "Revio"
     assert result["experiment_tracking"] is None
     expected_qc_state = {
         "qc_state": "On hold",

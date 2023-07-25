@@ -57,6 +57,8 @@ class PacBioWell(BaseModel, extra=Extra.forbid):
     well_complete_time: datetime = Field(default=None, title="Well complete time")
     run_status: str = Field(default=None, title="Current PacBio run status")
     well_status: str = Field(default=None, title="Current PacBio well status")
+    instrument_name: str = Field(default=None, title="Instrument name")
+    instrument_type: str = Field(default=None, title="Instrument type")
 
     qc_state: QcState = Field(
         default=None,
@@ -79,6 +81,8 @@ class PacBioWell(BaseModel, extra=Extra.forbid):
         self.well_complete_time = db_well.well_complete
         self.run_status = db_well.run_status
         self.well_status = db_well.well_status
+        self.instrument_name = db_well.instrument_name
+        self.instrument_type = db_well.instrument_type
 
 
 class PacBioPagedWells(PagedResponse, extra=Extra.forbid):
@@ -128,8 +132,6 @@ class PacBioWellFull(PacBioWell):
             metrics=QCDataWell.from_orm(mlwh_db_row),
         )
         obj.copy_run_tracking_info(mlwh_db_row)
-
-        obj.metrics = QCDataWell.from_orm(mlwh_db_row)
 
         experiment_info = []
         for row in mlwh_db_row.pac_bio_product_metrics:
