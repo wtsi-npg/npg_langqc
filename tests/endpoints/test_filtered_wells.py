@@ -49,6 +49,8 @@ def test_qc_complete_filter(test_client: TestClient, load_data4well_retrieval):
         assert well["run_complete_time"] is not None
         assert well["well_start_time"] is not None
         assert well["well_complete_time"] is not None
+        assert well["instrument_name"] == "1234"
+        assert well["instrument_type"] == "Revio"
 
     response = test_client.get(
         "/pacbio/wells?page_size=10&page_number=2&qc_status=" + status
