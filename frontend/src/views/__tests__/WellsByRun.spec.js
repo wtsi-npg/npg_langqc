@@ -35,6 +35,8 @@ for (let index = 0; index < 2; index++) {
     well_complete_time: "2023-05-25T02:10:10",
     run_status: "Complete",
     well_status: "Complete",
+    instrument_name: "1234",
+    instrument_type: "Revio",
     ...someLinkGeneration
   })
 }
@@ -42,6 +44,8 @@ for (let index = 0; index < 2; index++) {
 const secondaryRun = {
   run_name: 'TRACTION-RUN-210',
   label: 'B1',
+  instrument_name: '1234',
+  instrument_type: 'Revio',
   ...someLinkGeneration
 }
 

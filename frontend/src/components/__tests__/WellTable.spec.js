@@ -7,8 +7,8 @@ describe('Rows of data give rows in the table', () => {
   const table = mount(WellTable, {
     props: {
       wellCollection: [
-        {run_name: 'TEST1', label: 'A1'},
-        {run_name: 'TEST1', label: 'B1'},
+        {run_name: 'TEST1', label: 'A1', instrument_name: '1234', instrument_type: 'Revio'},
+        {run_name: 'TEST1', label: 'B1', instrument_name: '1234', instrument_type: 'Revio'},
       ]
     }
   })
@@ -20,7 +20,8 @@ describe('Rows of data give rows in the table', () => {
     const columns = rows[1].findAll('td')
     expect(columns[0].text()).toEqual('TEST1')
     expect(columns[1].text()).toEqual('A1')
-    for (let col of columns.splice(2)) {
+    expect(columns[2].text()).toEqual('Revio 1234')
+    for (let col of columns.splice(3)) {
       expect(col.text()).toEqual('')
     }
   })
