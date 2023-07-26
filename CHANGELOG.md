@@ -3,6 +3,12 @@
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+* Instrument name and type added to QC View and table of wells
+
 ## [1.2.0] - 2023-07-12
 
 ### Added
