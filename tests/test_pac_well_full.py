@@ -48,7 +48,6 @@ def test_creating_experiment_object(
     assert pb_well.instrument_name == "1234"
     assert pb_well.instrument_type == "Revio"
 
-
     # Only run_well mlwh data (no products), no data in the lang_qc database.
     # Very sketchy mlwh qc metrics data
     run_name = "TRACTION_RUN_10"
