@@ -39,7 +39,9 @@ describe('Component renders', () => {
         },
         metric1: {value: 9000, label: 'metric_one'},
         metric2: {value: 'VeryBad', label: 'metric_two'}
-      }
+      },
+      instrument_name: '1234',
+      instrument_type: 'Revio',
     }
   };
 
@@ -70,6 +72,8 @@ describe('Component renders', () => {
     expect(wrapper.html()).toMatch(/17\/01\/2021|1\/17\/2021/) //American style dates in CI
 
     expect(wrapper.getByText('TRAC-2-3456')).toBeDefined()
+
+    expect(wrapper.getByText('Revio 1234')).toBeDefined()
   });
 
 

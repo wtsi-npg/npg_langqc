@@ -115,6 +115,10 @@
                 <td v-else>{{ runWell.label }}</td>
             </tr>
             <tr>
+                <td>Instrument</td>
+                <td>{{ runWell.instrument_type }} {{ runWell.instrument_name }}</td>
+            </tr>
+            <tr>
                 <td>Well complete</td>
                 <td v-if="runWell.well_complete_time">
                     {{(new Date(runWell.well_complete_time)).toLocaleString()}}

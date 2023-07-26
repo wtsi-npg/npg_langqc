@@ -11,6 +11,7 @@ defineEmits(['wellSelected'])
     <tr>
       <th>Run name</th>
       <th>Well label</th>
+      <th>Instrument</th>
       <th>QC state</th>
       <th>QC date</th>
       <th>Assessor</th>
@@ -25,6 +26,7 @@ defineEmits(['wellSelected'])
         <button v-on:click="$emit('wellSelected', { qcRun: wellObj.run_name, qcLabel: wellObj.label })">{{ wellObj.label
         }}</button>
       </td>
+      <td>{{ wellObj.instrument_type }} {{ wellObj.instrument_name }}</td>
       <td>{{ wellObj.qc_state ? wellObj.qc_state.qc_state : '&nbsp;' }}</td>
       <td>{{ wellObj.qc_state ? wellObj.qc_state.date_updated : '&nbsp;' }}</td>
       <td>{{ wellObj.qc_state ? wellObj.qc_state.user : '&nbsp;' }}</td>

@@ -29,7 +29,9 @@ for (let index = 0; index < 10; index++) {
     well_complete_time: "2023-05-25T02:10:10",
     run_status: "Complete",
     well_status: "Complete",
-    qc_state: null
+    qc_state: null,
+    instrument_name: 1234,
+    instrument_type: 'Revio'
   })
 }
 
@@ -135,7 +137,9 @@ describe('View loads configuration on mount', async () => {
           well_complete_time: "2023-05-25T02:10:10",
           run_status: "Complete",
           well_status: "Complete",
-          qc_state: null
+          qc_state: null,
+          instrument_name: '1234',
+          instrument_type: 'Revio',
         }]
       })
     )
