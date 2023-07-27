@@ -107,6 +107,7 @@ class QCDataWell(BaseModel):
     hifi_read_bases: dict = Field(default=None, title="CCS Yield (Gb)")
     hifi_read_length_mean: dict = Field(default=None, title="CCS Mean Length (bp)")
     local_base_rate: dict = Field(default=None, title="Local Base Rate")
+    loading_conc: dict = Field(default=None, title="Loading concentration")
     p0_num: dict = Field(default=None, title="P0 %")
     p1_num: dict = Field(default=None, title="P1 %")
     p2_num: dict = Field(default=None, title="P2 %")
