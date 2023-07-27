@@ -81,8 +81,8 @@ def test_get_well_info(
 
     assert result["label"] == "B1"
     assert result["run_name"] == "TRACTION_RUN_1"
-    assert result["instrument_name"] == "1234"
-    assert result["instrument_type"] == "Revio"
+    assert result["instrument_name"] == "64016"
+    assert result["instrument_type"] == "Sequel2"
     assert result["experiment_tracking"] is None
     expected_qc_state = {
         "qc_state": "On hold",

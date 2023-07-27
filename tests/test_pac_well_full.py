@@ -45,8 +45,8 @@ def test_creating_experiment_object(
     assert pb_well.qc_state is not None
     assert pb_well.metrics is not None
     assert pb_well.experiment_tracking is None
-    assert pb_well.instrument_name == "1234"
-    assert pb_well.instrument_type == "Revio"
+    assert pb_well.instrument_name == "64016"
+    assert pb_well.instrument_type == "Sequel2"
 
     # Only run_well mlwh data (no products), no data in the lang_qc database.
     # Very sketchy mlwh qc metrics data
