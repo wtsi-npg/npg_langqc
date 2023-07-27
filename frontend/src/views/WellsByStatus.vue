@@ -1,11 +1,11 @@
 <script setup>
 /*
 * The primary view used for QC. It contains a table showing wells
-* in a selection of QC states, and a loadable QC View below.
+* in a selection of QC statuses, and a loadable QC View below.
 * State is controlled by the URL.
 *
 * Requires appConfig from backend API /config t to populate the table with
-* states.
+* avilable statuses.
 */
 import { onMounted, ref, inject, provide, reactive, readonly, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";

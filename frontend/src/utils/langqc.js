@@ -2,7 +2,7 @@ import { join } from "lodash";
 
 export default class LangQc {
   /*
-  * Handles all interactions with the backend APIßß
+  * Handles all interactions with the backend API
   */
   constructor() {
     this.urls = {
