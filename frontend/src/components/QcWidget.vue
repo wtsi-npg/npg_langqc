@@ -1,4 +1,11 @@
 <script setup>
+/*
+* Dropdown selector, preliminary switch and submit button for
+* QC operations
+*
+* Requires appConfig from backend (to generate the list of possible QC
+* settings) and syncs state with the focusWell store
+*/
 import { inject, ref, computed, watch, onMounted } from "vue";
 import { Check, Close } from '@element-plus/icons-vue';
 import { ElMessage } from "element-plus";

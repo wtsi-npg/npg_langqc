@@ -1,4 +1,12 @@
 <script setup>
+/*
+* The primary view used for QC. It contains a table showing wells
+* in a selection of QC states, and a loadable QC View below.
+* State is controlled by the URL.
+*
+* Requires appConfig from backend API /config t to populate the table with
+* states.
+*/
 import { onMounted, ref, inject, provide, reactive, readonly, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage } from 'element-plus';
@@ -79,7 +87,7 @@ provide('activeTab', activeTab);
 provide('activeWell', readonly(activeWell));
 
 function loadWellDetail(runName, label) {
-  // Sets the runWell and QC state for the QcView components below
+  // Sets the well and QC state for the QcView components below
 
   focusWell.loadWellDetail(runName, label)
   activeWell.runName = runName;
@@ -152,9 +160,9 @@ onMounted(() => {
       @current-change="clickPageChange"></el-pagination>
   </el-tabs>
   <h2>Well QC View</h2>
-  <div class="qcview" v-if="focusWell.runWell !== null">
+  <div class="qcview" v-if="focusWell.well !== null">
     <div class="data">
-      <QcView :runWell="focusWell.runWell" />
+      <QcView :well="focusWell.well" />
     </div>
     <aside class="controls">
       <QcControls @wellChanged="externalTabChange" :user="user" />

@@ -17,7 +17,7 @@ function mountWithState(well) {
                 createSpy: vi.fn,
                 initialState: {
                     focusWell: {
-                        runWell: well
+                        well: well
                     },
                 },
                 stubActions: false

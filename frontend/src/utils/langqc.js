@@ -1,6 +1,9 @@
 import { join } from "lodash";
 
 export default class LangQc {
+  /*
+  * Handles all interactions with the backend APIßß
+  */
   constructor() {
     this.urls = {
       run: this.buildUrl('/run')
@@ -81,7 +84,7 @@ export default class LangQc {
     );
   }
 
-  getRunWellPromise(name, well) {
+  getWellPromise(name, well) {
     return this.fetchWrapper(this.buildUrl(['run', name, 'well', well]));
   }
 
