@@ -1,4 +1,8 @@
 <script setup>
+/*
+* Renders a table for a list of wells and generates buttons for selecting wells
+*/
+
 defineProps({
   wellCollection: Object
 })

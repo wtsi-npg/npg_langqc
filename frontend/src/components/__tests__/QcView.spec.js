@@ -1,7 +1,5 @@
 import { describe, expect, test, vi, afterEach } from 'vitest';
 import { render, cleanup } from '@testing-library/vue';
-// Pinia and ElementPlus required by ClaimWidget
-import { createTestingPinia } from '@pinia/testing';
 import ElementPlus from 'element-plus';
 
 import QcView from '../QcView.vue';
@@ -26,7 +24,7 @@ describe('Component renders', () => {
   };
 
   let props_1 = {
-    runWell: {
+    well: {
       run_name: 'Test run',
       label: 'A1',
       well_complete_time: '2021-01-17T08:35:18',
@@ -49,7 +47,7 @@ describe('Component renders', () => {
     const wrapper = render(QcView, {
       props: props_1,
       global: {
-        plugins: [ElementPlus, createTestingPinia({ createSpy: vi.fn})],
+        plugins: [ElementPlus],
         provide: {
           activeTab: 'inbox'
         }
@@ -79,12 +77,12 @@ describe('Component renders', () => {
 
   test('No LIMS data, no well complete date', () => {
 
-    props_1['runWell']['experiment_tracking'] = null
-    props_1['runWell']['well_complete_time'] = null
+    props_1['well']['experiment_tracking'] = null
+    props_1['well']['well_complete_time'] = null
     const wrapper = render(QcView, {
       props: props_1,
       global: {
-        plugins: [ElementPlus, createTestingPinia({ createSpy: vi.fn})],
+        plugins: [ElementPlus],
         provide: {
           activeTab: 'inbox'
         }
@@ -112,12 +110,12 @@ describe('Component renders', () => {
       num_samples: 4,
       library_type:['Pacbio_HiFi', 'PacBio_Standard']
     };
-    props_1['runWell']['experiment_tracking'] = experiment
+    props_1['well']['experiment_tracking'] = experiment
 
     const wrapper = render(QcView, {
       props: props_1,
       global: {
-        plugins: [ElementPlus, createTestingPinia({ createSpy: vi.fn})],
+        plugins: [ElementPlus],
         provide: {
           activeTab: 'inbox'
         }
@@ -136,7 +134,7 @@ describe('Component renders', () => {
 
   test('No host name for links to SmrtLink', () => {
 
-    props_1['runWell']['metrics']['smrt_link'] = {
+    props_1['well']['metrics']['smrt_link'] = {
       hostname: null,
       run_uuid: '123456',
       dataset_uuid: '789100'
@@ -145,7 +143,7 @@ describe('Component renders', () => {
     const wrapper = render(QcView, {
       props: props_1,
       global: {
-        plugins: [ElementPlus, createTestingPinia({ createSpy: vi.fn})],
+        plugins: [ElementPlus],
         provide: {
           activeTab: 'inbox'
         }
@@ -161,7 +159,7 @@ describe('Component renders', () => {
 
   test('No UUIDs for links to SmrtLink', () => {
 
-    props_1['runWell']['metrics']['smrt_link'] = {
+    props_1['well']['metrics']['smrt_link'] = {
       hostname: 'somehost',
       run_uuid: null,
       dataset_uuid: null
@@ -170,7 +168,7 @@ describe('Component renders', () => {
     const wrapper = render(QcView, {
       props: props_1,
       global: {
-        plugins: [ElementPlus, createTestingPinia({ createSpy: vi.fn})],
+        plugins: [ElementPlus],
         provide: {
           activeTab: 'inbox'
         }

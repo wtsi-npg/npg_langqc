@@ -90,7 +90,7 @@ describe('Example fake remote api call', () => {
         client.getClientConfig();
         expect(fetch.mock.calls[4][0]).toEqual('/api/config');
 
-        client.getRunWellPromise('blah', 'A2');
+        client.getWellPromise('blah', 'A2');
         expect(fetch.mock.calls[5][0]).toEqual('/api/pacbio/run/blah/well/A2');
 
         client.getWellsForRunPromise('blah')

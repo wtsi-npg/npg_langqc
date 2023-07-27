@@ -13,7 +13,7 @@ describe('QC widgets render with no prior QC state, i.e. pending/ready', () => {
                 createSpy: vi.fn,
                 initialState: {
                     focusWell: {
-                        runWell: {
+                        well: {
                             run_info: {
                                 pac_bio_run_name: 'TEST',
                                 well_label: 'A1',
@@ -106,7 +106,7 @@ describe('QC widget acquires state from prior outcome in run-table', () => {
                 createSpy: vi.fn,
                 initialState: {
                     focusWell: {
-                        runWell: {
+                        well: {
                             run_info: {
                                 pac_bio_run_name: 'TEST',
                                 well_label: 'A1',

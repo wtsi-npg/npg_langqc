@@ -1,13 +1,19 @@
 <script setup>
+    /*
+    * An information view containing run data and metrics useful for QC assessment
+    */
+
     import { computed } from "vue";
     import groupMetrics from "../utils/metrics.js";
 
     const props = defineProps({
-        runWell: Object, // PacBioRunResult
+        // Well object representing one prepared input for the instrument
+        // Expects content in the form of lang_qc/models/pacbio/well.py:PacBioWellFull
+        well: Object,
     });
 
     const slURL = computed(() => {
-        let hostname = props.runWell.metrics.smrt_link.hostname
+        let hostname = props.well.metrics.smrt_link.hostname
         let url = ''
         if (hostname) {
             url = `https://${hostname}:${import.meta.env.VITE_SMRTLINK_PORT}/sl`
@@ -17,7 +23,7 @@
 
     const slRunLink = computed(() => {
         let url = ''
-        let run_uuid = props.runWell.metrics.smrt_link.run_uuid
+        let run_uuid = props.well.metrics.smrt_link.run_uuid
         if (slURL.value && run_uuid) {
             url = [slURL.value, 'run-qc', run_uuid].join("/")
         }
@@ -26,7 +32,7 @@
 
     const slDatasetLink = computed(() => {
         let url = ''
-        let dataset_uuid = props.runWell.metrics.smrt_link.dataset_uuid
+        let dataset_uuid = props.well.metrics.smrt_link.dataset_uuid
         if (slURL.value && dataset_uuid) {
             url = [
                 slURL.value,
@@ -40,8 +46,8 @@
 
     const ssLimsStudyLink = computed(() => {
         let url = ''
-        if (props.runWell.experiment_tracking) {
-            let study_id = props.runWell.experiment_tracking.study_id
+        if (props.well.experiment_tracking) {
+            let study_id = props.well.experiment_tracking.study_id
             if (study_id.length == 1) {
                 url = [import.meta.env.VITE_LIMS_SS_SERVER_URL,
                        'studies',
@@ -53,40 +59,40 @@
     })
 
     const ssLimsStudyIds = computed(() => {
-        if (props.runWell.experiment_tracking) {
-            return props.runWell.experiment_tracking.study_id.join(", ")
+        if (props.well.experiment_tracking) {
+            return props.well.experiment_tracking.study_id.join(", ")
         }
         return ''
     })
 
     const ssLimsSampleLink = computed(() => {
         let url = ''
-        if (props.runWell.experiment_tracking &&
-            props.runWell.experiment_tracking.num_samples == 1) {
+        if (props.well.experiment_tracking &&
+            props.well.experiment_tracking.num_samples == 1) {
             url = [import.meta.env.VITE_LIMS_SS_SERVER_URL,
                    'samples',
-                   props.runWell.experiment_tracking.sample_id].join("/")
+                   props.well.experiment_tracking.sample_id].join("/")
         }
         return url
     })
 
     const ssLimsNumSamples = computed(() => {
-        if (props.runWell.experiment_tracking) {
-            return props.runWell.experiment_tracking.num_samples
+        if (props.well.experiment_tracking) {
+            return props.well.experiment_tracking.num_samples
         }
         return 0
     })
 
     const ssLimsLibraryTypes = computed(() => {
-        if (props.runWell.experiment_tracking) {
-            return props.runWell.experiment_tracking.library_type.join(", ")
+        if (props.well.experiment_tracking) {
+            return props.well.experiment_tracking.library_type.join(", ")
         }
         return ''
     })
 
     const poolName = computed(() => {
-        if (props.runWell.experiment_tracking && props.runWell.experiment_tracking.pool_name) {
-            return props.runWell.experiment_tracking.pool_name
+        if (props.well.experiment_tracking && props.well.experiment_tracking.pool_name) {
+            return props.well.experiment_tracking.pool_name
         }
         return ''
     })
@@ -100,28 +106,28 @@
                 <td>Run</td>
                 <td v-if="slRunLink">
                     <el-link :href="slRunLink" :underline="false" icon="ExtLink" target="_blank">
-                        {{ runWell.run_name }}
+                        {{ well.run_name }}
                     </el-link>
                 </td>
-                <td v-else>{{ runWell.run_name }}</td>
+                <td v-else>{{ well.run_name }}</td>
             </tr>
             <tr>
                 <td>Well</td>
                 <td v-if="slDatasetLink">
                     <el-link :href="slDatasetLink" :underline="false" icon="ExtLink" target="_blank">
-                        {{ runWell.label }}
+                        {{ well.label }}
                     </el-link>
                 </td>
-                <td v-else>{{ runWell.label }}</td>
+                <td v-else>{{ well.label }}</td>
             </tr>
             <tr>
                 <td>Instrument</td>
-                <td>{{ runWell.instrument_type }} {{ runWell.instrument_name }}</td>
+                <td>{{ well.instrument_type }} {{ well.instrument_name }}</td>
             </tr>
             <tr>
                 <td>Well complete</td>
-                <td v-if="runWell.well_complete_time">
-                    {{(new Date(runWell.well_complete_time)).toLocaleString()}}
+                <td v-if="well.well_complete_time">
+                    {{(new Date(well.well_complete_time)).toLocaleString()}}
                 </td>
                 <td v-else>No well completion timestamp</td>
             </tr>
@@ -134,7 +140,7 @@
                 <td>Study</td>
                 <td v-if="ssLimsStudyLink">
                     <el-link :href="ssLimsStudyLink" :underline="false" icon="ExtLink" target="_blank">
-                        {{ runWell.experiment_tracking.study_name }}
+                        {{ well.experiment_tracking.study_name }}
                     </el-link>
                 </td>
                 <td v-else-if="ssLimsStudyIds">Multiple studies: {{ssLimsStudyIds}}</td>
@@ -144,7 +150,7 @@
                 <td>Sample</td>
                 <td v-if="ssLimsSampleLink">
                     <el-link :href="ssLimsSampleLink" :underline="false" icon="ExtLink" target="_blank">
-                        {{runWell.experiment_tracking.sample_name}}
+                        {{well.experiment_tracking.sample_name}}
                     </el-link>
                 </td>
                 <td v-else-if="ssLimsNumSamples">Multiple samples ({{ssLimsNumSamples}})</td>
@@ -164,7 +170,7 @@
                 <th>Property</th>
                 <th>Value</th>
             </tr>
-            <template :key="name" v-for="(sectionClass, name) in groupMetrics(runWell.metrics)">
+            <template :key="name" v-for="(sectionClass, name) in groupMetrics(well.metrics)">
                 <template :key="niceName" v-for="[niceName, metric], dbName in sectionClass">
                     <tr :class=name>
                         <td :title="dbName">{{niceName}}</td>

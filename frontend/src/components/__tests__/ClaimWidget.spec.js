@@ -30,7 +30,7 @@ describe('Clicking triggers POST and side-effects', () => {
                         createSpy: vi.fn,
                         initialState: {
                             focusWell: {
-                                runWell: {
+                                well: {
                                     run_name: 'TEST',
                                     label: 'A1',
                                 }
