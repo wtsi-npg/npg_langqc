@@ -134,6 +134,7 @@ class WellWh(BaseModel):
             .order_by(
                 PacBioRunWellMetrics.run_complete,
                 PacBioRunWellMetrics.pac_bio_run_name,
+                PacBioRunWellMetrics.plate_number,
                 PacBioRunWellMetrics.well_label,
             )
         )

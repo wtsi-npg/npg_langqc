@@ -29,10 +29,10 @@ def test_existing_run(test_client: TestClient, load_data4well_retrieval):
     assert qc_states == ["Claimed", "On hold", "Claimed", "On hold"]
 
     assert (
-        resp["wells"][0]["instrument_name"] == "1234"
+        resp["wells"][0]["instrument_name"] == "64016"
     ), "Instrument name was propagated"
     assert (
-        resp["wells"][0]["instrument_type"] == "Revio"
+        resp["wells"][0]["instrument_type"] == "Sequel2"
     ), "Instrument type was propagated"
 
     # Use custom paging.

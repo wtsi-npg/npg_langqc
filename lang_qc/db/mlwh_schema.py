@@ -138,6 +138,7 @@ class PacBioRun(Base):
             "well_label",
             "comparable_tag_identifier",
             "comparable_tag2_identifier",
+            "plate_number",
             unique=True,
         ),
     )
@@ -172,8 +173,16 @@ class PacBioRun(Base):
     )
     plate_barcode = Column(
         String(255, "utf8_unicode_ci"),
-        nullable=False,
+        nullable=True,
         comment="The human readable barcode for the plate loaded onto the machine",
+    )
+    plate_number = Column(
+        mysqlINTEGER(),
+        nullable=True,
+        comment="""
+        The number of the plate that goes onto the Revio sequencing machine.
+        Necessary as an identifier for multi-plate support.
+        """,
     )
     plate_uuid_lims = Column(
         String(36, "utf8_unicode_ci"), nullable=False, comment="The plate uuid"
@@ -253,7 +262,11 @@ class PacBioRunWellMetrics(Base):
     __tablename__ = "pac_bio_run_well_metrics"
     __table_args__ = (
         Index(
-            "pac_bio_metrics_run_well", "pac_bio_run_name", "well_label", unique=True
+            "pac_bio_metrics_run_well",
+            "pac_bio_run_name",
+            "well_label",
+            "plate_number",
+            unique=True,
         ),
         Index("pb_rw_qc_state_index", "qc_seq_state", "qc_seq_state_is_final"),
         {
@@ -272,6 +285,14 @@ class PacBioRunWellMetrics(Base):
         mysqlVARCHAR(255, charset="utf8", collation="utf8_unicode_ci"),
         nullable=False,
         comment="The well identifier for the plate, A1-H12",
+    )
+    plate_number = Column(
+        mysqlINTEGER(),
+        nullable=True,
+        comment="""
+        The number of the plate that goes onto the Revio sequencing machine.
+        Necessary as an identifier for multi-plate support.
+        """,
     )
     instrument_type = Column(
         mysqlVARCHAR(32, charset="utf8", collation="utf8_unicode_ci"),
