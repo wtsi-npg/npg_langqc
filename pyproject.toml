@@ -15,7 +15,7 @@ uvicorn = { version = "^0.17", extras = ["standard"] }
 cryptography = { version = "^40.0.2" }
 SQLAlchemy = { version = "^2.0.1", extras = ["pymysql"] }
 pydantic = "^1.9.0"
-npg_id_generation = { git = "https://github.com/wtsi-npg/npg_id_generation.git", tag="3.0.0" }
+npg_id_generation = { git = "https://github.com/wtsi-npg/npg_id_generation.git", tag="4.0.0" }
 
 [tool.poetry.dev-dependencies]
 black = "^22.3.0"
