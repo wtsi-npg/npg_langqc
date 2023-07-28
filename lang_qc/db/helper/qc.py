@@ -39,7 +39,9 @@ class BulkQcFetch(BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
-    def query_by_id_list(self, ids: List) -> Dict[str, list[QcState]]:
+    def query_by_id_list(
+        self, ids: List, sequencing_outcomes_only: bool = False
+    ) -> Dict[str, list[QcState]]:
         """
         Fetches sequencing products with matching product IDs (checksums).
         Invalid or nonexistent IDs will be omitted from the return value.
@@ -51,7 +53,9 @@ class BulkQcFetch(BaseModel):
         """
 
         seq_prods = self.get_qc_state_by_id_list(ids)
-        return self.extract_qc(seq_prods)
+        return self.extract_qc(
+            seq_products=seq_prods, sequencing_outcomes_only=sequencing_outcomes_only
+        )
 
     def get_qc_state_by_id_list(self, ids) -> List[SeqProduct]:
         """
@@ -77,16 +81,18 @@ class BulkQcFetch(BaseModel):
         return self.session.execute(query).scalars().all()
 
     def extract_qc(
-        self, seq_products: List[SeqProduct]
+        self, seq_products: List[SeqProduct], sequencing_outcomes_only: bool = False
     ) -> Dict[str, Dict[str, QcState]]:
         """
         Given a list of SeqProducts, convert all related QC states into
-        QcState format and index them by their product checksum and QC type
+        QcState format and index them by their product checksum and QC type.
         """
         response = dict()
         for product in seq_products:
             response[product.id_product] = []
             for qc in product.qc_state:
+                if sequencing_outcomes_only and (qc.qc_type.qc_type != "sequencing"):
+                    pass
                 response[product.id_product].append(QcState.from_orm(qc))
 
         return response
