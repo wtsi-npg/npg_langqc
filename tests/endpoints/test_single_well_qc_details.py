@@ -45,6 +45,7 @@ def test_get_well_info(
         "hifi_read_bases": {"value": 27.08, "label": "CCS Yield (Gb)"},
         "hifi_read_length_mean": {"value": 9411, "label": "CCS Mean Length (bp)"},
         "local_base_rate": {"value": 2.77, "label": "Local Base Rate"},
+        "loading_conc": {"value": 80, "label": "Loading concentration (pM)"},
         "p0_num": {"value": 34.94, "label": "P0 %"},
         "p1_num": {"value": 62.81, "label": "P1 %"},
         "p2_num": {"value": 2.25, "label": "P2 %"},
