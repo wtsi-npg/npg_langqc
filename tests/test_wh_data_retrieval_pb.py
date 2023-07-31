@@ -101,18 +101,23 @@ def test_wells_in_runs_retrieval(mlwhdb_test_session, load_data4well_retrieval):
     assert run_name_set == {"TRACTION_RUN_1"}
 
     wells = wm.get_wells_in_runs(["TRACTION_RUN_2", "TRACTION_RUN_1"])
-    assert len(wells) == 8
+    assert len(wells) == 12
 
     # Test that the rows are correctly sorted
     run_names = [row.pac_bio_run_name for row in wells]
 
     for i in range(0, 4):
         assert run_names[i] == "TRACTION_RUN_1"
-    for i in range(4, 8):
+    for i in range(4, 12):
         assert run_names[i] == "TRACTION_RUN_2"
 
-    well_labels = [row.well_label for row in wells]
-    expected_labels = ["A1", "B1", "C1", "D1"]
-    expected_labels.extend(expected_labels)
-    for i in range(0, 8):
-        assert well_labels[i] == expected_labels[i]
+    plates_and_labels = [(row.well_label, row.plate_number) for row in wells]
+    expected_labels = 3* ["A1", "B1", "C1", "D1"]
+    expected_plate_numbers = 4 * [None] + 4 * [1] + 4 * [2]
+    for i in range(0, 12):
+        assert plates_and_labels[i][0] == expected_labels[i]
+        if i < 4 :
+            assert plates_and_labels[i][1] is None
+        else:
+            assert plates_and_labels[i][1] == expected_plate_numbers[i]
+        
