@@ -1,18 +1,19 @@
 from fastapi.testclient import TestClient
 
-from tests.fixtures.inbox_data import test_data_factory
+from tests.fixtures.well_data import load_data4well_retrieval, load_dicts_and_users
 
 
-def test_get_qc_by_product_id(test_client: TestClient, test_data_factory):
+def test_get_qc_by_product_id(test_client: TestClient, load_data4well_retrieval):
 
-    test_data_factory({"TEST-1": {"A1": "Passed"}, "TEST-2": {"A1": "Failed"}})
-
+    # "TRACTION_RUN_1", "D1", "On hold", Final
     FIRST_GOOD_CHECKSUM = (
-        "79f8e7f50a28c0c5bd17bfc52e4985cc37f83ffb40424444f45d38a7b3a8dc7b"
+        "6657a34aa6159d7e2426f4732a84c51fa2d9186a4578e61ec21de4cb028fc800"
     )
+    # "TRACTION_RUN_2", "B1", "Failed, Instrument", Preliminary
     SECOND_GOOD_CHECKSUM = (
-        "2ad6579de8a943a1c11fce8a6ea42af97f5bd285424cb5415840f2b663d8488e"
+        "e47765a207c810c2c281d5847e18c3015f3753b18bd92e8a2bea1219ba3127ea"
     )
+
     MISSING_CHECKSUM = "A" * 64
     SHORT_CHECKSUM = "AAAAAAAAAAAAAAAAAAA"
     BAD_STRING = "exec('rm -rf /')"
@@ -36,17 +37,24 @@ def test_get_qc_by_product_id(test_client: TestClient, test_data_factory):
     )
     assert response.ok is True
     response_data = response.json()
+    assert len(response_data) == 2
     assert FIRST_GOOD_CHECKSUM in response_data
     assert SECOND_GOOD_CHECKSUM in response_data
-    assert response_data[FIRST_GOOD_CHECKSUM][0]["qc_state"] == "Passed"
-    assert response_data[SECOND_GOOD_CHECKSUM][0]["qc_state"] == "Failed"
+    list_1 = response_data[FIRST_GOOD_CHECKSUM]
+    list_2 = response_data[SECOND_GOOD_CHECKSUM]
+    qc_states = ["On hold", "Failed, Instrument"]
+    for index, l in enumerate([list_1, list_2]):
+        assert len(l) == 2
+        # The list of QC state objects contains QC states
+        # for different QC types.
+        assert {o["qc_type"] for o in l} == {"sequencing", "library"}
+        assert {o["qc_state"] for o in l} == {qc_states[index]}
 
     response = test_client.post(
         "/products/qc", json=[MISSING_CHECKSUM, FIRST_GOOD_CHECKSUM]
     )
     assert response.ok is True
     response_data = response.json()
+    assert len(response_data) == 1
     assert MISSING_CHECKSUM not in response_data
     assert FIRST_GOOD_CHECKSUM in response_data
-
-    assert response_data[FIRST_GOOD_CHECKSUM][0]["qc_state"] == "Passed"

@@ -41,16 +41,23 @@ CHECKSUM_RE = re.compile("^[a-fA-F0-9]{64}$")
 
 @router.post(
     "/qc",
-    summary="Populates a list of checksums with Well data",
+    summary="Returns product QC states for a list of product IDs",
     description="""
-    An endpoint for requesting batches of QC states for a list of IDs.
-    It will iterate over a list of product ID checksums that uniquely identify
-    wells in runs, and respond with an object whose keys are the provided
-    checksums and the values are QcState records divided by their qc_type
+    The response is an object whose keys are the given product IDs,
+    and the values are lists of QcState records of any type.
 
-    Invalid and non-existent IDs will be omitted from the response. The result
-    may be an empty object if no valid IDs are found in the request body.
+    An invalid product ID, which should be a hexadecimal of length 64,
+    triggers an error response.
+
+    Product IDs for which no QC states are available are omitted
+    from the response. The response may be an empty object.
+
+    This API endpoint is used by the ml warehouse loader for PacBio data, see
+    https://github.com/wtsi-npg/npg_ml_warehouse/blob/49.0.0/lib/npg_warehouse/loader/pacbio/qc_state.pm
     """,
+    responses={
+        status.HTTP_422_UNPROCESSABLE_ENTITY: {"description": "Invalid checksum"}
+    },
     response_model=dict[str, list[QcState]],
 )
 def bulk_qc_fetch(request_body: list[str], qcdb_session: Session = Depends(get_qc_db)):
@@ -62,7 +69,4 @@ def bulk_qc_fetch(request_body: list[str], qcdb_session: Session = Depends(get_q
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail="Checksum must be hexadecimal of length 64",
             )
-    bulk_fetcher = BulkQcFetch(session=qcdb_session)
-    products = bulk_fetcher.query_by_id_list(request_body)
-
-    return products
+    return BulkQcFetch(session=qcdb_session).query_by_id_list(request_body)
