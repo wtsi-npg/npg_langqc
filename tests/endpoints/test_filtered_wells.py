@@ -115,11 +115,12 @@ def test_in_progress_filter(test_client: TestClient, load_data4well_retrieval):
         {"TRACTION_RUN_2:C1": "Failed, SMRT cell"},
         {"TRACTION_RUN_1:C1": "Claimed"},
         {"TRACTION_RUN_2:A1": "Failed, Instrument"},
-        {"TRACTION_RUN_1:E1": "Claimed"},
         {"TRACTION_RUN_1:A1": "Claimed"},
         {"TRACTION_RUN_7:A1": "Failed"},
     ]
-    num_total = len(expected_data)
+    # One entity is removed after paging since no mlwh data is available
+    # for it.
+    num_total = len(expected_data) + 1
 
     response = test_client.get(
         "/pacbio/wells?qc_status=in_progress&page_size=5&page_number=1"

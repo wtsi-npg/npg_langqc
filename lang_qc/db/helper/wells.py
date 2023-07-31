@@ -27,7 +27,7 @@ from pydantic import BaseModel, Extra, Field
 from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
-from lang_qc.db.helper.well import WellQc
+from lang_qc.db.helper.qc import BulkQcFetch
 from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
 from lang_qc.db.qc_schema import QcState, QcStateDict, QcType
 from lang_qc.models.pacbio.well import PacBioPagedWells, PacBioWell
@@ -80,6 +80,20 @@ class WellWh(BaseModel):
                     PacBioRunWellMetrics.pac_bio_run_name == run_name,
                     PacBioRunWellMetrics.well_label == well_label,
                 )
+            )
+        ).scalar_one_or_none()
+
+    def get_mlwh_well_by_product_id(
+        self, id_product: str
+    ) -> PacBioRunWellMetrics | None:
+        """
+        Returns a well row record from the well metrics table or
+        None if the record does not exist.
+        """
+
+        return self.session.execute(
+            select(PacBioRunWellMetrics).where(
+                PacBioRunWellMetrics.id_pac_bio_product == id_product,
             )
         ).scalar_one_or_none()
 
@@ -156,6 +170,7 @@ class WellWh(BaseModel):
             .where(PacBioRunWellMetrics.pac_bio_run_name.in_(run_names))
             .order_by(
                 PacBioRunWellMetrics.pac_bio_run_name,
+                PacBioRunWellMetrics.plate_number,
                 PacBioRunWellMetrics.well_label,
             )
         )
@@ -227,8 +242,7 @@ class PacBioPagedWellsFactory(WellWh, PagedResponse):
         ]:
             wells = self._aborted_and_unknown_wells(qc_flow_status)
         else:
-            wells = self._get_wells(qc_flow_status)
-            self._add_tracking_info(wells)
+            wells = self._get_wells_for_status(qc_flow_status)
 
         return PacBioPagedWells(
             page_number=self.page_number,
@@ -275,7 +289,9 @@ class PacBioPagedWellsFactory(WellWh, PagedResponse):
         # Add status-specific part of the query.
         return query.where(self.FILTERS[qc_flow_status.name])
 
-    def _retrieve_qc_states(self, qc_flow_status: QcFlowStatusEnum):
+    def _retrieve_paged_qc_states(
+        self, qc_flow_status: QcFlowStatusEnum
+    ) -> List[QcState]:
 
         states = (
             self.qcdb_session.execute(self._build_query4status(qc_flow_status))
@@ -288,33 +304,44 @@ class PacBioPagedWellsFactory(WellWh, PagedResponse):
         # Return the states for the wells we were asked to fetch, max - page_size, min - 0.
         return self.slice_data(states)
 
-    def _get_wells(self, qc_flow_status: QcFlowStatusEnum) -> List[PacBioWell]:
+    def _get_wells_for_status(
+        self, qc_flow_status: QcFlowStatusEnum
+    ) -> List[PacBioWell]:
 
-        # Note that the run name and well label are sourced from the QC database.
-        # They'd better be correct there!
         wells = []
-        for qc_state in self._retrieve_qc_states(qc_flow_status):
-            sub_product = qc_state.seq_product.sub_products[0]
-            # TODO: consider adding from_orm method to PacBioWell
-            wells.append(
-                PacBioWell(
-                    run_name=sub_product.value_attr_one,
-                    label=sub_product.value_attr_two,
-                    qc_state=QcStateModel.from_orm(qc_state),
+
+        for qc_state_db in self._retrieve_paged_qc_states(qc_flow_status):
+            qc_state_model = QcStateModel.from_orm(qc_state_db)
+            id_product = qc_state_model.id_product
+            mlwh_well = self.get_mlwh_well_by_product_id(id_product=id_product)
+            if mlwh_well is not None:
+                pbw = PacBioWell(
+                    id_product=id_product,
+                    run_name=mlwh_well.pac_bio_run_name,
+                    plate_number=mlwh_well.plate_number,
+                    label=mlwh_well.well_label,
+                    qc_state=qc_state_model,
                 )
-            )
+                pbw.copy_run_tracking_info(mlwh_well)
+                wells.append(pbw)
+            else:
+                """
+                Cannot display this QC state. In production we are unlikely to
+                have a record in the QC database without it also being present
+                in the MLWH database.
+                Note that the total number of items is not updated.
+                """
+                logging.warning(f"No mlwh record for product ID '{id_product}'")
+
         return wells
 
     def _add_tracking_info(self, wells: List[PacBioWell]):
-
-        # Will use the run name and well label to retrieve relevant rows from mlwh.
-        # In future, when available in mlwh for all records, product IDs can be used.
 
         for well in wells:
             # One query for all or query per well? The latter for now to avoid the need
             # to match the records later. Should be fast enough for small-ish pages, we
             # query on a unique key.
-            db_well = self.get_well(run_name=well.run_name, well_label=well.label)
+            db_well = self.get_mlwh_well_by_product_id(product_id=well.product_id)
             if db_well is None:
                 # No error if no matching mlwh record is found.
                 logging.warning(
@@ -327,12 +354,14 @@ class PacBioPagedWellsFactory(WellWh, PagedResponse):
 
         inbox_wells_indexes = []
         for index, db_well in enumerate(recent_wells):
-            in_qc = WellQc(
-                session=self.qcdb_session,
-                run_name=db_well.pac_bio_run_name,
-                well_label=db_well.well_label,
-            ).current_qc_state()
-            if in_qc is None:
+            id_product = db_well.id_pac_bio_product
+            # TODO: Create a method for retrieving a seq. QC state for a product.
+            qced_products = (
+                BulkQcFetch(session=self.qcdb_session)
+                .query_by_id_list(ids=[id_product], sequencing_outcomes_only=True)
+                .get(id_product)
+            )
+            if (qced_products is None) or (len(qced_products) == 0):
                 inbox_wells_indexes.append(index)
 
         # Save the number of retrieved rows.
@@ -354,6 +383,7 @@ class PacBioPagedWellsFactory(WellWh, PagedResponse):
                 .where(self.FILTERS[qc_flow_status.name])
                 .order_by(
                     PacBioRunWellMetrics.pac_bio_run_name,
+                    PacBioRunWellMetrics.plate_number,
                     PacBioRunWellMetrics.well_label,
                 )
             )
@@ -380,15 +410,23 @@ class PacBioPagedWellsFactory(WellWh, PagedResponse):
         # is a hint to fetch QC state.
         pb_wells = []
         for db_well in db_wells_list:
-            attrs = {"run_name": db_well.pac_bio_run_name, "label": db_well.well_label}
+            id_product = db_well.id_pac_bio_product
+            attrs = {
+                "id_product": id_product,
+                "run_name": db_well.pac_bio_run_name,
+                "plate_number": db_well.plate_number,
+                "label": db_well.well_label,
+            }
             if qc_state_applicable:
-                qc_state = WellQc(
-                    session=self.qcdb_session,
-                    run_name=db_well.pac_bio_run_name,
-                    well_label=db_well.well_label,
-                ).current_qc_state()
-                if qc_state:
-                    attrs["qc_state"] = qc_state
+                # TODO: Query by all IDs at once.
+                qced_products = (
+                    BulkQcFetch(session=self.qcdb_session)
+                    .query_by_id_list(ids=[id_product], sequencing_outcomes_only=True)
+                    .get(id_product)
+                )
+                # A well can have only one or zero current sequencing outcomes.
+                if (qced_products is not None) and len(qced_products) != 0:
+                    attrs["qc_state"] = qced_products[0]
             pb_well = PacBioWell.parse_obj(attrs)
             pb_well.copy_run_tracking_info(db_well)
             pb_wells.append(pb_well)
