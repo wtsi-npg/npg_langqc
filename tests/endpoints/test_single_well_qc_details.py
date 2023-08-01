@@ -20,7 +20,7 @@ def test_get_well_info(
         == f"PacBio well for product ID {id_product} not found."
     )
 
-    response = test_client.get(f"/pacbio/products/seq_level?id_product=342")
+    response = test_client.get("/pacbio/products/seq_level?id_product=342")
     assert response.status_code == 422
     assert response.json()["detail"].startswith("string does not match regex")
 
