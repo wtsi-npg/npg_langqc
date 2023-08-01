@@ -5,6 +5,7 @@
 
     import { computed } from "vue";
     import groupMetrics from "../utils/metrics.js";
+    import combineLabelWithPlate from "../utils/text.js"
 
     const props = defineProps({
         // Well object representing one prepared input for the instrument
@@ -112,13 +113,13 @@
                 <td v-else>{{ well.run_name }}</td>
             </tr>
             <tr>
-                <td>Well</td>
+                <td>Well label</td>
                 <td v-if="slDatasetLink">
                     <el-link :href="slDatasetLink" :underline="false" icon="ExtLink" target="_blank">
-                        {{ well.label }}
+                        {{ combineLabelWithPlate(well.label, well.plate_number) }}
                     </el-link>
                 </td>
-                <td v-else>{{ well.label }}</td>
+                <td v-else>{{ combineLabelWithPlate(well.label, well.plate_number) }}</td>
             </tr>
             <tr>
                 <td>Instrument</td>
