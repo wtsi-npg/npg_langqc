@@ -58,8 +58,8 @@ A non-indexed single library sequenced in a well has the same product ID as
 the well product. Therefore, in order to serve the correct response, it is
 necessary to know the context of the request. This can be achieved by
 different means:
-  1. by adding an extra URL component (see /products/seq_level URL defined
-     in this package),
+  1. by adding an extra URL component (see /products/{id_product}/seq_level
+     URL defined in this package),
   2. by adding an extra parameter to the URL,
   3. for POST requests, by adding and a special field to the payload (see qc_type
      in models in lang_qc.models.qc_state).
@@ -147,7 +147,7 @@ def get_wells_in_run(
 
 
 @router.get(
-    "/products/seq_level",
+    "/products/{id_product}/seq_level",
     summary="Get full sequencing QC metrics and state for a product",
     responses={
         status.HTTP_404_NOT_FOUND: {"description": "Well product does not exist"},
