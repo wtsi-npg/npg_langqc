@@ -20,7 +20,7 @@
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import PositiveInt
+from pydantic import PositiveInt, ValidationError
 from sqlalchemy.orm import Session
 from starlette import status
 
@@ -33,6 +33,7 @@ from lang_qc.models.pacbio.well import PacBioPagedWells, PacBioWellFull
 from lang_qc.models.qc_flow_status import QcFlowStatusEnum
 from lang_qc.models.qc_state import QcState, QcStateBasic
 from lang_qc.util.auth import check_user
+from lang_qc.util.validation import check_product_id_is_valid
 
 router = APIRouter(
     prefix="/pacbio",
@@ -116,29 +117,34 @@ def get_wells_in_run(
 
 
 @router.get(
-    "/run/{run_name}/well/{well_label}",
-    summary="Get QC data for a well",
+    "/products/seq_level",
+    summary="Get full sequencing QC metrics and state for a product",
     responses={
-        status.HTTP_404_NOT_FOUND: {"description": "Well does not exist"},
+        status.HTTP_404_NOT_FOUND: {"description": "Well product does not exist"},
+        status.HTTP_422_UNPROCESSABLE_ENTITY: {"description": "Invalid product ID"},
     },
     response_model=PacBioWellFull,
 )
-def get_pacbio_well(
-    run_name: str,
-    well_label: str,
+def get_seq_metrics(
+    id_product: str,
     mlwhdb_session: Session = Depends(get_mlwh_db),
     qcdb_session: Session = Depends(get_qc_db),
 ) -> PacBioWellFull:
 
-    well_row = WellWh(session=mlwhdb_session).get_well(
-        run_name=run_name, well_label=well_label
+    try:
+        check_product_id_is_valid(id_product=id_product)
+    except ValidationError as err:
+        raise HTTPException(422, detail=" ".join([e["msg"] for e in err.errors()]))
+
+    mlwh_well = WellWh(session=mlwhdb_session).get_mlwh_well_by_product_id(
+        id_product=id_product
     )
-    if well_row is None:
+    if mlwh_well is None:
         raise HTTPException(
-            404, detail=f"PacBio well {well_label} run {run_name} not found."
+            404, detail=f"PacBio well for product ID {id_product} not found."
         )
 
-    return PacBioWellFull.from_orm(well_row, qcdb_session)
+    return PacBioWellFull.from_orm(mlwh_well, qcdb_session)
 
 
 @router.post(

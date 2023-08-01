@@ -26,7 +26,7 @@ def test_get_qc_by_product_id(test_client: TestClient, load_data4well_retrieval)
     assert response.ok is False
     assert response.status_code == 422
     message = response.json()["detail"]
-    assert message == "Checksum must be hexadecimal of length 64"
+    assert message.startswith("string does not match regex")
 
     response = test_client.post("/products/qc", json=[BAD_STRING])
     assert response.ok is False

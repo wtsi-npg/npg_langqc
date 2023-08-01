@@ -112,12 +112,11 @@ def test_wells_in_runs_retrieval(mlwhdb_test_session, load_data4well_retrieval):
         assert run_names[i] == "TRACTION_RUN_2"
 
     plates_and_labels = [(row.well_label, row.plate_number) for row in wells]
-    expected_labels = 3* ["A1", "B1", "C1", "D1"]
+    expected_labels = 3 * ["A1", "B1", "C1", "D1"]
     expected_plate_numbers = 4 * [None] + 4 * [1] + 4 * [2]
     for i in range(0, 12):
         assert plates_and_labels[i][0] == expected_labels[i]
-        if i < 4 :
+        if i < 4:
             assert plates_and_labels[i][1] is None
         else:
             assert plates_and_labels[i][1] == expected_plate_numbers[i]
-        
