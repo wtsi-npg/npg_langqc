@@ -5,9 +5,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [1.3.0] - 2023-08-02
+
 ### Added
 
-* Instrument name and type added to QC View and table of wells
+* Instrument name and type and plate number concatenated with the
+  well label is added to QC View and table of wells
+* Loading concentration is added to the QC View
+
+### Changed
+
+* plate_number and id_product is added to API JSON feeds for well data
 
 ## [1.2.0] - 2023-07-12
 
