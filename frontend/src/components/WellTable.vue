@@ -1,4 +1,9 @@
 <script setup>
+/*
+* Renders a table for a list of wells and generates buttons for selecting wells
+*/
+import combineLabelWithPlate from "../utils/text.js"
+
 defineProps({
   wellCollection: Object
 })
@@ -11,6 +16,7 @@ defineEmits(['wellSelected'])
     <tr>
       <th>Run name</th>
       <th>Well label</th>
+      <th>Instrument</th>
       <th>QC state</th>
       <th>QC date</th>
       <th>Assessor</th>
@@ -22,9 +28,11 @@ defineEmits(['wellSelected'])
     <tr :key="wellObj.run_name + ':' + wellObj.label" v-for="wellObj in wellCollection">
       <td>{{ wellObj.run_name }}</td>
       <td class="well_selector">
-        <button v-on:click="$emit('wellSelected', { qcRun: wellObj.run_name, qcLabel: wellObj.label })">{{ wellObj.label
-        }}</button>
+        <button v-on:click="$emit('wellSelected', { qcRun: wellObj.run_name, qcLabel: wellObj.label })">
+          {{ combineLabelWithPlate(wellObj.label, wellObj.plate_number) }}
+        </button>
       </td>
+      <td>{{ wellObj.instrument_type }} {{ wellObj.instrument_name }}</td>
       <td>{{ wellObj.qc_state ? wellObj.qc_state.qc_state : '&nbsp;' }}</td>
       <td>{{ wellObj.qc_state ? wellObj.qc_state.date_updated : '&nbsp;' }}</td>
       <td>{{ wellObj.qc_state ? wellObj.qc_state.user : '&nbsp;' }}</td>

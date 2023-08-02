@@ -1,4 +1,8 @@
 <script setup>
+/*
+* A view for wells selected from a one or more instrument runs.
+* Allows QC of individual wells. Page state is managed via the URL
+*/
 import { watch, ref } from "vue"
 import { ElMessage } from "element-plus"
 import { useRoute, useRouter } from "vue-router"
@@ -80,9 +84,9 @@ function wellSelected(well) {
   <WellTable v-if="wellCollection.length > 0" :wellCollection="wellCollection" @wellSelected="wellSelected"/>
   <h2 v-else>No wells found for run. Search again</h2>
   <h2>Well QC View</h2>
-  <div class="qcview" v-if="focusWell.runWell !== null">
+  <div class="qcview" v-if="focusWell.well !== null">
     <div class="data">
-      <QcView :runWell="focusWell.runWell" />
+      <QcView :well="focusWell.well" />
     </div>
     <aside class="controls">
       <QcControls :user="user" />

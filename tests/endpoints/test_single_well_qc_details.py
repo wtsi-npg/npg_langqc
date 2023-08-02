@@ -20,6 +20,8 @@ def test_get_well_info(
     assert response.status_code == 200
     result = response.json()
 
+    id_product = "cf18bd66e0f0895ea728c1d08103c62d3de8a57a5f879cee45f7b0acc028aa61"
+
     assert result["label"] == "A1"
     assert result["run_name"] == "TRACTION-RUN-92"
     assert result["run_start_time"] == "2022-04-14T12:52:34"
@@ -27,6 +29,10 @@ def test_get_well_info(
     assert result["well_start_time"] == "2022-04-14T13:02:48"
     assert result["well_complete_time"] == "2022-04-16T12:36:21"
     assert result["qc_state"] is None
+    assert result["instrument_name"] == "64222E"
+    assert result["instrument_type"] == "Sequel2e"
+    assert result["plate_number"] is None
+    assert result["id_product"] == id_product
 
     expected_metrics = {
         "smrt_link": {
@@ -43,6 +49,7 @@ def test_get_well_info(
         "hifi_read_bases": {"value": 27.08, "label": "CCS Yield (Gb)"},
         "hifi_read_length_mean": {"value": 9411, "label": "CCS Mean Length (bp)"},
         "local_base_rate": {"value": 2.77, "label": "Local Base Rate"},
+        "loading_conc": {"value": 80, "label": "Loading concentration (pM)"},
         "p0_num": {"value": 34.94, "label": "P0 %"},
         "p1_num": {"value": 62.81, "label": "P1 %"},
         "p2_num": {"value": 2.25, "label": "P2 %"},
@@ -73,19 +80,41 @@ def test_get_well_info(
     assert etrack["library_type"] == ["PacBio_Ultra_Low_Input"]
     assert etrack["tag_sequence"] == []
 
+    response = test_client.get("/pacbio/run/TRACTION-RUN-92/well/D1")
+    assert response.status_code == 200
+    result = response.json()
+
+    id_product = "c5babd5516f7b9faab8415927e5f300d5152bb96b8b922e768d876469a14fa5d"
+
+    assert result["label"] == "D1"
+    assert result["run_name"] == "TRACTION-RUN-92"
+    assert result["instrument_name"] == "64222E"
+    assert result["instrument_type"] == "Sequel2e"
+    assert result["plate_number"] is None
+    assert result["id_product"] == id_product
+    assert result["metrics"]["smrt_link"]["dataset_uuid"] is None
+    assert result["qc_state"] is None
+
     response = test_client.get("/pacbio/run/TRACTION_RUN_1/well/B1")
     assert response.status_code == 200
     result = response.json()
 
+    id_product = "b5a7d41453097fe3cc59644a679186e64a2147833ecc76a2870c5fe8068835ae"
+
     assert result["label"] == "B1"
     assert result["run_name"] == "TRACTION_RUN_1"
+    assert result["instrument_name"] == "64016"
+    assert result["instrument_type"] == "Sequel2"
+    assert result["plate_number"] is None
+    assert result["id_product"] == id_product
     assert result["experiment_tracking"] is None
+
     expected_qc_state = {
         "qc_state": "On hold",
         "is_preliminary": True,
         "qc_type": "sequencing",
         "outcome": None,
-        "id_product": "b5a7d41453097fe3cc59644a679186e64a2147833ecc76a2870c5fe8068835ae",
+        "id_product": id_product,
         "date_created": "2022-12-08T07:15:19",
         "date_updated": "2022-12-08T07:15:19",
         "user": "zx80@example.com",
@@ -93,8 +122,28 @@ def test_get_well_info(
     }
     assert result["qc_state"] == expected_qc_state
 
-    response = test_client.get("/pacbio/run/TRACTION-RUN-92/well/D1")
+    response = test_client.get("/pacbio/run/TRACTION_RUN_2/well/A1")
     assert response.status_code == 200
     result = response.json()
 
-    assert result["metrics"]["smrt_link"]["dataset_uuid"] is None
+    id_product = "bc00984029864176324b91e0871a32a3692a54bd9b18f00b8596a2f2a166eca3"
+
+    assert result["label"] == "A1"
+    assert result["run_name"] == "TRACTION_RUN_2"
+    assert result["instrument_name"] == "12345"
+    assert result["instrument_type"] == "Revio"
+    assert result["plate_number"] == 1
+    assert result["id_product"] == id_product
+
+    expected_qc_state = {
+        "qc_state": "Failed, Instrument",
+        "is_preliminary": True,
+        "qc_type": "sequencing",
+        "outcome": 0,
+        "id_product": id_product,
+        "date_created": "2022-12-07T15:13:56",
+        "date_updated": "2022-12-07T15:13:56",
+        "user": "zx80@example.com",
+        "created_by": "LangQC",
+    }
+    assert result["qc_state"] == expected_qc_state

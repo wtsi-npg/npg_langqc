@@ -50,6 +50,7 @@ USERS = [
     {"username": "cd32@example.com"},
 ]
 
+# A combination of all QC states and final/not final.
 # Data in each list: run name, well label, qc state description, is_preliminary flag, date
 QC_DATA = [
     ["TRACTION_RUN_1", "A1", "Claimed", True, "2022-12-07 07:15:19"],
@@ -70,9 +71,10 @@ QC_DATA = [
     ["TRACTION_RUN_7", "A1", "Failed", True, "2022-02-15 10:42:33"],
 ]
 
+# A set of fake warehouse entries for the QC states above.
 # Data in each list: run name, well label, run start, completed and
 # well start, completed dates, well status, run status, ccs_execution_mode,
-# polymerase_num_reads, hifi_num_reads.
+# polymerase_num_reads, hifi_num_reads, instrument_name, instrument_type.
 MLWH_DATA = [
     [
         "TRACTION_RUN_1",
@@ -85,6 +87,9 @@ MLWH_DATA = [
         "Complete",
         "None",
         5114903,
+        None,
+        "64016",
+        "Sequel2",
         None,
     ],
     [
@@ -99,6 +104,9 @@ MLWH_DATA = [
         "None",
         4793726,
         None,
+        "64016",
+        "Sequel2",
+        None,
     ],
     [
         "TRACTION_RUN_1",
@@ -111,6 +119,9 @@ MLWH_DATA = [
         "Complete",
         "None",
         4291550,
+        None,
+        "64016",
+        "Sequel2",
         None,
     ],
     [
@@ -125,6 +136,9 @@ MLWH_DATA = [
         "None",
         5198365,
         None,
+        "1234",
+        "Sequel2",
+        None,
     ],
     [
         "TRACTION_RUN_2",
@@ -138,6 +152,9 @@ MLWH_DATA = [
         "OffInstrument",
         3672108,
         1081530,
+        "12345",
+        "Revio",
+        1,
     ],
     [
         "TRACTION_RUN_2",
@@ -151,6 +168,9 @@ MLWH_DATA = [
         "OffInstrument",
         6312393,
         2109215,
+        "12345",
+        "Revio",
+        1,
     ],
     [
         "TRACTION_RUN_2",
@@ -164,6 +184,9 @@ MLWH_DATA = [
         "OffInstrument",
         6342393,
         2106715,
+        "12345",
+        "Revio",
+        1,
     ],
     [
         "TRACTION_RUN_2",
@@ -177,6 +200,9 @@ MLWH_DATA = [
         "OffInstrument",
         6342593,
         2160715,
+        "12345",
+        "Revio",
+        1,
     ],
     [
         "TRACTION_RUN_3",
@@ -190,6 +216,9 @@ MLWH_DATA = [
         "None",
         1391057,
         None,
+        "1234",
+        "Revio",
+        1,
     ],
     [
         "TRACTION_RUN_3",
@@ -203,6 +232,9 @@ MLWH_DATA = [
         "None",
         4519510,
         None,
+        "12345",
+        "Revio",
+        1,
     ],
     [
         "TRACTION_RUN_4",
@@ -216,6 +248,9 @@ MLWH_DATA = [
         "None",
         5114900,
         None,
+        "1234",
+        "Revio",
+        1,
     ],
     [
         "TRACTION_RUN_4",
@@ -229,6 +264,9 @@ MLWH_DATA = [
         "None",
         5114503,
         None,
+        "1234",
+        "Revio",
+        1,
     ],
     [
         "TRACTION_RUN_4",
@@ -242,6 +280,9 @@ MLWH_DATA = [
         "None",
         5124903,
         None,
+        "1234",
+        "Revio",
+        1,
     ],
     [
         "TRACTION_RUN_4",
@@ -255,6 +296,9 @@ MLWH_DATA = [
         "None",
         4114903,
         None,
+        "1234",
+        "Revio",
+        1,
     ],
     [
         "TRACTION_RUN_5",
@@ -268,6 +312,9 @@ MLWH_DATA = [
         "OnInstrument",
         3999482,
         2049919,
+        "64016E",
+        "Sequel2e",
+        None,
     ],
     [
         "TRACTION_RUN_5",
@@ -281,6 +328,9 @@ MLWH_DATA = [
         "OnInstrument",
         3989482,
         2069919,
+        "64016E",
+        "Sequel2e",
+        None,
     ],
     [
         "TRACTION_RUN_6",
@@ -294,6 +344,9 @@ MLWH_DATA = [
         "OnInstrument",
         3989782,
         2669919,
+        "1234",
+        "Revio",
+        1,
     ],
     [
         "TRACTION_RUN_6",
@@ -307,6 +360,9 @@ MLWH_DATA = [
         "OnInstrument",
         3989786,
         2769919,
+        "1234",
+        "Revio",
+        1,
     ],
     [
         "TRACTION_RUN_7",
@@ -320,6 +376,9 @@ MLWH_DATA = [
         "OnInstrument",
         None,
         None,
+        "1234",
+        "Revio",
+        1,
     ],
     [
         "TRACTION_RUN_8",
@@ -333,6 +392,9 @@ MLWH_DATA = [
         "OnInstrument",
         None,
         None,
+        "1234",
+        "Revio",
+        1,
     ],
     [
         "TRACTION_RUN_8",
@@ -346,6 +408,9 @@ MLWH_DATA = [
         "OnInstrument",
         None,
         None,
+        "1234",
+        "Revio",
+        1,
     ],
     [
         "TRACTION_RUN_9",
@@ -359,6 +424,9 @@ MLWH_DATA = [
         "OffInstrument",
         None,
         None,
+        "1234",
+        "Revio",
+        1,
     ],
     [
         "TRACTION_RUN_10",
@@ -372,6 +440,9 @@ MLWH_DATA = [
         "OnInstrument",
         3959786,
         2779919,
+        "1234",
+        "Revio",
+        1,
     ],
     [
         "TRACTION_RUN_10",
@@ -385,6 +456,9 @@ MLWH_DATA = [
         "OnInstrument",
         3989716,
         2761919,
+        "1234",
+        "Revio",
+        1,
     ],
     [
         "TRACTION_RUN_10",
@@ -398,6 +472,9 @@ MLWH_DATA = [
         "OnInstrument",
         3969786,
         2763919,
+        "1234",
+        "Revio",
+        1,
     ],
     [
         "TRACTION_RUN_11",
@@ -411,6 +488,9 @@ MLWH_DATA = [
         "OnInstrument",
         None,
         None,
+        "1234",
+        "Revio",
+        1,
     ],
     [
         "TRACTION_RUN_12",
@@ -424,6 +504,9 @@ MLWH_DATA = [
         "OffInstrument",
         3339714,
         2226107,
+        "1234",
+        "Revio",
+        1,
     ],
     [
         "TRACTION_RUN_12",
@@ -437,6 +520,9 @@ MLWH_DATA = [
         "OffInstrument",
         3336714,
         None,
+        "1234",
+        "Revio",
+        1,
     ],
     [
         "TRACTION_RUN_12",
@@ -450,6 +536,9 @@ MLWH_DATA = [
         "OffInstrument",
         None,
         3339724,
+        "1234",
+        "Revio",
+        1,
     ],
     [
         "TRACTION_RUN_13",
@@ -463,6 +552,9 @@ MLWH_DATA = [
         "OffInstrument",
         3989714,
         2227107,
+        "1234",
+        "Revio",
+        1,
     ],
     [
         "TRACTION_RUN_14",
@@ -476,6 +568,9 @@ MLWH_DATA = [
         "OffInstrument",
         None,
         3339724,
+        "64016",
+        "Sequel2",
+        None,
     ],
     [
         "TRACTION_RUN_14",
@@ -489,6 +584,9 @@ MLWH_DATA = [
         "OffInstrument",
         3989714,
         2227107,
+        "1234",
+        "Revio",
+        1,
     ],
     [
         "SUBTRACTION_RUN_15",
@@ -502,6 +600,9 @@ MLWH_DATA = [
         "OffInstrument",
         None,
         None,
+        "1234",
+        "Revio",
+        1,
     ],
     [
         "TRACTION_RUN_15",
@@ -515,6 +616,9 @@ MLWH_DATA = [
         "OffInstrument",
         None,
         None,
+        "1234",
+        "Revio",
+        1,
     ],
     [
         "TRACTION_RUN_15",
@@ -528,6 +632,9 @@ MLWH_DATA = [
         "OffInstrument",
         3989714,
         2227107,
+        "1234",
+        "Revio",
+        1,
     ],
     [
         "TRACTION_RUN_15",
@@ -541,6 +648,9 @@ MLWH_DATA = [
         "OffInstrument",
         None,
         None,
+        "1234",
+        "Revio",
+        1,
     ],
     [
         "TRACTION_RUN_15",
@@ -554,6 +664,9 @@ MLWH_DATA = [
         "OffInstrument",
         None,
         None,
+        "1234",
+        "Revio",
+        1,
     ],
 ]
 
@@ -601,25 +714,29 @@ def load_data4well_retrieval(
     _update_timestamps4inbox()
 
     # Transform a list of lists into a list of hashes, which map to db rows.
-    mlwh_data4insert = [
-        {
-            "pac_bio_run_name": record[0],
-            "well_label": record[1],
-            "run_start": record[2],
-            "run_complete": record[3],
-            "well_start": record[4],
-            "well_complete": record[5],
-            "well_status": record[6],
-            "run_status": record[7],
-            "ccs_execution_mode": record[8],
-            "polymerase_num_reads": record[9],
-            "hifi_num_reads": record[10],
-            "id_pac_bio_product": PacBioEntity(
-                run_name=record[0], well_label=record[1]
-            ).hash_product_id(),
-        }
-        for record in MLWH_DATA
-    ]
+    mlwh_data4insert = []
+    for record in MLWH_DATA:
+        mlwh_data4insert.append(
+            {
+                "pac_bio_run_name": record[0],
+                "well_label": record[1],
+                "run_start": record[2],
+                "run_complete": record[3],
+                "well_start": record[4],
+                "well_complete": record[5],
+                "well_status": record[6],
+                "run_status": record[7],
+                "ccs_execution_mode": record[8],
+                "polymerase_num_reads": record[9],
+                "hifi_num_reads": record[10],
+                "id_pac_bio_product": PacBioEntity(
+                    run_name=record[0], well_label=record[1]
+                ).hash_product_id(),
+                "instrument_name": record[11],
+                "instrument_type": record[12],
+                "plate_number": record[13],
+            }
+        )
     mlwhdb_test_session.execute(insert(PacBioRunWellMetrics), mlwh_data4insert)
     mlwhdb_test_session.commit()
 

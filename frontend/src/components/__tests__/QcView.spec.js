@@ -1,7 +1,5 @@
 import { describe, expect, test, vi, afterEach } from 'vitest';
 import { render, cleanup } from '@testing-library/vue';
-// Pinia and ElementPlus required by ClaimWidget
-import { createTestingPinia } from '@pinia/testing';
 import ElementPlus from 'element-plus';
 
 import QcView from '../QcView.vue';
@@ -26,9 +24,10 @@ describe('Component renders', () => {
   };
 
   let props_1 = {
-    runWell: {
+    well: {
       run_name: 'Test run',
       label: 'A1',
+      plate_number: null,
       well_complete_time: '2021-01-17T08:35:18',
       experiment_tracking: experiment_init,
       metrics: {
@@ -39,7 +38,9 @@ describe('Component renders', () => {
         },
         metric1: {value: 9000, label: 'metric_one'},
         metric2: {value: 'VeryBad', label: 'metric_two'}
-      }
+      },
+      instrument_name: '1234',
+      instrument_type: 'Revio',
     }
   };
 
@@ -47,7 +48,7 @@ describe('Component renders', () => {
     const wrapper = render(QcView, {
       props: props_1,
       global: {
-        plugins: [ElementPlus, createTestingPinia({ createSpy: vi.fn})],
+        plugins: [ElementPlus],
         provide: {
           activeTab: 'inbox'
         }
@@ -70,17 +71,19 @@ describe('Component renders', () => {
     expect(wrapper.html()).toMatch(/17\/01\/2021|1\/17\/2021/) //American style dates in CI
 
     expect(wrapper.getByText('TRAC-2-3456')).toBeDefined()
+
+    expect(wrapper.getByText('Revio 1234')).toBeDefined()
   });
 
 
   test('No LIMS data, no well complete date', () => {
 
-    props_1['runWell']['experiment_tracking'] = null
-    props_1['runWell']['well_complete_time'] = null
+    props_1['well']['experiment_tracking'] = null
+    props_1['well']['well_complete_time'] = null
     const wrapper = render(QcView, {
       props: props_1,
       global: {
-        plugins: [ElementPlus, createTestingPinia({ createSpy: vi.fn})],
+        plugins: [ElementPlus],
         provide: {
           activeTab: 'inbox'
         }
@@ -108,12 +111,12 @@ describe('Component renders', () => {
       num_samples: 4,
       library_type:['Pacbio_HiFi', 'PacBio_Standard']
     };
-    props_1['runWell']['experiment_tracking'] = experiment
+    props_1['well']['experiment_tracking'] = experiment
 
     const wrapper = render(QcView, {
       props: props_1,
       global: {
-        plugins: [ElementPlus, createTestingPinia({ createSpy: vi.fn})],
+        plugins: [ElementPlus],
         provide: {
           activeTab: 'inbox'
         }
@@ -132,7 +135,7 @@ describe('Component renders', () => {
 
   test('No host name for links to SmrtLink', () => {
 
-    props_1['runWell']['metrics']['smrt_link'] = {
+    props_1['well']['metrics']['smrt_link'] = {
       hostname: null,
       run_uuid: '123456',
       dataset_uuid: '789100'
@@ -141,7 +144,7 @@ describe('Component renders', () => {
     const wrapper = render(QcView, {
       props: props_1,
       global: {
-        plugins: [ElementPlus, createTestingPinia({ createSpy: vi.fn})],
+        plugins: [ElementPlus],
         provide: {
           activeTab: 'inbox'
         }
@@ -157,7 +160,7 @@ describe('Component renders', () => {
 
   test('No UUIDs for links to SmrtLink', () => {
 
-    props_1['runWell']['metrics']['smrt_link'] = {
+    props_1['well']['metrics']['smrt_link'] = {
       hostname: 'somehost',
       run_uuid: null,
       dataset_uuid: null
@@ -166,7 +169,7 @@ describe('Component renders', () => {
     const wrapper = render(QcView, {
       props: props_1,
       global: {
-        plugins: [ElementPlus, createTestingPinia({ createSpy: vi.fn})],
+        plugins: [ElementPlus],
         provide: {
           activeTab: 'inbox'
         }
@@ -180,4 +183,51 @@ describe('Component renders', () => {
 
   });
 
+});
+
+describe('Numbered plates in runs also render ok', () => {
+  let experiment_init = {
+    study_id: ['1234'],
+    study_name: 'My study',
+    sample_id: '3456',
+    sample_name: 'oldSock',
+    num_samples: 1,
+    library_type:['Pacbio_HiFi'],
+    pool_name: "TRAC-2-3456"
+  };
+
+  let props_2 = {
+    well: {
+      run_name: 'Test run 2',
+      label: 'A1',
+      plate_number: '1',
+      well_complete_time: '2021-01-17T08:35:18',
+      experiment_tracking: experiment_init,
+      metrics: {
+        smrt_link: {
+          hostname: 'test.url',
+          run_uuid: '123456',
+          dataset_uuid: '789100'
+        },
+        metric1: {value: 9000, label: 'metric_one'},
+        metric2: {value: 'VeryBad', label: 'metric_two'}
+      },
+      instrument_name: '1234',
+      instrument_type: 'Revio',
+    }
+  };
+
+  test('Numbered plate is combined into the "well label"', () => {
+    const wrapper = render(QcView, {
+      props: props_2,
+      global: {
+        plugins: [ElementPlus],
+        provide: {
+          activeTab: 'inbox'
+        }
+      }
+    });
+
+    expect(wrapper.html()).toContain('1-A1');
+  });
 });

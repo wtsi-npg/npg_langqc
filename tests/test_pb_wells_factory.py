@@ -193,7 +193,14 @@ def test_paged_retrieval_for_statuses(
         assert paged_wells.page_number == 1
         total_number_of_items = paged_wells.total_number_of_items
         assert total_number_of_items == expected_page_details[status.name]
-        assert len(paged_wells.wells) == total_number_of_items
+        # One QC entity is not in mlwh, hence te number of returned
+        # records is returned by one. The number of records that was
+        # paged is correct.
+        assert (
+            len(paged_wells.wells) == total_number_of_items
+            if status == "pending"
+            else total_number_of_items - 1
+        )
 
         factory = PacBioPagedWellsFactory(
             qcdb_session=qcdb_test_session,
@@ -322,6 +329,11 @@ def test_fully_retrieved_data_for_statuses(
 def test_partially_retrieved_data_for_statuses(
     qcdb_test_session, mlwhdb_test_session, load_data4well_retrieval
 ):
+    """
+    QC for TRACTION_RUN_1 well label E1 is in progress, but the mlwh
+    for this entity does not exist. Data for this entity should not
+    be retrieved.
+    """
 
     factory = PacBioPagedWellsFactory(
         qcdb_session=qcdb_test_session,
@@ -330,28 +342,12 @@ def test_partially_retrieved_data_for_statuses(
         page_number=2,
     )
     paged_wells = factory.create_for_qc_status(QcFlowStatusEnum.IN_PROGRESS)
-    well = paged_wells.wells[2]
-    assert isinstance(well, PacBioWell)
-    assert well.run_name == "TRACTION_RUN_1"
-    assert well.label == "E1"
-    # No mlwh data is available for this well.
-    assert well.run_start_time is None
-    assert well.run_complete_time is None
-    assert well.well_start_time is None
-    assert well.well_complete_time is None
-
-    qc_state = well.qc_state
-    id = PacBioEntity(run_name=well.run_name, well_label=well.label).hash_product_id()
-    assert isinstance(qc_state, QcStateModel)
-    assert qc_state.qc_state == "Claimed"
-    assert qc_state.qc_type == "sequencing"
-    assert qc_state.is_preliminary is True
-    assert qc_state.outcome is None
-    assert qc_state.id_product == id
-    compare_dates(qc_state.date_created, "2022-12-07 09:15:19")
-    compare_dates(qc_state.date_updated, "2022-12-07 09:15:19")
-    assert qc_state.user == "zx80@example.com"
-    assert qc_state.created_by == "LangQC"
+    run_wells = [
+        w
+        for w in paged_wells.wells
+        if (w.run_name == "TRACTION_RUN_1" and w.label == "E1")
+    ]
+    assert len(run_wells) == 0
 
 
 def test_unknown_run_name_input(

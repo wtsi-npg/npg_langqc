@@ -1,4 +1,7 @@
 <script setup>
+/*
+* A visual container for QC controls, claiming, approving etc.
+*/
 import { computed, ref, watch } from "vue";
 import ClaimWidget from "@/components/ClaimWidget.vue";
 import QcWidget from "@/components/QcWidget.vue";

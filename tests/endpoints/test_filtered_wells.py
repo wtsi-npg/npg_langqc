@@ -49,6 +49,15 @@ def test_qc_complete_filter(test_client: TestClient, load_data4well_retrieval):
         assert well["run_complete_time"] is not None
         assert well["well_start_time"] is not None
         assert well["well_complete_time"] is not None
+        if well["run_name"] == "TRACTION_RUN_5":
+            assert well["instrument_name"] == "64016E"
+            assert well["instrument_type"] == "Sequel2e"
+        else:
+            assert well["instrument_type"] == "Revio"
+            if well["run_name"] == "TRACTION_RUN_2":
+                assert well["instrument_name"] == "12345"
+            else:
+                assert well["instrument_name"] == "1234"
 
     response = test_client.get(
         "/pacbio/wells?page_size=10&page_number=2&qc_status=" + status
@@ -106,11 +115,12 @@ def test_in_progress_filter(test_client: TestClient, load_data4well_retrieval):
         {"TRACTION_RUN_2:C1": "Failed, SMRT cell"},
         {"TRACTION_RUN_1:C1": "Claimed"},
         {"TRACTION_RUN_2:A1": "Failed, Instrument"},
-        {"TRACTION_RUN_1:E1": "Claimed"},
         {"TRACTION_RUN_1:A1": "Claimed"},
         {"TRACTION_RUN_7:A1": "Failed"},
     ]
-    num_total = len(expected_data)
+    # One entity is removed after paging since no mlwh data is available
+    # for it.
+    num_total = len(expected_data) + 1
 
     response = test_client.get(
         "/pacbio/wells?qc_status=in_progress&page_size=5&page_number=1"

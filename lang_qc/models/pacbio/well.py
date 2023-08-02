@@ -25,7 +25,7 @@ from typing import List
 from pydantic import BaseModel, Extra, Field
 from sqlalchemy.orm import Session
 
-from lang_qc.db.helper.well import WellQc
+from lang_qc.db.helper.qc import BulkQcFetch
 from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
 from lang_qc.models.pacbio.experiment import PacBioExperiment
 from lang_qc.models.pacbio.qc_data import QCDataWell
@@ -45,11 +45,16 @@ class PacBioWell(BaseModel, extra=Extra.forbid):
     """
 
     # Well identifies.
+    id_product: str = Field(title="Product identifier")
     label: str = Field(title="Well label", description="The label of the PacBio well")
+    plate_number: int = Field(
+        default=None,
+        title="Plate number",
+        description="Plate number, relevant for Revio instruments only",
+    )
     run_name: str = Field(
         title="Run name", description="PacBio run name as registered in LIMS"
     )
-
     # Run and well tracking information from SMRT Link
     run_start_time: datetime = Field(default=None, title="Run start time")
     run_complete_time: datetime = Field(default=None, title="Run complete time")
@@ -57,6 +62,8 @@ class PacBioWell(BaseModel, extra=Extra.forbid):
     well_complete_time: datetime = Field(default=None, title="Well complete time")
     run_status: str = Field(default=None, title="Current PacBio run status")
     well_status: str = Field(default=None, title="Current PacBio well status")
+    instrument_name: str = Field(default=None, title="Instrument name")
+    instrument_type: str = Field(default=None, title="Instrument type")
 
     qc_state: QcState = Field(
         default=None,
@@ -79,6 +86,8 @@ class PacBioWell(BaseModel, extra=Extra.forbid):
         self.well_complete_time = db_well.well_complete
         self.run_status = db_well.run_status
         self.well_status = db_well.well_status
+        self.instrument_name = db_well.instrument_name
+        self.instrument_type = db_well.instrument_type
 
 
 class PacBioPagedWells(PagedResponse, extra=Extra.forbid):
@@ -122,14 +131,15 @@ class PacBioWellFull(PacBioWell):
     @classmethod
     def from_orm(cls, mlwh_db_row: PacBioRunWellMetrics, qc_session: Session):
 
+        id_product = mlwh_db_row.id_pac_bio_product
         obj = cls(
+            id_product=id_product,
             run_name=mlwh_db_row.pac_bio_run_name,
+            plate_number=mlwh_db_row.plate_number,
             label=mlwh_db_row.well_label,
             metrics=QCDataWell.from_orm(mlwh_db_row),
         )
         obj.copy_run_tracking_info(mlwh_db_row)
-
-        obj.metrics = QCDataWell.from_orm(mlwh_db_row)
 
         experiment_info = []
         for row in mlwh_db_row.pac_bio_product_metrics:
@@ -143,12 +153,12 @@ class PacBioWellFull(PacBioWell):
         if len(experiment_info):
             obj.experiment_tracking = PacBioExperiment.from_orm(experiment_info)
 
-        qc_state = WellQc(
-            session=qc_session,
-            run_name=mlwh_db_row.pac_bio_run_name,
-            well_label=mlwh_db_row.well_label,
-        ).current_qc_state()
-        if qc_state:
-            obj.qc_state = qc_state
+        qced_products = (
+            BulkQcFetch(session=qc_session)
+            .query_by_id_list(ids=[id_product], sequencing_outcomes_only=True)
+            .get(id_product)
+        )
+        if (qced_products is not None) and len(qced_products) != 0:
+            obj.qc_state = qced_products[0]
 
         return obj

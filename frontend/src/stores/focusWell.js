@@ -8,7 +8,7 @@ const apiClient = new LangQc;
 
 export const useWellStore = defineStore('focusWell', {
     state: () => ({
-        runWell: null,
+        well: null,
         /* Example state doc:
         run_name: "TRACTION-RUN-nnn",
         label: "A1",
@@ -29,10 +29,10 @@ export const useWellStore = defineStore('focusWell', {
     }),
     getters: {
         getRunAndLabel(state) {
-            if (!isNull(state.runWell)) {
+            if (!isNull(state.well)) {
                 return [
-                    state.runWell.run_name,
-                    state.runWell.label
+                    state.well.run_name,
+                    state.well.label
                 ];
             } else {
                 return [null, null]
@@ -40,10 +40,10 @@ export const useWellStore = defineStore('focusWell', {
         },
         getQcState(state) {
             if (
-                !isNull(state.runWell)
-                && state.runWell.qc_state != null
+                !isNull(state.well)
+                && state.well.qc_state != null
             ) {
-                return state.runWell.qc_state;
+                return state.well.qc_state;
             } else {
                 return null;
             }
@@ -66,14 +66,14 @@ export const useWellStore = defineStore('focusWell', {
     },
     actions: {
         updateWellQcState(qcState) {
-            this.runWell.qc_state = qcState;
+            this.well.qc_state = qcState;
         },
         setFocusWell(well) {
-            this.runWell = well;
+            this.well = well;
         },
         loadWellDetail(runName, label) {
-            apiClient.getRunWellPromise(runName, label).then(
-                (well) => this.runWell = well
+            apiClient.getWellPromise(runName, label).then(
+                (well) => this.well = well
             ).catch(
                 (error) => {
                     ElMessage({

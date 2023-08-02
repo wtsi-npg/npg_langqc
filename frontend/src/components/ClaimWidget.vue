@@ -1,4 +1,8 @@
 <script setup>
+/*
+* A button for assigning QC responsibility to the logged-in user
+*/
+
 import { computed } from "vue";
 import { ElMessage } from "element-plus";
 import LangQc from "../utils/langqc.js";
