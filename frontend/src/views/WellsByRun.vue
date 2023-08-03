@@ -36,7 +36,7 @@ function flatten_data(values) {
 getUserName((email) => { user.value = email }).then();
 
 watch(() => route.query, (after, before) => {
-    if ((after['idProduct']) && qcQueryChanged(before, after)) {
+    if (qcQueryChanged(before, after)) {
       focusWell.loadWellDetail(after.idProduct)
     }
   },

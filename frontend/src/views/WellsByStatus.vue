@@ -60,7 +60,7 @@ watch(() => route.query, (after, before) => {
   }
 
   // Handle the run and well to show in the QC Viewer
-  if (after && (after.idProduct) && qcQueryChanged(before, after)) {
+  if (qcQueryChanged(before, after)) {
     // Somehow we need to capture the other parameter in case both have not been set
     loadWellDetail(after.idProduct)
   }
