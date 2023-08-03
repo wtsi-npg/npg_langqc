@@ -2,6 +2,7 @@
 /*
 * Renders a table for a list of wells and generates buttons for selecting wells
 */
+import combineLabelWithPlate from "../utils/text.js"
 
 defineProps({
   wellCollection: Object

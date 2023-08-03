@@ -27,6 +27,7 @@ describe('Component renders', () => {
     well: {
       run_name: 'Test run',
       label: 'A1',
+      plate_number: null,
       well_complete_time: '2021-01-17T08:35:18',
       experiment_tracking: experiment_init,
       metrics: {
@@ -182,4 +183,51 @@ describe('Component renders', () => {
 
   });
 
+});
+
+describe('Numbered plates in runs also render ok', () => {
+  let experiment_init = {
+    study_id: ['1234'],
+    study_name: 'My study',
+    sample_id: '3456',
+    sample_name: 'oldSock',
+    num_samples: 1,
+    library_type:['Pacbio_HiFi'],
+    pool_name: "TRAC-2-3456"
+  };
+
+  let props_2 = {
+    well: {
+      run_name: 'Test run 2',
+      label: 'A1',
+      plate_number: '1',
+      well_complete_time: '2021-01-17T08:35:18',
+      experiment_tracking: experiment_init,
+      metrics: {
+        smrt_link: {
+          hostname: 'test.url',
+          run_uuid: '123456',
+          dataset_uuid: '789100'
+        },
+        metric1: {value: 9000, label: 'metric_one'},
+        metric2: {value: 'VeryBad', label: 'metric_two'}
+      },
+      instrument_name: '1234',
+      instrument_type: 'Revio',
+    }
+  };
+
+  test('Numbered plate is combined into the "well label"', () => {
+    const wrapper = render(QcView, {
+      props: props_2,
+      global: {
+        plugins: [ElementPlus],
+        provide: {
+          activeTab: 'inbox'
+        }
+      }
+    });
+
+    expect(wrapper.html()).toContain('1-A1');
+  });
 });
