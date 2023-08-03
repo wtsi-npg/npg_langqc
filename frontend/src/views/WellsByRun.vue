@@ -36,8 +36,8 @@ function flatten_data(values) {
 getUserName((email) => { user.value = email }).then();
 
 watch(() => route.query, (after, before) => {
-    if ((after['qcLabel'] || after['qcRun']) && qcQueryChanged(before, after)) {
-      focusWell.loadWellDetail(after.qcRun, after.qcLabel)
+    if ((after['idProduct']) && qcQueryChanged(before, after)) {
+      focusWell.loadWellDetail(after.idProduct)
     }
   },
   { immediate: true }
@@ -73,8 +73,8 @@ function updateUrlQuery(newParams) {
   }
 }
 
-function wellSelected(well) {
-  updateUrlQuery({qcRun: well.qcRun, qcLabel: well.qcLabel})
+function wellSelected(idProduct) {
+  updateUrlQuery({idProduct: idProduct})
 }
 
 </script>
