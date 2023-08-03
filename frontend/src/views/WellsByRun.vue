@@ -73,15 +73,11 @@ function updateUrlQuery(newParams) {
   }
 }
 
-function wellSelected(idProduct) {
-  updateUrlQuery({idProduct: idProduct})
-}
-
 </script>
 
 <template>
   <h2 v-if="wellCollection.length > 0">Wells for run {{ props.runName.toString() }}</h2>
-  <WellTable v-if="wellCollection.length > 0" :wellCollection="wellCollection" @wellSelected="wellSelected"/>
+  <WellTable v-if="wellCollection.length > 0" :wellCollection="wellCollection" @wellSelected="updateUrlQuery"/>
   <h2 v-else>No wells found for run. Search again</h2>
   <h2>Well QC View</h2>
   <div class="qcview" v-if="focusWell.well !== null">

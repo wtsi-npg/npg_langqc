@@ -37,6 +37,7 @@ for (let index = 0; index < 2; index++) {
     well_status: "Complete",
     instrument_name: "1234",
     instrument_type: "Revio",
+    id_product: `${index}23456`,
     ...someLinkGeneration
   })
 }
@@ -46,6 +47,7 @@ const secondaryRun = {
   label: 'B1',
   instrument_name: '1234',
   instrument_type: 'Revio',
+  id_product: 'ABCDEF',
   ...someLinkGeneration
 }
 
