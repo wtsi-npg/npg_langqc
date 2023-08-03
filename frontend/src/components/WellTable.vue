@@ -28,8 +28,9 @@ defineEmits(['wellSelected'])
     <tr :key="wellObj.run_name + ':' + wellObj.label" v-for="wellObj in wellCollection">
       <td>{{ wellObj.run_name }}</td>
       <td class="well_selector">
-        <button v-on:click="$emit('wellSelected', { idProduct: wellObj.id_product })">{{ wellObj.label
-        }}</button>
+        <button v-on:click="$emit('wellSelected', { idProduct: wellObj.id_product })">
+          {{ combineLabelWithPlate(wellObj.label, wellObj.plate_number) }}
+        </button>
       </td>
       <td>{{ wellObj.instrument_type }} {{ wellObj.instrument_name }}</td>
       <td>{{ wellObj.qc_state ? wellObj.qc_state.qc_state : '&nbsp;' }}</td>

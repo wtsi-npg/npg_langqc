@@ -17,14 +17,15 @@ describe('Rows of data give rows in the table', () => {
   test('There are three rows plus a header in the table', () => {
     const rows = table.findAll('tr')
     expect(rows.length).toEqual(4)
-
-    const columns = rows[1].findAll('td')
+    let columns = rows[1].findAll('td')
     expect(columns[0].text()).toEqual('TEST1')
     expect(columns[1].text()).toEqual('A1')
     expect(columns[2].text()).toEqual('Revio 1234')
     for (let col of columns.splice(3)) {
       expect(col.text()).toEqual('')
     }
+    columns = rows[3].findAll('td')
+    expect(columns[1].text()).toEqual('1-A1')
   })
 
   test('Non-null plate_number gives modified well labels', () => {
