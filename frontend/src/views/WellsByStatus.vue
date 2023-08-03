@@ -60,9 +60,9 @@ watch(() => route.query, (after, before) => {
   }
 
   // Handle the run and well to show in the QC Viewer
-  if (after && (after.qcLabel || after.qcRun) && qcQueryChanged(before, after)) {
+  if (qcQueryChanged(before, after)) {
     // Somehow we need to capture the other parameter in case both have not been set
-    loadWellDetail(after.qcRun, after.qcLabel)
+    loadWellDetail(after.idProduct)
   }
 
   // Handle changes of tab in the table of wells.
@@ -86,12 +86,11 @@ watch(() => route.query, (after, before) => {
 provide('activeTab', activeTab);
 provide('activeWell', readonly(activeWell));
 
-function loadWellDetail(runName, label) {
+function loadWellDetail(id_product) {
   // Sets the well and QC state for the QcView components below
 
-  focusWell.loadWellDetail(runName, label)
-  activeWell.runName = runName;
-  activeWell.label = label;
+  focusWell.loadWellDetail(id_product);
+  [activeWell.runName, activeWell.label] = focusWell.getRunAndLabel;
 }
 
 function loadWells(status, page, pageSize) {
