@@ -12,15 +12,22 @@ def test_get_well_info(
         mlwhdb_test_session, "tests/data/mlwh_pb_run_92", "lang_qc.db.mlwh_schema"
     )
 
-    response = test_client.get("/pacbio/run/MARATHON/well/A0")
+    id_product = "cf18bd66e0f0895ea728c1d08103c62d3de8a57a5f879cee45f7b0acc028aa67"
+    response = test_client.get(f"/pacbio/products/{id_product}/seq_level")
     assert response.status_code == 404
-    assert response.json()["detail"] == "PacBio well A0 run MARATHON not found."
+    assert (
+        response.json()["detail"]
+        == f"PacBio well for product ID {id_product} not found."
+    )
 
-    response = test_client.get("/pacbio/run/TRACTION-RUN-92/well/A1")
-    assert response.status_code == 200
-    result = response.json()
+    response = test_client.get("/pacbio/products/342/seq_level")
+    assert response.status_code == 422
+    assert response.json()["detail"].startswith("string does not match regex")
 
     id_product = "cf18bd66e0f0895ea728c1d08103c62d3de8a57a5f879cee45f7b0acc028aa61"
+    response = test_client.get(f"/pacbio/products/{id_product}/seq_level")
+    assert response.status_code == 200
+    result = response.json()
 
     assert result["label"] == "A1"
     assert result["run_name"] == "TRACTION-RUN-92"
@@ -80,11 +87,10 @@ def test_get_well_info(
     assert etrack["library_type"] == ["PacBio_Ultra_Low_Input"]
     assert etrack["tag_sequence"] == []
 
-    response = test_client.get("/pacbio/run/TRACTION-RUN-92/well/D1")
+    id_product = "c5babd5516f7b9faab8415927e5f300d5152bb96b8b922e768d876469a14fa5d"
+    response = test_client.get(f"/pacbio/products/{id_product}/seq_level")
     assert response.status_code == 200
     result = response.json()
-
-    id_product = "c5babd5516f7b9faab8415927e5f300d5152bb96b8b922e768d876469a14fa5d"
 
     assert result["label"] == "D1"
     assert result["run_name"] == "TRACTION-RUN-92"
@@ -95,11 +101,10 @@ def test_get_well_info(
     assert result["metrics"]["smrt_link"]["dataset_uuid"] is None
     assert result["qc_state"] is None
 
-    response = test_client.get("/pacbio/run/TRACTION_RUN_1/well/B1")
+    id_product = "b5a7d41453097fe3cc59644a679186e64a2147833ecc76a2870c5fe8068835ae"
+    response = test_client.get(f"/pacbio/products/{id_product}/seq_level")
     assert response.status_code == 200
     result = response.json()
-
-    id_product = "b5a7d41453097fe3cc59644a679186e64a2147833ecc76a2870c5fe8068835ae"
 
     assert result["label"] == "B1"
     assert result["run_name"] == "TRACTION_RUN_1"
@@ -122,11 +127,10 @@ def test_get_well_info(
     }
     assert result["qc_state"] == expected_qc_state
 
-    response = test_client.get("/pacbio/run/TRACTION_RUN_2/well/A1")
+    id_product = "bc00984029864176324b91e0871a32a3692a54bd9b18f00b8596a2f2a166eca3"
+    response = test_client.get(f"/pacbio/products/{id_product}/seq_level")
     assert response.status_code == 200
     result = response.json()
-
-    id_product = "bc00984029864176324b91e0871a32a3692a54bd9b18f00b8596a2f2a166eca3"
 
     assert result["label"] == "A1"
     assert result["run_name"] == "TRACTION_RUN_2"
@@ -147,3 +151,17 @@ def test_get_well_info(
         "created_by": "LangQC",
     }
     assert result["qc_state"] == expected_qc_state
+
+    # The same run and well as above, different plate.
+    id_product = "3ff15eac7ac39e56d6ee2200b1b9a87a3da405911d79f5a1d250cca3ec697a9a"
+    response = test_client.get(f"/pacbio/products/{id_product}/seq_level")
+    assert response.status_code == 200
+    result = response.json()
+
+    assert result["label"] == "A1"
+    assert result["run_name"] == "TRACTION_RUN_2"
+    assert result["instrument_name"] == "12345"
+    assert result["instrument_type"] == "Revio"
+    assert result["plate_number"] == 2
+    assert result["id_product"] == id_product
+    assert result["qc_state"] is None

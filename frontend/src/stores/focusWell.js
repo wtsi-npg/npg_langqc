@@ -71,8 +71,8 @@ export const useWellStore = defineStore('focusWell', {
         setFocusWell(well) {
             this.well = well;
         },
-        loadWellDetail(runName, label) {
-            apiClient.getWellPromise(runName, label).then(
+        loadWellDetail(id_product) {
+            apiClient.getWellPromise(id_product).then(
                 (well) => this.well = well
             ).catch(
                 (error) => {

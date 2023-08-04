@@ -84,8 +84,8 @@ export default class LangQc {
     );
   }
 
-  getWellPromise(name, well) {
-    return this.fetchWrapper(this.buildUrl(['run', name, 'well', well]));
+  getWellPromise(id_product) {
+    return this.fetchWrapper(this.buildUrl(['products', id_product, 'seq_level']));
   }
 
   getWellsForRunPromise(name) {

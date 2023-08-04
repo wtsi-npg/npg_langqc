@@ -20,7 +20,7 @@
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import PositiveInt
+from pydantic import PositiveInt, ValidationError
 from sqlalchemy.orm import Session
 from starlette import status
 
@@ -33,6 +33,37 @@ from lang_qc.models.pacbio.well import PacBioPagedWells, PacBioWellFull
 from lang_qc.models.qc_flow_status import QcFlowStatusEnum
 from lang_qc.models.qc_state import QcState, QcStateBasic
 from lang_qc.util.auth import check_user
+from lang_qc.util.validation import check_product_id_is_valid
+
+"""
+A collection of API endpoints that are specific to the PacBio sequencing
+platform. All URLs start with /pacbio/.
+
+The URLs starting with /pacbio/products are reserved for either retrieving,
+or updating, or creating any information about a PacBio product. Sequence
+data are out of scope. QC metrics and states and links to any relevant third
+party web applications are in scope.
+
+For the purpose of this API the term 'product' has dual semantics. It refers
+to either of the entities listed below:
+  1. the target product the user is getting as the output of NPG own and
+     third party pipelines,
+  2. any intermediate product that is used to assess the quality of the end
+     product, a single well being the prime example of this.
+
+Each product is characterised by a unique product ID, see
+https://github.com/wtsi-npg/npg_id_generation
+
+A non-indexed single library sequenced in a well has the same product ID as
+the well product. Therefore, in order to serve the correct response, it is
+necessary to know the context of the request. This can be achieved by
+different means:
+  1. by adding an extra URL component (see /products/{id_product}/seq_level
+     URL defined in this package),
+  2. by adding an extra parameter to the URL,
+  3. for POST requests, by adding and a special field to the payload (see qc_type
+     in models in lang_qc.models.qc_state).
+"""
 
 router = APIRouter(
     prefix="/pacbio",
@@ -116,29 +147,34 @@ def get_wells_in_run(
 
 
 @router.get(
-    "/run/{run_name}/well/{well_label}",
-    summary="Get QC data for a well",
+    "/products/{id_product}/seq_level",
+    summary="Get full sequencing QC metrics and state for a product",
     responses={
-        status.HTTP_404_NOT_FOUND: {"description": "Well does not exist"},
+        status.HTTP_404_NOT_FOUND: {"description": "Well product does not exist"},
+        status.HTTP_422_UNPROCESSABLE_ENTITY: {"description": "Invalid product ID"},
     },
     response_model=PacBioWellFull,
 )
-def get_pacbio_well(
-    run_name: str,
-    well_label: str,
+def get_seq_metrics(
+    id_product: str,
     mlwhdb_session: Session = Depends(get_mlwh_db),
     qcdb_session: Session = Depends(get_qc_db),
 ) -> PacBioWellFull:
 
-    well_row = WellWh(session=mlwhdb_session).get_well(
-        run_name=run_name, well_label=well_label
+    try:
+        check_product_id_is_valid(id_product=id_product)
+    except ValidationError as err:
+        raise HTTPException(422, detail=" ".join([e["msg"] for e in err.errors()]))
+
+    mlwh_well = WellWh(session=mlwhdb_session).get_mlwh_well_by_product_id(
+        id_product=id_product
     )
-    if well_row is None:
+    if mlwh_well is None:
         raise HTTPException(
-            404, detail=f"PacBio well {well_label} run {run_name} not found."
+            404, detail=f"PacBio well for product ID {id_product} not found."
         )
 
-    return PacBioWellFull.from_orm(well_row, qcdb_session)
+    return PacBioWellFull.from_orm(mlwh_well, qcdb_session)
 
 
 @router.post(

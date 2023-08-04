@@ -63,8 +63,8 @@ describe('Test query setting in URL', () => {
 })
 
 describe('Test QC param check', () => {
-  const testRun = {qcRun: 'test-run', qcLabel: 'A1'}
-  const alteredTestRun = {qcRun: 'test-run', qcLabel: 'B1'}
+  const testRun = {idProduct: 'AAAAAAAA'}
+  const alteredTestRun = {idProduct: 'BBBBBBBB'}
 
   test('No before, some after', () => {
     expect(qcQueryChanged(undefined, testRun)).toBe(true)
