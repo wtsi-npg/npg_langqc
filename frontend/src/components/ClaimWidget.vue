@@ -18,12 +18,12 @@ const props = defineProps({
 let client = new LangQc();
 
 function claimHandler() {
-    const [runName, wellLabel] = focusWell.getRunAndLabel;
-    if (!(runName && wellLabel)) {
-        throw new Error('Claim environment misconfigured, no run name or well label');
+    const id = focusWell.getIdProduct;
+    if (!id) {
+        throw new Error('Claim environment misconfigured, needs an id_product');
     }
 
-    client.claimWell(runName, wellLabel)
+    client.claimWell(id)
         .then(
             (response) => {
                 focusWell.updateWellQcState(response);

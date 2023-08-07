@@ -69,13 +69,13 @@ describe('Example fake remote api call', () => {
             })
         )
 
-        client.claimWell('TRACTION-RUN-299', 'B1');
+        client.claimWell('ABCDEF');
 
         let request = fetch.mock.calls[3];
         expect(
             request[0]
         ).toEqual(
-            '/api/pacbio/run/TRACTION-RUN-299/well/B1/qc_claim'
+            '/api/pacbio/products/ABCDEF/qc_claim'
         );
 
         expect(
