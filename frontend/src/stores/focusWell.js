@@ -28,6 +28,13 @@ export const useWellStore = defineStore('focusWell', {
         */
     }),
     getters: {
+        getIdProduct(state) {
+            if (state.well && !isNull(state.well.id_product)) {
+                return state.well.id_product
+            } else {
+                return null
+            }
+        },
         getRunAndLabel(state) {
             if (!isNull(state.well)) {
                 return [
