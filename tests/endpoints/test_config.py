@@ -1,16 +1,10 @@
 from fastapi.testclient import TestClient
 
-from tests.fixtures.inbox_data import test_data_factory
+from tests.fixtures.well_data import load_dicts_and_users
 
 
-def test_not_found(test_client: TestClient):
-    """Test a 404 response."""
-    response = test_client.get("/this does not exist")
-    assert response.status_code == 404
+def test_get_config(test_client: TestClient, load_dicts_and_users):
 
-
-def test_get_config(test_client: TestClient, test_data_factory):
-    test_data_factory({})
     response = test_client.get("/config")
     assert response.status_code == 200
     expected = {
@@ -25,7 +19,10 @@ def test_get_config(test_client: TestClient, test_data_factory):
         "qc_states": [
             {"description": "Passed", "only_prelim": False},
             {"description": "Failed", "only_prelim": False},
+            {"description": "Failed, Instrument", "only_prelim": False},
+            {"description": "Failed, SMRT cell", "only_prelim": False},
             {"description": "On hold", "only_prelim": True},
+            {"description": "Undecided", "only_prelim": False},
         ],
     }
     assert response.json() == expected
