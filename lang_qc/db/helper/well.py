@@ -34,6 +34,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
 
+from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
 from lang_qc.db.qc_schema import (
     QcState,
     QcStateDict,
@@ -148,36 +149,24 @@ class WellQc(QcDictDB):
     QC data in LangQC database.
     """
 
-    run_name: str = Field(title="Name of the run as known in LIMS")
-    well_label: str = Field(title="Well label as known in LIMS and SmrtLink")
+    id_product: str = Field(title="A unique product ID")
 
     class Config:
         allow_mutation = False
-        # A workaround for a bug in pydantic in order to use the cached_property
-        # decorator.
-        keep_untouched = (cached_property,)
 
-    @cached_property
-    def seq_product(self) -> SeqProduct:
+    def seq_product(self, mlwh_well: PacBioRunWellMetrics) -> SeqProduct:
         """
         Returns a pre-existing `lang_qc.db.qc_schema.SeqProduct`, or creates
-        a new one. The property is computed lazily.
+        a new one.
         """
 
-        return self._find_or_create_well()
+        well_product = self._find_well()
+        if well_product is None:
+            well_product = self._create_well(
+                mlwh_well.pac_bio_run_name, mlwh_well.well_label, mlwh_well.plate_number
+            )
 
-    @cached_property
-    def product_definition(self) -> Dict:
-        """
-        A cached representation of the well as a dictionary with two keys,
-        `id` - a unique product id and `json` - a json string representing
-        this well, see `npg_id_generation.PacBioEntity` for details. This
-        property is an outcome of a light-weight computation that does not
-        involve querying the database. The property is computed lazily.
-        """
-
-        pbe = PacBioEntity(run_name=self.run_name, well_label=self.well_label)
-        return {"id": pbe.hash_product_id(), "json": pbe.json()}
+        return well_product
 
     def current_qc_state(self, qc_type: str = "sequencing") -> QcState | None:
         """
@@ -198,7 +187,7 @@ class WellQc(QcDictDB):
                 .join(QcState.seq_product)
                 .where(
                     and_(
-                        SeqProduct.id_product == self.product_definition["id"],
+                        SeqProduct.id_product == self.id_product,
                         QcState.qc_type == self.qc_type_dict_row(qc_type),
                     )
                 )
@@ -209,6 +198,7 @@ class WellQc(QcDictDB):
 
     def assign_qc_state(
         self,
+        mlwh_well: PacBioRunWellMetrics,
         user: User,
         qc_state: str = DEFAULT_QC_STATE,
         qc_type: str = DEFAULT_QC_TYPE,
@@ -299,7 +289,7 @@ class WellQc(QcDictDB):
             "user": user,
             "created_by": application,
             "qc_type": self.qc_types[qc_type],
-            "seq_product": self.seq_product,
+            "seq_product": self.seq_product(mlwh_well),
         }
 
         if db_state is not None:
@@ -333,24 +323,19 @@ class WellQc(QcDictDB):
 
         return db_state
 
-    def _find_or_create_well(self) -> SeqProduct:
+    def _find_well(self) -> SeqProduct:
 
-        well_product = (
+        return (
             self.session.execute(
-                select(SeqProduct).where(
-                    SeqProduct.id_product == self.product_definition["id"]
-                )
+                select(SeqProduct).where(SeqProduct.id_product == self.id_product)
             )
             .scalars()
             .one_or_none()
         )
 
-        if well_product is None:
-            well_product = self._create_well()
-
-        return well_product
-
-    def _create_well(self) -> SeqProduct:
+    def _create_well(
+        self, run_name: str, well_label: str, plate_number: int = None
+    ) -> SeqProduct:
 
         id_seq_platform = (
             self.session.execute(
@@ -376,22 +361,32 @@ class WellQc(QcDictDB):
             .id_attr
         )
 
-        pd = self.product_definition
-        product_id = pd["id"]
-        product_json = pd["json"]
+        product_attr_id_pn = (
+            self.session.execute(
+                select(SubProductAttr).where(SubProductAttr.attr_name == "plate_number")
+            )
+            .scalar_one()
+            .id_attr
+        )
+
+        product_json = PacBioEntity(
+            run_name=run_name, well_label=well_label, plate_number=plate_number
+        ).json()
         # TODO: in future for composite products we have to check whether any of
         # the `sub_product` table entries we are linking to already exist.
         well_product = SeqProduct(
-            id_product=product_id,
+            id_product=self.id_product,
             id_seq_platform=id_seq_platform,
             sub_products=[
                 SubProduct(
                     id_attr_one=product_attr_id_rn,
-                    value_attr_one=self.run_name,
+                    value_attr_one=run_name,
                     id_attr_two=product_attr_id_wl,
-                    value_attr_two=self.well_label,
+                    value_attr_two=well_label,
+                    id_attr_three=product_attr_id_pn,
+                    value_attr_three=str(plate_number),
                     properties=product_json,
-                    properties_digest=product_id,
+                    properties_digest=self.id_product,
                 )
             ],
         )
