@@ -129,7 +129,7 @@ def test_error_invalid_state(test_client: TestClient, load_data4well_retrieval):
     )
 
 
-def test_change_outcome(test_client: TestClient, load_data4well_retrieval):
+def test_assign_state(test_client: TestClient, load_data4well_retrieval):
     """Successfully change a state from passed to failed"""
 
     response = test_client.put(
@@ -177,3 +177,40 @@ def test_change_outcome(test_client: TestClient, load_data4well_retrieval):
     assert response.status_code == 200
     for key, value in expected.items():
         assert content[key] == value
+
+
+def test_permutations_of_plates(test_client: TestClient, load_data4well_retrieval):
+
+    post_data_update = """
+    {
+        "qc_type": "sequencing",
+        "qc_state": "Passed",
+        "is_preliminary": true
+    }
+    """
+
+    # Sequel2 instrument - plate number is undefined (not relevant).
+    id_product_1A1 = PacBioEntity(
+        run_name="TRACTION_RUN_1", well_label="A1"
+    ).hash_product_id()
+    response = test_client.put(
+        f"/pacbio/products/{id_product_1A1}/qc_assign",
+        post_data_update,
+        headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
+    )
+    assert response.status_code == 200
+
+    # Revio instrument plates No 1&2.
+    for pn in [1, 2]:
+        id_product = PacBioEntity(
+            run_name="TRACTION_RUN_16", well_label="A1", plate_number=pn
+        ).hash_product_id()
+        response = test_client.put(
+            f"/pacbio/products/{id_product}/qc_assign",
+            post_data_update,
+            headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
+        )
+        assert response.status_code == 200
+        r = response.json()
+        assert r["qc_state"] == "Passed"
+        assert r["id_product"] == id_product
