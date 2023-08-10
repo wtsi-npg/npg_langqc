@@ -1,3 +1,5 @@
+from npg_id_generation.pac_bio import PacBioEntity
+
 from lang_qc.db.helper.wells import WellWh
 from lang_qc.models.pacbio.well import PacBioWellFull
 from tests.conftest import compare_dates, insert_from_yaml
@@ -14,12 +16,16 @@ def test_creating_experiment_object(
     helper = WellWh(session=mlwhdb_test_session)
 
     # Full mlwh data, no data in the lang_qc database.
-    run_name = "TRACTION-RUN-92"
-    well_row = helper.get_well(run_name, "A1")
+    id_product = PacBioEntity(
+        run_name="TRACTION-RUN-92", well_label="A1"
+    ).hash_product_id()
+    well_row = helper.get_mlwh_well_by_product_id(id_product)
 
     pb_well = PacBioWellFull.from_orm(well_row, qcdb_test_session)
-    assert pb_well.run_name == run_name
+    assert pb_well.id_product == id_product
+    assert pb_well.run_name == "TRACTION-RUN-92"
     assert pb_well.label == "A1"
+    assert pb_well.plate_number is None
     assert pb_well.qc_state is None
     compare_dates(pb_well.run_start_time, "2022-04-14 12:52:34")
     compare_dates(pb_well.run_complete_time, "2022-04-20 09:16:53")
@@ -34,12 +40,16 @@ def test_creating_experiment_object(
 
     # Only run_well mlwh data (no products), and data in the lang_qc database.
     # Very sketchy mlwh qc metrics data
-    run_name = "TRACTION_RUN_1"
-    well_row = helper.get_well(run_name, "B1")
+    id_product = PacBioEntity(
+        run_name="TRACTION_RUN_1", well_label="B1"
+    ).hash_product_id()
+    well_row = helper.get_mlwh_well_by_product_id(id_product)
 
     pb_well = PacBioWellFull.from_orm(well_row, qcdb_test_session)
-    assert pb_well.run_name == run_name
+    assert pb_well.id_product == id_product
+    assert pb_well.run_name == "TRACTION_RUN_1"
     assert pb_well.label == "B1"
+    assert pb_well.plate_number is None
     assert pb_well.run_status == "Complete"
     assert pb_well.well_status == "Complete"
     assert pb_well.qc_state is not None
@@ -50,12 +60,16 @@ def test_creating_experiment_object(
 
     # Only run_well mlwh data (no products), no data in the lang_qc database.
     # Very sketchy mlwh qc metrics data
-    run_name = "TRACTION_RUN_10"
-    well_row = helper.get_well(run_name, "C1")
+    id_product = PacBioEntity(
+        run_name="TRACTION_RUN_10", well_label="C1"
+    ).hash_product_id()
+    well_row = helper.get_mlwh_well_by_product_id(id_product)
 
     pb_well = PacBioWellFull.from_orm(well_row, qcdb_test_session)
-    assert pb_well.run_name == run_name
+    assert pb_well.id_product == id_product
+    assert pb_well.run_name == "TRACTION_RUN_10"
     assert pb_well.label == "C1"
+    assert pb_well.plate_number == 1
     assert pb_well.well_status == "Complete"
     assert pb_well.run_status == "Aborted"
     assert pb_well.qc_state is None

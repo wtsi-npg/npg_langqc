@@ -161,24 +161,14 @@ def get_seq_metrics(
     qcdb_session: Session = Depends(get_qc_db),
 ) -> PacBioWellFull:
 
-    try:
-        check_product_id_is_valid(id_product=id_product)
-    except ValidationError as err:
-        raise HTTPException(422, detail=" ".join([e["msg"] for e in err.errors()]))
-
-    mlwh_well = WellWh(session=mlwhdb_session).get_mlwh_well_by_product_id(
-        id_product=id_product
-    )
-    if mlwh_well is None:
-        raise HTTPException(
-            404, detail=f"PacBio well for product ID {id_product} not found."
-        )
+    _validate_product_id_or_error(id_product)
+    mlwh_well = _find_well_product_or_error(id_product, mlwhdb_session)
 
     return PacBioWellFull.from_orm(mlwh_well, qcdb_session)
 
 
 @router.post(
-    "/run/{run_name}/well/{well_label}/qc_claim",
+    "/products/{id_product}/qc_claim",
     summary="Claim the well to start QC",
     description="""
     Enables the user to initiate manual QC of the well. The resulting QC state
@@ -202,38 +192,29 @@ def get_seq_metrics(
     status_code=status.HTTP_201_CREATED,
 )
 def claim_qc(
-    run_name: str,
-    well_label: str,
+    id_product: str,
     user: User = Depends(check_user),
     qcdb_session: Session = Depends(get_qc_db),
     mlwhdb_session: Session = Depends(get_mlwh_db),
 ) -> QcState:
 
-    if (
-        WellWh(session=mlwhdb_session).well_exists(
-            run_name=run_name, well_label=well_label
-        )
-        is False
-    ):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Well {well_label} run {run_name} does not exist",
-        )
+    _validate_product_id_or_error(id_product)
+    mlwh_well = _find_well_product_or_error(id_product, mlwhdb_session)
 
-    well_qc = WellQc(session=qcdb_session, run_name=run_name, well_label=well_label)
-    if well_qc.current_qc_state():
+    well_qc = WellQc(session=qcdb_session)
+    if well_qc.current_qc_state(id_product):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=f"Well {well_label} run {run_name} has already been claimed",
+            detail=f"Well for product {id_product} has already been claimed",
         )
 
     # Using default attributes for almost all arguments.
     # The new QC state will be set as preliminary.
-    return QcState.from_orm(well_qc.assign_qc_state(user=user))
+    return QcState.from_orm(well_qc.assign_qc_state(mlwh_well=mlwh_well, user=user))
 
 
 @router.put(
-    "/run/{run_name}/well/{well_label}/qc_assign",
+    "/products/{id_product}/qc_assign",
     summary="Assign QC state to a well",
     description="""
     Enables the user to assign a new QC state to a well. The well QC should
@@ -252,15 +233,18 @@ def claim_qc(
     response_model=QcState,
 )
 def assign_qc_state(
-    run_name: str,
-    well_label: str,
+    id_product: str,
     request_body: QcStateBasic,
     user: User = Depends(check_user),
     qcdb_session: Session = Depends(get_qc_db),
+    mlwhdb_session: Session = Depends(get_mlwh_db),
 ) -> QcState:
 
-    well_qc = WellQc(session=qcdb_session, run_name=run_name, well_label=well_label)
-    qc_state = well_qc.current_qc_state()
+    _validate_product_id_or_error(id_product)
+    mlwh_well = _find_well_product_or_error(id_product, mlwhdb_session)
+
+    well_qc = WellQc(session=qcdb_session)
+    qc_state = well_qc.current_qc_state(id_product)
 
     if qc_state is None:
         raise HTTPException(
@@ -271,7 +255,9 @@ def assign_qc_state(
     qc_state = None
     message = "Error assigning status: "
     try:
-        qc_state = well_qc.assign_qc_state(user=user, **request_body.dict())
+        qc_state = well_qc.assign_qc_state(
+            mlwh_well=mlwh_well, user=user, **request_body.dict()
+        )
     except (InvalidDictValueError, InconsistentInputError) as err:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -279,3 +265,22 @@ def assign_qc_state(
         )
 
     return QcState.from_orm(qc_state)
+
+
+def _validate_product_id_or_error(id_product):
+    try:
+        check_product_id_is_valid(id_product=id_product)
+    except ValidationError as err:
+        raise HTTPException(422, detail=" ".join([e["msg"] for e in err.errors()]))
+
+
+def _find_well_product_or_error(id_product, mlwhdb_session):
+
+    mlwh_well = WellWh(session=mlwhdb_session).get_mlwh_well_by_product_id(
+        id_product=id_product
+    )
+    if mlwh_well is None:
+        raise HTTPException(
+            404, detail=f"PacBio well for product ID {id_product} not found."
+        )
+    return mlwh_well

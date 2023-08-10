@@ -10,15 +10,14 @@ from lang_qc.db.helper.well import (
     QcDictDB,
     WellQc,
 )
+from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
 from lang_qc.db.qc_schema import QcState, QcStateHist, User
-from tests.fixtures.well_data import load_dicts_and_users
+from tests.fixtures.well_data import load_data4well_retrieval, load_dicts_and_users
 
 
 def test_dict_helper(qcdb_test_session, load_dicts_and_users):
 
-    session = qcdb_test_session
-
-    helper = QcDictDB(session=session)
+    helper = QcDictDB(session=qcdb_test_session)
 
     for type in ("library", "sequencing"):
         library_row = helper.qc_type_dict_row(type)
@@ -47,24 +46,33 @@ def test_dict_helper(qcdb_test_session, load_dicts_and_users):
     assert list(helper.qc_states.keys()) == expected_sorted_states
 
 
-def test_well_state_helper(qcdb_test_session, load_dicts_and_users):
+def test_well_state_helper(
+    qcdb_test_session, mlwhdb_test_session, load_data4well_retrieval
+):
 
     session = qcdb_test_session
     users = session.execute(select(User)).scalars().all()
     user1 = users[0].username
     user2 = users[1].username
 
-    pbi = PacBioEntity(run_name="TRACTION-RUN-450", well_label="A1")
+    pbi = PacBioEntity(run_name="TRACTION_RUN_2", well_label="A1", plate_number=2)
     id = pbi.hash_product_id()
     json = pbi.json()
     time_now = datetime.now()
+    mlwh_well = mlwhdb_test_session.execute(
+        select(PacBioRunWellMetrics).where(
+            PacBioRunWellMetrics.id_pac_bio_product == id,
+        )
+    ).scalar_one_or_none()
 
-    helper = WellQc(session=session, run_name="TRACTION-RUN-450", well_label="A1")
+    helper = WellQc(session=session)
 
-    assert helper.current_qc_state() is None
+    assert helper.current_qc_state(id) is None
 
     # Expect a new QC state and product record are created
-    state_obj = helper.assign_qc_state(user=users[0], qc_state="Claimed")
+    state_obj = helper.assign_qc_state(
+        mlwh_well=mlwh_well, user=users[0], qc_state="Claimed"
+    )
     assert state_obj.date_created == state_obj.date_updated
     assert state_obj.user.username == user1
     assert state_obj.qc_type.qc_type == "sequencing"
@@ -78,8 +86,9 @@ def test_well_state_helper(qcdb_test_session, load_dicts_and_users):
     sub_product = state_obj.seq_product.sub_products[0]
     assert sub_product.properties == json
     assert sub_product.properties_digest == id
-    assert sub_product.value_attr_one == "TRACTION-RUN-450"
+    assert sub_product.value_attr_one == "TRACTION_RUN_2"
     assert sub_product.value_attr_two == "A1"
+    assert sub_product.value_attr_three == "2"  # A string!
 
     id_seq_product = state_obj.id_seq_product
     hist_objs = _hist_objects(session, id_seq_product)
@@ -87,15 +96,16 @@ def test_well_state_helper(qcdb_test_session, load_dicts_and_users):
     _test_hist_object(state_obj, hist_objs[0])
 
     # Current QC state is defined now
-    current_qc_state = helper.current_qc_state()
+    current_qc_state = helper.current_qc_state(id)
     assert current_qc_state == state_obj
     # ... but not for a library
-    assert helper.current_qc_state("library") is None
+    assert helper.current_qc_state(id, "library") is None
     # Check that the date is very recent
     delta = current_qc_state.date_created - time_now
     assert delta.total_seconds() <= 1
 
     args = {
+        "mlwh_well": mlwh_well,
         "user": users[1],
         "qc_state": "Passed",
         "qc_type": "sequencing",
@@ -133,9 +143,9 @@ def test_well_state_helper(qcdb_test_session, load_dicts_and_users):
     _test_hist_object(state_obj, hist_objs[2])
 
     # Current QC state is defined for library QC
-    assert helper.current_qc_state("library") == state_obj
+    assert helper.current_qc_state(id, "library") == state_obj
     # ... and is different from the current QC state for sequencing
-    assert helper.current_qc_state("sequencing") != state_obj
+    assert helper.current_qc_state(id, "sequencing") != state_obj
 
     args["is_preliminary"] = False
     state_obj = helper.assign_qc_state(**args)
@@ -145,6 +155,7 @@ def test_well_state_helper(qcdb_test_session, load_dicts_and_users):
     _test_hist_object(state_obj, hist_objs[3])
 
     args = {
+        "mlwh_well": mlwh_well,
         "user": users[1],
         "qc_state": "Claimed",
         "qc_type": "sequencing",
@@ -176,7 +187,16 @@ def test_well_state_helper(qcdb_test_session, load_dicts_and_users):
     assert state_obj.date_created.year == time_now.year
 
     # ... and on creating a new record.
-    helper = WellQc(session=session, run_name="TRACTION-RUN-450", well_label="B1")
+    pbi = PacBioEntity(run_name="TRACTION_RUN_2", well_label="B1", plate_number=2)
+    id = pbi.hash_product_id()
+    mlwh_well = mlwhdb_test_session.execute(
+        select(PacBioRunWellMetrics).where(
+            PacBioRunWellMetrics.id_pac_bio_product == id,
+        )
+    ).scalar_one_or_none()
+    args["mlwh_well"] = mlwh_well
+
+    helper = WellQc(session=session)
     state_obj = helper.assign_qc_state(**args)
     date_updated = state_obj.date_updated
     assert date_updated.year == past_date.year

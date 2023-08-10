@@ -22,7 +22,7 @@ def test_query_for_status(
     )
     query = factory._build_query4status(QcFlowStatusEnum.ON_HOLD)
     states = qcdb_test_session.execute(query).scalars().all()
-    assert len(states) == 2
+    assert len(states) == 3
     # The results should be sorted by the update date in a descending order.
     update_dates = ["2022-12-08 09:15:19", "2022-12-08 07:15:19"]
     for index in (0, 1):
@@ -43,6 +43,7 @@ def test_query_for_status(
     states = qcdb_test_session.execute(query).scalars().all()
     expected_data = [
         ["Failed", "2022-02-15 10:42:33"],
+        ["Claimed", "2022-02-15 10:42:34"],
         ["Claimed", "2022-12-07 07:15:19"],
         ["Claimed", "2022-12-07 09:15:19"],
         ["Failed, Instrument", "2022-12-07 15:13:56"],
@@ -170,8 +171,8 @@ def test_paged_retrieval_for_statuses(
 ):
 
     expected_page_details = {
-        QcFlowStatusEnum.IN_PROGRESS.name: 10,
-        QcFlowStatusEnum.ON_HOLD.name: 2,
+        QcFlowStatusEnum.IN_PROGRESS.name: 11,
+        QcFlowStatusEnum.ON_HOLD.name: 3,
         QcFlowStatusEnum.QC_COMPLETE.name: 4,
     }
 
@@ -252,7 +253,9 @@ def test_paged_retrieval_for_statuses(
         assert paged_wells.page_size == 10
         assert paged_wells.page_number == 2
         assert paged_wells.total_number_of_items == total_number_of_items
-        assert len(paged_wells.wells) == 0
+        assert len(paged_wells.wells) == (
+            1 if status == QcFlowStatusEnum.IN_PROGRESS else 0
+        )
 
     status = QcFlowStatusEnum.QC_COMPLETE
     factory = PacBioPagedWellsFactory(

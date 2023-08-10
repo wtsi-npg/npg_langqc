@@ -79,6 +79,8 @@ QC_DATA = [
     ["TRACTION_RUN_6", "A1", "Aborted", True, "2022-12-15 11:42:33", 1],
     ["TRACTION_RUN_6", "B1", "Aborted", True, "2022-12-15 10:42:33", 1],
     ["TRACTION_RUN_7", "A1", "Failed", True, "2022-02-15 10:42:33", 1],
+    ["TRACTION_RUN_16", "A1", "Claimed", True, "2022-02-15 10:42:34", 1],
+    ["TRACTION_RUN_16", "A1", "On hold", True, "2022-02-15 10:42:35", 2],
 ]
 
 # A set of fake warehouse entries for the QC states above.
@@ -659,8 +661,8 @@ MLWH_DATA = [
         3989714,
         2227107,
         "1234",
-        "Revio",
-        1,
+        "Sequel2",
+        None,
     ],
     [
         "SUBTRACTION_RUN_15",
@@ -741,6 +743,38 @@ MLWH_DATA = [
         "1234",
         "Revio",
         1,
+    ],
+    [
+        "TRACTION_RUN_16",
+        "A1",
+        "2022-06-11 11:15:41",
+        "2022-06-16 07:39:59",
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        "1234",
+        "Revio",
+        1,
+    ],
+    [
+        "TRACTION_RUN_16",
+        "A1",
+        "2022-06-11 11:15:41",
+        "2022-06-16 07:39:59",
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        "1234",
+        "Revio",
+        2,
     ],
 ]
 

@@ -1,3 +1,5 @@
+from npg_id_generation.pac_bio import PacBioEntity
+
 from lang_qc.db.helper.wells import WellWh
 from lang_qc.models.pacbio.qc_data import QCDataWell
 from tests.conftest import insert_from_yaml
@@ -11,9 +13,13 @@ def test_creating_qc_data_well(mlwhdb_test_session):
     insert_from_yaml(
         mlwhdb_test_session, "tests/data/mlwh_pb_demux_525", "lang_qc.db.mlwh_schema"
     )
+
     helper = WellWh(session=mlwhdb_test_session)
 
-    row = helper.get_well("TRACTION-RUN-525", "A1")
+    id_product = PacBioEntity(
+        run_name="TRACTION-RUN-525", well_label="A1"
+    ).hash_product_id()
+    row = helper.get_mlwh_well_by_product_id(id_product)
 
     qc = QCDataWell.from_orm(row)
 
@@ -85,7 +91,10 @@ def test_creating_qc_data_well(mlwhdb_test_session):
     }, "Demultiplexed percentages are calculated"
 
     # and check the less populated data leads to Nones
-    row = helper.get_well("TRACTION-RUN-92", "A1")
+    id_product = PacBioEntity(
+        run_name="TRACTION-RUN-92", well_label="A1"
+    ).hash_product_id()
+    row = helper.get_mlwh_well_by_product_id(id_product)
     qc = QCDataWell.from_orm(row)
 
     assert (

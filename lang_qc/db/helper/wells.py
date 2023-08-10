@@ -68,21 +68,6 @@ class WellWh(BaseModel):
         arbitrary_types_allowed = True
         allow_population_by_field_name = True
 
-    def get_well(self, run_name: str, well_label: str) -> PacBioRunWellMetrics | None:
-        """
-        Returns a well row record from the well metrics table or
-        None if the record does not exist.
-        """
-
-        return self.session.execute(
-            select(PacBioRunWellMetrics).where(
-                and_(
-                    PacBioRunWellMetrics.pac_bio_run_name == run_name,
-                    PacBioRunWellMetrics.well_label == well_label,
-                )
-            )
-        ).scalar_one_or_none()
-
     def get_mlwh_well_by_product_id(
         self, id_product: str
     ) -> PacBioRunWellMetrics | None:
@@ -96,14 +81,6 @@ class WellWh(BaseModel):
                 PacBioRunWellMetrics.id_pac_bio_product == id_product,
             )
         ).scalar_one_or_none()
-
-    def well_exists(self, run_name: str, well_label: str) -> bool:
-        """
-        Returns `True` if a record for combination of a well and a run exists,
-        in the well metrics table `False` otherwise.
-        """
-
-        return bool(self.get_well(run_name, well_label))
 
     def recent_completed_wells(self) -> List[PacBioRunWellMetrics]:
         """
