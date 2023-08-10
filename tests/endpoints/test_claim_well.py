@@ -5,9 +5,24 @@ from npg_id_generation.pac_bio import PacBioEntity
 
 from tests.fixtures.well_data import load_data4well_retrieval, load_dicts_and_users
 
+# Revio instrument - plate No 1
 id_product_15A1 = PacBioEntity(
     run_name="TRACTION_RUN_15", well_label="A1", plate_number=1
 ).hash_product_id()
+
+
+def test_id_generation_rule():
+    """
+    Demo that plate No 1 is equivalent to plate number being
+    undefined. This is to ensure backwards compatibility with
+    Revio wells, which were QC-ed prior to the introduction
+    of plate numbers.
+    """
+
+    assert (
+        id_product_15A1
+        == PacBioEntity(run_name="TRACTION_RUN_15", well_label="A1").hash_product_id()
+    )
 
 
 def test_claim_invalid_product_id(test_client: TestClient, load_data4well_retrieval):
@@ -99,3 +114,28 @@ def test_error_on_already_claimed(test_client: TestClient, load_data4well_retrie
         response.json()["detail"]
         == f"Well for product {id_product_15A1} has already been claimed"
     )
+
+
+def test_permutations_of_plates(test_client: TestClient, load_data4well_retrieval):
+
+    # Sequel2 instrument - plate number is undefined (not relevant).
+    id_product_14A1 = PacBioEntity(
+        run_name="TRACTION_RUN_14", well_label="A1"
+    ).hash_product_id()
+
+    response = test_client.post(
+        f"/pacbio/products/{id_product_14A1}/qc_claim",
+        headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
+    )
+    assert response.status_code == 201
+
+    # Revio instrument plate No 2.
+    # The same well on plate 1 has QC state assigned in fixtures.
+    id_product_2A1_2 = PacBioEntity(
+        run_name="TRACTION_RUN_2", well_label="A1", plate_number=2
+    ).hash_product_id()
+    response = test_client.post(
+        f"/pacbio/products/{id_product_2A1_2}/qc_claim",
+        headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
+    )
+    assert response.status_code == 201
