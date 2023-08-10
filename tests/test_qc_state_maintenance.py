@@ -17,9 +17,7 @@ from tests.fixtures.well_data import load_data4well_retrieval, load_dicts_and_us
 
 def test_dict_helper(qcdb_test_session, load_dicts_and_users):
 
-    session = qcdb_test_session
-
-    helper = QcDictDB(session=session)
+    helper = QcDictDB(session=qcdb_test_session)
 
     for type in ("library", "sequencing"):
         library_row = helper.qc_type_dict_row(type)
@@ -67,9 +65,9 @@ def test_well_state_helper(
         )
     ).scalar_one_or_none()
 
-    helper = WellQc(session=session, id_product=id)
+    helper = WellQc(session=session)
 
-    assert helper.current_qc_state() is None
+    assert helper.current_qc_state(id) is None
 
     # Expect a new QC state and product record are created
     state_obj = helper.assign_qc_state(
@@ -98,10 +96,10 @@ def test_well_state_helper(
     _test_hist_object(state_obj, hist_objs[0])
 
     # Current QC state is defined now
-    current_qc_state = helper.current_qc_state()
+    current_qc_state = helper.current_qc_state(id)
     assert current_qc_state == state_obj
     # ... but not for a library
-    assert helper.current_qc_state("library") is None
+    assert helper.current_qc_state(id, "library") is None
     # Check that the date is very recent
     delta = current_qc_state.date_created - time_now
     assert delta.total_seconds() <= 1
@@ -145,9 +143,9 @@ def test_well_state_helper(
     _test_hist_object(state_obj, hist_objs[2])
 
     # Current QC state is defined for library QC
-    assert helper.current_qc_state("library") == state_obj
+    assert helper.current_qc_state(id, "library") == state_obj
     # ... and is different from the current QC state for sequencing
-    assert helper.current_qc_state("sequencing") != state_obj
+    assert helper.current_qc_state(id, "sequencing") != state_obj
 
     args["is_preliminary"] = False
     state_obj = helper.assign_qc_state(**args)
@@ -198,7 +196,7 @@ def test_well_state_helper(
     ).scalar_one_or_none()
     args["mlwh_well"] = mlwh_well
 
-    helper = WellQc(session=session, id_product=id)
+    helper = WellQc(session=session)
     state_obj = helper.assign_qc_state(**args)
     date_updated = state_obj.date_updated
     assert date_updated.year == past_date.year

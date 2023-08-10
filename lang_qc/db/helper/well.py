@@ -30,7 +30,7 @@ from functools import cached_property
 from typing import Dict
 
 from npg_id_generation.pac_bio import PacBioEntity
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Extra, Field
 from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
 
@@ -149,29 +149,34 @@ class WellQc(QcDictDB):
     QC data in LangQC database.
     """
 
-    id_product: str = Field(title="A unique product ID")
-
     class Config:
         allow_mutation = False
+        extra = Extra.forbid
 
-    def seq_product(self, mlwh_well: PacBioRunWellMetrics) -> SeqProduct:
+    def seq_product4well(self, mlwh_well: PacBioRunWellMetrics) -> SeqProduct:
         """
-        Returns a pre-existing `lang_qc.db.qc_schema.SeqProduct`, or creates
-        a new one.
+        Returns a pre-existing `lang_qc.db.qc_schema.SeqProduct`, for a well
+        or creates a new one.
         """
 
-        well_product = self._find_well()
+        id_product = mlwh_well.id_pac_bio_product
+        well_product = self._find_well(id_product)
         if well_product is None:
             well_product = self._create_well(
-                mlwh_well.pac_bio_run_name, mlwh_well.well_label, mlwh_well.plate_number
+                id_product,
+                mlwh_well.pac_bio_run_name,
+                mlwh_well.well_label,
+                mlwh_well.plate_number,
             )
 
         return well_product
 
-    def current_qc_state(self, qc_type: str = "sequencing") -> QcState | None:
+    def current_qc_state(
+        self, id_product: str, qc_type: str = "sequencing"
+    ) -> QcState | None:
         """
-        Returns a current record for the product associated with this
-        instance in the `qc_state` table for QC. The type of QC is defined
+        Returns a current record for the product associated with the given
+        product ID in the `qc_state` table for QC. The type of QC is defined
         by the `qc_type` argument.
 
         Validates the `qc_type` argument and raises a `ValidationError` if
@@ -187,7 +192,7 @@ class WellQc(QcDictDB):
                 .join(QcState.seq_product)
                 .where(
                     and_(
-                        SeqProduct.id_product == self.id_product,
+                        SeqProduct.id_product == id_product,
                         QcState.qc_type == self.qc_type_dict_row(qc_type),
                     )
                 )
@@ -243,6 +248,8 @@ class WellQc(QcDictDB):
         `sub_product` and `product_layout` tables.
 
         Arguments:
+            mlwh_well: PacBioRunWellMetrics object that defines the product which
+            will have the QC state assigned.
 
             user - an instance of the existing in the database lang_qc.db.qc_schema.User,
             object, required
@@ -264,7 +271,8 @@ class WellQc(QcDictDB):
             exist, the value of this argument is used for the `date_created` column as well.
         """
 
-        db_state = self.current_qc_state(qc_type)
+        id_product = mlwh_well.id_pac_bio_product
+        db_state = self.current_qc_state(id_product, qc_type)
         if (
             (db_state is not None)
             and (db_state.qc_state_dict.state == qc_state)
@@ -289,7 +297,7 @@ class WellQc(QcDictDB):
             "user": user,
             "created_by": application,
             "qc_type": self.qc_types[qc_type],
-            "seq_product": self.seq_product(mlwh_well),
+            "seq_product": self.seq_product4well(mlwh_well),
         }
 
         if db_state is not None:
@@ -323,18 +331,18 @@ class WellQc(QcDictDB):
 
         return db_state
 
-    def _find_well(self) -> SeqProduct:
+    def _find_well(self, id_product: str) -> SeqProduct:
 
         return (
             self.session.execute(
-                select(SeqProduct).where(SeqProduct.id_product == self.id_product)
+                select(SeqProduct).where(SeqProduct.id_product == id_product)
             )
             .scalars()
             .one_or_none()
         )
 
     def _create_well(
-        self, run_name: str, well_label: str, plate_number: int = None
+        self, id_product: str, run_name: str, well_label: str, plate_number: int = None
     ) -> SeqProduct:
 
         id_seq_platform = (
@@ -375,7 +383,7 @@ class WellQc(QcDictDB):
         # TODO: in future for composite products we have to check whether any of
         # the `sub_product` table entries we are linking to already exist.
         well_product = SeqProduct(
-            id_product=self.id_product,
+            id_product=id_product,
             id_seq_platform=id_seq_platform,
             sub_products=[
                 SubProduct(
@@ -386,7 +394,7 @@ class WellQc(QcDictDB):
                     id_attr_three=product_attr_id_pn,
                     value_attr_three=str(plate_number),
                     properties=product_json,
-                    properties_digest=self.id_product,
+                    properties_digest=id_product,
                 )
             ],
         )

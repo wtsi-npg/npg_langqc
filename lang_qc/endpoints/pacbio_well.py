@@ -201,8 +201,8 @@ def claim_qc(
     _validate_product_id_or_error(id_product)
     mlwh_well = _find_well_product_or_error(id_product, mlwhdb_session)
 
-    well_qc = WellQc(session=qcdb_session, id_product=id_product, mlwh_well=mlwh_well)
-    if well_qc.current_qc_state():
+    well_qc = WellQc(session=qcdb_session)
+    if well_qc.current_qc_state(id_product):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"Well for product {id_product} has already been claimed",
@@ -243,8 +243,8 @@ def assign_qc_state(
     _validate_product_id_or_error(id_product)
     mlwh_well = _find_well_product_or_error(id_product, mlwhdb_session)
 
-    well_qc = WellQc(session=qcdb_session, id_product=id_product)
-    qc_state = well_qc.current_qc_state()
+    well_qc = WellQc(session=qcdb_session)
+    qc_state = well_qc.current_qc_state(id_product)
 
     if qc_state is None:
         raise HTTPException(
