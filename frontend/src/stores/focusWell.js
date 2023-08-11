@@ -35,16 +35,6 @@ export const useWellStore = defineStore('focusWell', {
                 return null
             }
         },
-        getRunAndLabel(state) {
-            if (!isNull(state.well)) {
-                return [
-                    state.well.run_name,
-                    state.well.label
-                ];
-            } else {
-                return [null, null]
-            }
-        },
         getQcState(state) {
             if (
                 !isNull(state.well)
