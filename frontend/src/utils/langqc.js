@@ -100,16 +100,16 @@ export default class LangQc {
     return this.fetchWrapper('/api/config');
   }
 
-  claimWell(name, well) {
+  claimWell(id_product) {
     return this.fetchWrapper(
-      this.buildUrl(['run', name, 'well', well, 'qc_claim']),
+      this.buildUrl(['products', id_product, 'qc_claim']),
       'POST'
     )
   }
 
-  setWellQcState(name, well, state, final = false) {
+  setWellQcState(id_product, state, final = false) {
     return this.fetchWrapper(
-      this.buildUrl(['run', name, 'well', well, 'qc_assign']),
+      this.buildUrl(['products', id_product, 'qc_assign']),
       'PUT',
       {
         qc_state: state,

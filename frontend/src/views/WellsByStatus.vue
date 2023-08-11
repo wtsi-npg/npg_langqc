@@ -7,7 +7,7 @@
 * Requires appConfig from backend API /config t to populate the table with
 * avilable statuses.
 */
-import { onMounted, ref, inject, provide, reactive, readonly, watch } from "vue";
+import { onMounted, ref, inject, provide, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage } from 'element-plus';
 
@@ -33,13 +33,6 @@ let activeTab = ref('inbox'); // aka paneName in element-plus
 let activePage = ref(1);
 let pageSize = 10;
 let totalNumberOfWells = ref(0);
-// Inform app-wide elements when focus has changed.
-// Perhaps we can watch the store instead? We're not transmitting the data
-// this way
-let activeWell = reactive({
-  runName: null,
-  label: null
-});
 
 let user = ref(null);
 getUserName((email) => { user.value = email }).then();
@@ -84,13 +77,9 @@ watch(() => route.query, (after, before) => {
 )
 
 provide('activeTab', activeTab);
-provide('activeWell', readonly(activeWell));
 
 function loadWellDetail(id_product) {
-  // Sets the well and QC state for the QcView components below
-
   focusWell.loadWellDetail(id_product);
-  [activeWell.runName, activeWell.label] = focusWell.getRunAndLabel;
 }
 
 function loadWells(status, page, pageSize) {

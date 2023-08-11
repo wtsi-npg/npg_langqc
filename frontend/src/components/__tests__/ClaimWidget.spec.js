@@ -10,6 +10,7 @@ describe('Clicking triggers POST and side-effects', () => {
     // A typical claim success
     fetch.mockResponse(
         JSON.stringify({
+            id_product: 'ABCDEF',
             qc_state: 'Claimed',
             outcome: null,
             is_preliminary: true,
@@ -31,6 +32,7 @@ describe('Clicking triggers POST and side-effects', () => {
                         initialState: {
                             focusWell: {
                                 well: {
+                                    id_product: 'ABCDEF',
                                     run_name: 'TEST',
                                     label: 'A1',
                                 }
@@ -56,7 +58,7 @@ describe('Clicking triggers POST and side-effects', () => {
         expect(wellStore.getQcValue).toEqual('Claimed');
 
         let request = fetch.mock.calls[0];
-        expect(request[0]).toEqual('/api/pacbio/run/TEST/well/A1/qc_claim');
+        expect(request[0]).toEqual('/api/pacbio/products/ABCDEF/qc_claim');
 
         let emits = widget.emitted();
         expect(emits.wellClaimed).toBeTruthy();

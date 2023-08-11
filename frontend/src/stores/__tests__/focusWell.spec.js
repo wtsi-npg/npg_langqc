@@ -10,16 +10,15 @@ describe('Check the getters', () => {
         wellStore = useWellStore();
     })
 
-    test('Get run name name and well label', () => {
-        expect(wellStore.getRunAndLabel).toStrictEqual([null, null]);
+    test('Get id_product', () => {
+        expect(wellStore.getIdProduct).toBeNull()
 
         wellStore.setFocusWell({
-            run_name: 'Whatever',
-            label: 'A1'
-        });
+            id_product: 'ABCDEF'
+        })
 
-        expect(wellStore.getRunAndLabel).toStrictEqual(['Whatever', 'A1']);
-    });
+        expect(wellStore.getIdProduct).toEqual('ABCDEF')
+    })
 
     test('getQcState', () => {
         expect(wellStore.getQcState).toBeNull();
