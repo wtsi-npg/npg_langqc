@@ -109,7 +109,7 @@ export default class LangQc {
 
   setWellQcState(id_product, state, final = false) {
     return this.fetchWrapper(
-      this.buildUrl(['products', id_product, 'assign', 'qc']),
+      this.buildUrl(['products', id_product, 'qc_assign']),
       'PUT',
       {
         qc_state: state,
