@@ -18,15 +18,14 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import ValidationError
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from starlette import status
 
 from lang_qc.db.helper.qc import BulkQcFetch
 from lang_qc.db.qc_connection import get_qc_db
 from lang_qc.models.qc_state import QcState
-from lang_qc.util.validation import check_product_id_list_is_valid
+from lang_qc.util.type_checksum import ChecksumSHA256
 
 router = APIRouter(
     prefix="/products",
@@ -58,12 +57,8 @@ router = APIRouter(
     },
     response_model=dict[str, list[QcState]],
 )
-def bulk_qc_fetch(request_body: list[str], qcdb_session: Session = Depends(get_qc_db)):
-    # Validate body as checksums, because pydantic validators seem to be buggy
-    # for root types and lose the valid checksums
-    try:
-        check_product_id_list_is_valid(id_products=request_body)
-    except ValidationError as err:
-        raise HTTPException(422, detail=" ".join([e["msg"] for e in err.errors()]))
+def bulk_qc_fetch(
+    request_body: list[ChecksumSHA256], qcdb_session: Session = Depends(get_qc_db)
+):
 
     return BulkQcFetch(session=qcdb_session).query_by_id_list(request_body)

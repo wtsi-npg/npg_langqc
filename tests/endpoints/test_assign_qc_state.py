@@ -24,7 +24,13 @@ def test_error_invalid_product_id(test_client: TestClient, load_data4well_retrie
         headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
     )
     assert response.status_code == 422
-    assert response.json()["detail"].startswith("string does not match regex")
+    assert response.json()["detail"] == [
+        {
+            "loc": ["path", "id_product"],
+            "msg": "Invalid SHA256 checksum format",
+            "type": "value_error",
+        }
+    ]
 
 
 def test_error_nonexistent_well(test_client: TestClient, load_data4well_retrieval):
