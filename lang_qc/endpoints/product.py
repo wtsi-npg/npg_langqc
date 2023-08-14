@@ -55,7 +55,7 @@ router = APIRouter(
     responses={
         status.HTTP_422_UNPROCESSABLE_ENTITY: {"description": "Invalid product ID"}
     },
-    response_model=dict[str, list[QcState]],
+    response_model=dict[ChecksumSHA256, list[QcState]],
 )
 def bulk_qc_fetch(
     request_body: list[ChecksumSHA256], qcdb_session: Session = Depends(get_qc_db)
