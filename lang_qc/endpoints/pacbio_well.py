@@ -20,7 +20,7 @@
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import PositiveInt, ValidationError
+from pydantic import PositiveInt
 from sqlalchemy.orm import Session
 from starlette import status
 
@@ -33,7 +33,7 @@ from lang_qc.models.pacbio.well import PacBioPagedWells, PacBioWellFull
 from lang_qc.models.qc_flow_status import QcFlowStatusEnum
 from lang_qc.models.qc_state import QcState, QcStateBasic
 from lang_qc.util.auth import check_user
-from lang_qc.util.validation import check_product_id_is_valid
+from lang_qc.util.type_checksum import ChecksumSHA256
 
 """
 A collection of API endpoints that are specific to the PacBio sequencing
@@ -156,12 +156,11 @@ def get_wells_in_run(
     response_model=PacBioWellFull,
 )
 def get_seq_metrics(
-    id_product: str,
+    id_product: ChecksumSHA256,
     mlwhdb_session: Session = Depends(get_mlwh_db),
     qcdb_session: Session = Depends(get_qc_db),
 ) -> PacBioWellFull:
 
-    _validate_product_id_or_error(id_product)
     mlwh_well = _find_well_product_or_error(id_product, mlwhdb_session)
 
     return PacBioWellFull.from_orm(mlwh_well, qcdb_session)
@@ -192,13 +191,12 @@ def get_seq_metrics(
     status_code=status.HTTP_201_CREATED,
 )
 def claim_qc(
-    id_product: str,
+    id_product: ChecksumSHA256,
     user: User = Depends(check_user),
     qcdb_session: Session = Depends(get_qc_db),
     mlwhdb_session: Session = Depends(get_mlwh_db),
 ) -> QcState:
 
-    _validate_product_id_or_error(id_product)
     mlwh_well = _find_well_product_or_error(id_product, mlwhdb_session)
 
     well_qc = WellQc(session=qcdb_session)
@@ -233,14 +231,13 @@ def claim_qc(
     response_model=QcState,
 )
 def assign_qc_state(
-    id_product: str,
+    id_product: ChecksumSHA256,
     request_body: QcStateBasic,
     user: User = Depends(check_user),
     qcdb_session: Session = Depends(get_qc_db),
     mlwhdb_session: Session = Depends(get_mlwh_db),
 ) -> QcState:
 
-    _validate_product_id_or_error(id_product)
     mlwh_well = _find_well_product_or_error(id_product, mlwhdb_session)
 
     well_qc = WellQc(session=qcdb_session)
@@ -265,13 +262,6 @@ def assign_qc_state(
         )
 
     return QcState.from_orm(qc_state)
-
-
-def _validate_product_id_or_error(id_product):
-    try:
-        check_product_id_is_valid(id_product=id_product)
-    except ValidationError as err:
-        raise HTTPException(422, detail=" ".join([e["msg"] for e in err.errors()]))
 
 
 def _find_well_product_or_error(id_product, mlwhdb_session):
