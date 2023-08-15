@@ -25,7 +25,7 @@ from typing import List
 from pydantic import BaseModel, Extra, Field
 from sqlalchemy.orm import Session
 
-from lang_qc.db.helper.qc import BulkQcFetch
+from lang_qc.db.helper.qc import get_qc_states_by_id_product_list
 from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
 from lang_qc.models.pacbio.experiment import PacBioExperiment
 from lang_qc.models.pacbio.qc_data import QCDataWell
@@ -153,12 +153,10 @@ class PacBioWellFull(PacBioWell):
         if len(experiment_info):
             obj.experiment_tracking = PacBioExperiment.from_orm(experiment_info)
 
-        qced_products = (
-            BulkQcFetch(session=qc_session)
-            .query_by_id_list(ids=[id_product], sequencing_outcomes_only=True)
-            .get(id_product)
-        )
-        if (qced_products is not None) and len(qced_products) != 0:
+        qced_products = get_qc_states_by_id_product_list(
+            session=qc_session, ids=[id_product], sequencing_outcomes_only=True
+        ).get(id_product)
+        if qced_products is not None:
             obj.qc_state = qced_products[0]
 
         return obj
