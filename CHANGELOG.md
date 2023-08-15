@@ -5,6 +5,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+* Tests for bulk retrieval of QC states
+
+### Fixed
+
+* A bug that disregarded the value of the `sequencing_outcomes_only`
+argument in what is now the `get_qc_states_by_id_product_list` function 
+
 ## [1.3.0] - 2023-08-02
 
 ### Added
