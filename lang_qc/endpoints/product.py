@@ -22,7 +22,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from starlette import status
 
-from lang_qc.db.helper.qc import BulkQcFetch
+from lang_qc.db.helper.qc import get_qc_states_by_id_product_list
 from lang_qc.db.qc_connection import get_qc_db
 from lang_qc.models.qc_state import QcState
 from lang_qc.util.type_checksum import ChecksumSHA256
@@ -61,4 +61,4 @@ def bulk_qc_fetch(
     request_body: list[ChecksumSHA256], qcdb_session: Session = Depends(get_qc_db)
 ):
 
-    return BulkQcFetch(session=qcdb_session).query_by_id_list(request_body)
+    return get_qc_states_by_id_product_list(session=qcdb_session, ids=request_body)

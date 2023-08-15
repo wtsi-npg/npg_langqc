@@ -27,7 +27,7 @@ from pydantic import BaseModel, Extra, Field
 from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
-from lang_qc.db.helper.qc import BulkQcFetch
+from lang_qc.db.helper.qc import get_qc_states_by_id_product_list
 from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
 from lang_qc.db.qc_schema import QcState, QcStateDict, QcType
 from lang_qc.models.pacbio.well import PacBioPagedWells, PacBioWell
@@ -333,12 +333,12 @@ class PacBioPagedWellsFactory(WellWh, PagedResponse):
         for index, db_well in enumerate(recent_wells):
             id_product = db_well.id_pac_bio_product
             # TODO: Create a method for retrieving a seq. QC state for a product.
-            qced_products = (
-                BulkQcFetch(session=self.qcdb_session)
-                .query_by_id_list(ids=[id_product], sequencing_outcomes_only=True)
-                .get(id_product)
-            )
-            if (qced_products is None) or (len(qced_products) == 0):
+            qced_products = get_qc_states_by_id_product_list(
+                session=self.qcdb_session,
+                ids=[id_product],
+                sequencing_outcomes_only=True,
+            ).get(id_product)
+            if qced_products is None:
                 inbox_wells_indexes.append(index)
 
         # Save the number of retrieved rows.
@@ -396,13 +396,13 @@ class PacBioPagedWellsFactory(WellWh, PagedResponse):
             }
             if qc_state_applicable:
                 # TODO: Query by all IDs at once.
-                qced_products = (
-                    BulkQcFetch(session=self.qcdb_session)
-                    .query_by_id_list(ids=[id_product], sequencing_outcomes_only=True)
-                    .get(id_product)
-                )
+                qced_products = get_qc_states_by_id_product_list(
+                    session=self.qcdb_session,
+                    ids=[id_product],
+                    sequencing_outcomes_only=True,
+                ).get(id_product)
                 # A well can have only one or zero current sequencing outcomes.
-                if (qced_products is not None) and len(qced_products) != 0:
+                if qced_products is not None:
                     attrs["qc_state"] = qced_products[0]
             pb_well = PacBioWell.parse_obj(attrs)
             pb_well.copy_run_tracking_info(db_well)
