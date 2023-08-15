@@ -1,4 +1,7 @@
-from lang_qc.db.helper.qc import get_qc_states_by_id_product_list
+from lang_qc.db.helper.qc import (
+    get_qc_states_by_id_product_list,
+    qc_state_for_product_exists,
+)
 from tests.fixtures.well_data import load_data4well_retrieval, load_dicts_and_users
 
 # "TRACTION_RUN_1", "D1", "On hold", Final
@@ -9,6 +12,8 @@ SECOND_GOOD_CHECKSUM = (
 )
 MISSING_CHECKSUM = "A" * 64
 
+two_good_ids_list = [FIRST_GOOD_CHECKSUM, SECOND_GOOD_CHECKSUM]
+
 
 def test_bulk_retrieval(qcdb_test_session, load_data4well_retrieval):
 
@@ -16,7 +21,6 @@ def test_bulk_retrieval(qcdb_test_session, load_data4well_retrieval):
     # product IDs is performed.
     assert get_qc_states_by_id_product_list(qcdb_test_session, ["dodo"]) == {}
 
-    two_good_ids_list = [FIRST_GOOD_CHECKSUM, SECOND_GOOD_CHECKSUM]
     qc_state_descriptions = ["On hold", "Failed, Instrument"]
 
     qc_states = get_qc_states_by_id_product_list(qcdb_test_session, two_good_ids_list)
@@ -51,3 +55,10 @@ def test_bulk_retrieval(qcdb_test_session, load_data4well_retrieval):
     assert len(qc_states) == 1
     assert SECOND_GOOD_CHECKSUM in qc_states
     assert MISSING_CHECKSUM not in qc_states
+
+
+def test_product_existence(qcdb_test_session, load_data4well_retrieval):
+
+    assert qc_state_for_product_exists(qcdb_test_session, MISSING_CHECKSUM) is False
+    for id in two_good_ids_list:
+        assert qc_state_for_product_exists(qcdb_test_session, id) is True

@@ -19,7 +19,7 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
 from lang_qc.db.qc_schema import QcState as QcStateDb
@@ -55,6 +55,20 @@ def get_qc_states_by_id_product_list(
         seq_products=_get_seq_product_by_id_list(session, ids),
         sequencing_outcomes_only=sequencing_outcomes_only,
     )
+
+
+def qc_state_for_product_exists(session: Session, id_product: ChecksumSHA256) -> bool:
+    """
+    A quick method to find out whether any type of QC state is associated
+    with the product. Returns True or False.
+    """
+
+    query = (
+        select(func.count())
+        .select_from(SeqProduct)
+        .where(SeqProduct.id_product == id_product)
+    )
+    return bool(session.execute(query).scalar_one())
 
 
 def _get_seq_product_by_id_list(
