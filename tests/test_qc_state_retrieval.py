@@ -1,4 +1,7 @@
+import pytest
+
 from lang_qc.db.helper.qc import (
+    get_qc_state_for_product,
     get_qc_states_by_id_product_list,
     qc_state_for_product_exists,
 )
@@ -62,3 +65,51 @@ def test_product_existence(qcdb_test_session, load_data4well_retrieval):
     assert qc_state_for_product_exists(qcdb_test_session, MISSING_CHECKSUM) is False
     for id in two_good_ids_list:
         assert qc_state_for_product_exists(qcdb_test_session, id) is True
+
+
+def test_product_qc_state_retrieval(qcdb_test_session, load_data4well_retrieval):
+
+    assert get_qc_state_for_product(qcdb_test_session, MISSING_CHECKSUM) is None
+
+    with pytest.raises(Exception, match=r"QC type some_type is not valid"):
+        get_qc_state_for_product(
+            session=qcdb_test_session,
+            id_product=SECOND_GOOD_CHECKSUM,
+            qc_type="some_type",
+        )
+
+    qc_state = get_qc_state_for_product(qcdb_test_session, FIRST_GOOD_CHECKSUM)
+    assert qc_state is not None
+    assert qc_state.seq_product.id_product == FIRST_GOOD_CHECKSUM
+    assert qc_state.qc_type.qc_type == "sequencing"
+    assert qc_state.qc_state_dict.state == "On hold"
+
+    qc_state = get_qc_state_for_product(
+        session=qcdb_test_session, id_product=FIRST_GOOD_CHECKSUM, qc_type="sequencing"
+    )
+    assert qc_state is not None
+    assert qc_state.seq_product.id_product == FIRST_GOOD_CHECKSUM
+    assert qc_state.qc_type.qc_type == "sequencing"
+    assert qc_state.qc_state_dict.state == "On hold"
+
+    qc_state = get_qc_state_for_product(
+        session=qcdb_test_session, id_product=FIRST_GOOD_CHECKSUM, qc_type="library"
+    )
+    assert qc_state is not None
+    assert qc_state.seq_product.id_product == FIRST_GOOD_CHECKSUM
+    assert qc_state.qc_type.qc_type == "library"
+    assert qc_state.qc_state_dict.state == "On hold"
+
+    qc_state = get_qc_state_for_product(qcdb_test_session, SECOND_GOOD_CHECKSUM)
+    assert qc_state is not None
+    assert qc_state.seq_product.id_product == SECOND_GOOD_CHECKSUM
+    assert qc_state.qc_type.qc_type == "sequencing"
+    assert qc_state.qc_state_dict.state == "Failed, Instrument"
+
+    qc_state = get_qc_state_for_product(
+        session=qcdb_test_session, id_product=SECOND_GOOD_CHECKSUM, qc_type="library"
+    )
+    assert qc_state is not None
+    assert qc_state.seq_product.id_product == SECOND_GOOD_CHECKSUM
+    assert qc_state.qc_type.qc_type == "library"
+    assert qc_state.qc_state_dict.state == "Failed, Instrument"

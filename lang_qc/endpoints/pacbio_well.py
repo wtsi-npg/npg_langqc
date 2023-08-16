@@ -24,7 +24,7 @@ from pydantic import PositiveInt
 from sqlalchemy.orm import Session
 from starlette import status
 
-from lang_qc.db.helper.qc import qc_state_for_product_exists
+from lang_qc.db.helper.qc import get_qc_state_for_product, qc_state_for_product_exists
 from lang_qc.db.helper.well import WellQc
 from lang_qc.db.helper.wells import PacBioPagedWellsFactory, WellWh
 from lang_qc.db.mlwh_connection import get_mlwh_db
@@ -246,9 +246,7 @@ def assign_qc_state(
 
     mlwh_well = _find_well_product_or_error(id_product, mlwhdb_session)
 
-    well_qc = WellQc(session=qcdb_session)
-    qc_state = well_qc.current_qc_state(id_product)
-
+    qc_state = get_qc_state_for_product(qcdb_session, id_product)
     if qc_state is None:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -258,7 +256,7 @@ def assign_qc_state(
     qc_state = None
     message = "Error assigning status: "
     try:
-        qc_state = well_qc.assign_qc_state(
+        qc_state = WellQc(session=qcdb_session).assign_qc_state(
             mlwh_well=mlwh_well, user=user, **request_body.dict()
         )
     except (InvalidDictValueError, InconsistentInputError) as err:

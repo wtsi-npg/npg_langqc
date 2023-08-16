@@ -19,13 +19,21 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
-from sqlalchemy import func, select
+from sqlalchemy import and_, func, select
+from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session, selectinload
 
 from lang_qc.db.qc_schema import QcState as QcStateDb
 from lang_qc.db.qc_schema import QcStateDict, QcType, SeqProduct, User
 from lang_qc.models.qc_state import QcState
+from lang_qc.util.errors import InvalidDictValueError
 from lang_qc.util.type_checksum import ChecksumSHA256
+
+"""
+A collection of functions for retrieving QC state either for
+an individual product or for a list of products. All functions
+are sequencing platform independent.
+"""
 
 
 def get_qc_states_by_id_product_list(
@@ -69,6 +77,44 @@ def qc_state_for_product_exists(session: Session, id_product: ChecksumSHA256) ->
         .where(SeqProduct.id_product == id_product)
     )
     return bool(session.execute(query).scalar_one())
+
+
+def get_qc_state_for_product(
+    session: Session, id_product: ChecksumSHA256, qc_type: str = "sequencing"
+) -> QcStateDb:
+    """
+    Returns a QcState database row associated with the product.
+
+    An optional `qc_type` argument, which defaults to `sequencing`, defines the
+    type of QC state that is returned. If the QC state of this type is not
+    available, None is returned.
+
+    Throws `InvalidDictValueError` if the given QC type does not exist in
+    the database dictionary of QC types.
+    """
+
+    qc_type_row = None
+    try:
+        qc_type_row = (
+            session.execute(select(QcType).where(QcType.qc_type == qc_type))
+            .scalars()
+            .one()
+        )
+    except NoResultFound:
+        raise InvalidDictValueError(f"QC type {qc_type} is not valid")
+
+    query = (
+        select(QcStateDb)
+        .join(QcStateDb.seq_product)
+        .where(
+            and_(
+                SeqProduct.id_product == id_product,
+                QcStateDb.qc_type == qc_type_row,
+            )
+        )
+    )
+
+    return session.execute(query).scalars().one_or_none()
 
 
 def _get_seq_product_by_id_list(
