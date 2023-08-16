@@ -18,15 +18,14 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
-import re
-
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from starlette import status
 
-from lang_qc.db.helper.qc import BulkQcFetch
+from lang_qc.db.helper.qc import get_qc_states_by_id_product_list
 from lang_qc.db.qc_connection import get_qc_db
 from lang_qc.models.qc_state import QcState
+from lang_qc.util.type_checksum import ChecksumSHA256
 
 router = APIRouter(
     prefix="/products",
@@ -35,8 +34,6 @@ router = APIRouter(
         status.HTTP_500_INTERNAL_SERVER_ERROR: {"description": "Unexpected error"}
     },
 )
-
-CHECKSUM_RE = re.compile("^[a-fA-F0-9]{64}$")
 
 
 @router.post(
@@ -56,17 +53,12 @@ CHECKSUM_RE = re.compile("^[a-fA-F0-9]{64}$")
     https://github.com/wtsi-npg/npg_ml_warehouse/blob/49.0.0/lib/npg_warehouse/loader/pacbio/qc_state.pm
     """,
     responses={
-        status.HTTP_422_UNPROCESSABLE_ENTITY: {"description": "Invalid checksum"}
+        status.HTTP_422_UNPROCESSABLE_ENTITY: {"description": "Invalid product ID"}
     },
-    response_model=dict[str, list[QcState]],
+    response_model=dict[ChecksumSHA256, list[QcState]],
 )
-def bulk_qc_fetch(request_body: list[str], qcdb_session: Session = Depends(get_qc_db)):
-    # Validate body as checksums, because pydantic validators seem to be buggy
-    # for root types and lose the valid checksums
-    for sha in request_body:
-        if not CHECKSUM_RE.fullmatch(sha):
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="Checksum must be hexadecimal of length 64",
-            )
-    return BulkQcFetch(session=qcdb_session).query_by_id_list(request_body)
+def bulk_qc_fetch(
+    request_body: list[ChecksumSHA256], qcdb_session: Session = Depends(get_qc_db)
+):
+
+    return get_qc_states_by_id_product_list(session=qcdb_session, ids=request_body)

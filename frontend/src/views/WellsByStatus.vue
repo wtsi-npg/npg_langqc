@@ -7,7 +7,7 @@
 * Requires appConfig from backend API /config t to populate the table with
 * avilable statuses.
 */
-import { onMounted, ref, inject, provide, reactive, readonly, watch } from "vue";
+import { onMounted, ref, inject, provide, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage } from 'element-plus';
 
@@ -33,13 +33,6 @@ let activeTab = ref('inbox'); // aka paneName in element-plus
 let activePage = ref(1);
 let pageSize = 10;
 let totalNumberOfWells = ref(0);
-// Inform app-wide elements when focus has changed.
-// Perhaps we can watch the store instead? We're not transmitting the data
-// this way
-let activeWell = reactive({
-  runName: null,
-  label: null
-});
 
 let user = ref(null);
 getUserName((email) => { user.value = email }).then();
@@ -60,9 +53,9 @@ watch(() => route.query, (after, before) => {
   }
 
   // Handle the run and well to show in the QC Viewer
-  if (after && (after.qcLabel || after.qcRun) && qcQueryChanged(before, after)) {
+  if (qcQueryChanged(before, after)) {
     // Somehow we need to capture the other parameter in case both have not been set
-    loadWellDetail(after.qcRun, after.qcLabel)
+    loadWellDetail(after.idProduct)
   }
 
   // Handle changes of tab in the table of wells.
@@ -84,14 +77,9 @@ watch(() => route.query, (after, before) => {
 )
 
 provide('activeTab', activeTab);
-provide('activeWell', readonly(activeWell));
 
-function loadWellDetail(runName, label) {
-  // Sets the well and QC state for the QcView components below
-
-  focusWell.loadWellDetail(runName, label)
-  activeWell.runName = runName;
-  activeWell.label = label;
+function loadWellDetail(id_product) {
+  focusWell.loadWellDetail(id_product);
 }
 
 function loadWells(status, page, pageSize) {

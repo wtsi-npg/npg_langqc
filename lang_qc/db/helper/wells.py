@@ -27,7 +27,7 @@ from pydantic import BaseModel, Extra, Field
 from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
-from lang_qc.db.helper.qc import BulkQcFetch
+from lang_qc.db.helper.qc import get_qc_states_by_id_product_list
 from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
 from lang_qc.db.qc_schema import QcState, QcStateDict, QcType
 from lang_qc.models.pacbio.well import PacBioPagedWells, PacBioWell
@@ -68,21 +68,6 @@ class WellWh(BaseModel):
         arbitrary_types_allowed = True
         allow_population_by_field_name = True
 
-    def get_well(self, run_name: str, well_label: str) -> PacBioRunWellMetrics | None:
-        """
-        Returns a well row record from the well metrics table or
-        None if the record does not exist.
-        """
-
-        return self.session.execute(
-            select(PacBioRunWellMetrics).where(
-                and_(
-                    PacBioRunWellMetrics.pac_bio_run_name == run_name,
-                    PacBioRunWellMetrics.well_label == well_label,
-                )
-            )
-        ).scalar_one_or_none()
-
     def get_mlwh_well_by_product_id(
         self, id_product: str
     ) -> PacBioRunWellMetrics | None:
@@ -96,14 +81,6 @@ class WellWh(BaseModel):
                 PacBioRunWellMetrics.id_pac_bio_product == id_product,
             )
         ).scalar_one_or_none()
-
-    def well_exists(self, run_name: str, well_label: str) -> bool:
-        """
-        Returns `True` if a record for combination of a well and a run exists,
-        in the well metrics table `False` otherwise.
-        """
-
-        return bool(self.get_well(run_name, well_label))
 
     def recent_completed_wells(self) -> List[PacBioRunWellMetrics]:
         """
@@ -356,12 +333,12 @@ class PacBioPagedWellsFactory(WellWh, PagedResponse):
         for index, db_well in enumerate(recent_wells):
             id_product = db_well.id_pac_bio_product
             # TODO: Create a method for retrieving a seq. QC state for a product.
-            qced_products = (
-                BulkQcFetch(session=self.qcdb_session)
-                .query_by_id_list(ids=[id_product], sequencing_outcomes_only=True)
-                .get(id_product)
-            )
-            if (qced_products is None) or (len(qced_products) == 0):
+            qced_products = get_qc_states_by_id_product_list(
+                session=self.qcdb_session,
+                ids=[id_product],
+                sequencing_outcomes_only=True,
+            ).get(id_product)
+            if qced_products is None:
                 inbox_wells_indexes.append(index)
 
         # Save the number of retrieved rows.
@@ -419,13 +396,13 @@ class PacBioPagedWellsFactory(WellWh, PagedResponse):
             }
             if qc_state_applicable:
                 # TODO: Query by all IDs at once.
-                qced_products = (
-                    BulkQcFetch(session=self.qcdb_session)
-                    .query_by_id_list(ids=[id_product], sequencing_outcomes_only=True)
-                    .get(id_product)
-                )
+                qced_products = get_qc_states_by_id_product_list(
+                    session=self.qcdb_session,
+                    ids=[id_product],
+                    sequencing_outcomes_only=True,
+                ).get(id_product)
                 # A well can have only one or zero current sequencing outcomes.
-                if (qced_products is not None) and len(qced_products) != 0:
+                if qced_products is not None:
                     attrs["qc_state"] = qced_products[0]
             pb_well = PacBioWell.parse_obj(attrs)
             pb_well.copy_run_tracking_info(db_well)

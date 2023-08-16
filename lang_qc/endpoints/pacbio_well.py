@@ -33,6 +33,37 @@ from lang_qc.models.pacbio.well import PacBioPagedWells, PacBioWellFull
 from lang_qc.models.qc_flow_status import QcFlowStatusEnum
 from lang_qc.models.qc_state import QcState, QcStateBasic
 from lang_qc.util.auth import check_user
+from lang_qc.util.type_checksum import ChecksumSHA256
+
+"""
+A collection of API endpoints that are specific to the PacBio sequencing
+platform. All URLs start with /pacbio/.
+
+The URLs starting with /pacbio/products are reserved for either retrieving,
+or updating, or creating any information about a PacBio product. Sequence
+data are out of scope. QC metrics and states and links to any relevant third
+party web applications are in scope.
+
+For the purpose of this API the term 'product' has dual semantics. It refers
+to either of the entities listed below:
+  1. the target product the user is getting as the output of NPG own and
+     third party pipelines,
+  2. any intermediate product that is used to assess the quality of the end
+     product, a single well being the prime example of this.
+
+Each product is characterised by a unique product ID, see
+https://github.com/wtsi-npg/npg_id_generation
+
+A non-indexed single library sequenced in a well has the same product ID as
+the well product. Therefore, in order to serve the correct response, it is
+necessary to know the context of the request. This can be achieved by
+different means:
+  1. by adding an extra URL component (see /products/{id_product}/seq_level
+     URL defined in this package),
+  2. by adding an extra parameter to the URL,
+  3. for POST requests, by adding and a special field to the payload (see qc_type
+     in models in lang_qc.models.qc_state).
+"""
 
 router = APIRouter(
     prefix="/pacbio",
@@ -116,33 +147,27 @@ def get_wells_in_run(
 
 
 @router.get(
-    "/run/{run_name}/well/{well_label}",
-    summary="Get QC data for a well",
+    "/products/{id_product}/seq_level",
+    summary="Get full sequencing QC metrics and state for a product",
     responses={
-        status.HTTP_404_NOT_FOUND: {"description": "Well does not exist"},
+        status.HTTP_404_NOT_FOUND: {"description": "Well product does not exist"},
+        status.HTTP_422_UNPROCESSABLE_ENTITY: {"description": "Invalid product ID"},
     },
     response_model=PacBioWellFull,
 )
-def get_pacbio_well(
-    run_name: str,
-    well_label: str,
+def get_seq_metrics(
+    id_product: ChecksumSHA256,
     mlwhdb_session: Session = Depends(get_mlwh_db),
     qcdb_session: Session = Depends(get_qc_db),
 ) -> PacBioWellFull:
 
-    well_row = WellWh(session=mlwhdb_session).get_well(
-        run_name=run_name, well_label=well_label
-    )
-    if well_row is None:
-        raise HTTPException(
-            404, detail=f"PacBio well {well_label} run {run_name} not found."
-        )
+    mlwh_well = _find_well_product_or_error(id_product, mlwhdb_session)
 
-    return PacBioWellFull.from_orm(well_row, qcdb_session)
+    return PacBioWellFull.from_orm(mlwh_well, qcdb_session)
 
 
 @router.post(
-    "/run/{run_name}/well/{well_label}/qc_claim",
+    "/products/{id_product}/qc_claim",
     summary="Claim the well to start QC",
     description="""
     Enables the user to initiate manual QC of the well. The resulting QC state
@@ -166,38 +191,28 @@ def get_pacbio_well(
     status_code=status.HTTP_201_CREATED,
 )
 def claim_qc(
-    run_name: str,
-    well_label: str,
+    id_product: ChecksumSHA256,
     user: User = Depends(check_user),
     qcdb_session: Session = Depends(get_qc_db),
     mlwhdb_session: Session = Depends(get_mlwh_db),
 ) -> QcState:
 
-    if (
-        WellWh(session=mlwhdb_session).well_exists(
-            run_name=run_name, well_label=well_label
-        )
-        is False
-    ):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Well {well_label} run {run_name} does not exist",
-        )
+    mlwh_well = _find_well_product_or_error(id_product, mlwhdb_session)
 
-    well_qc = WellQc(session=qcdb_session, run_name=run_name, well_label=well_label)
-    if well_qc.current_qc_state():
+    well_qc = WellQc(session=qcdb_session)
+    if well_qc.current_qc_state(id_product):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=f"Well {well_label} run {run_name} has already been claimed",
+            detail=f"Well for product {id_product} has already been claimed",
         )
 
     # Using default attributes for almost all arguments.
     # The new QC state will be set as preliminary.
-    return QcState.from_orm(well_qc.assign_qc_state(user=user))
+    return QcState.from_orm(well_qc.assign_qc_state(mlwh_well=mlwh_well, user=user))
 
 
 @router.put(
-    "/run/{run_name}/well/{well_label}/qc_assign",
+    "/products/{id_product}/qc_assign",
     summary="Assign QC state to a well",
     description="""
     Enables the user to assign a new QC state to a well. The well QC should
@@ -216,15 +231,17 @@ def claim_qc(
     response_model=QcState,
 )
 def assign_qc_state(
-    run_name: str,
-    well_label: str,
+    id_product: ChecksumSHA256,
     request_body: QcStateBasic,
     user: User = Depends(check_user),
     qcdb_session: Session = Depends(get_qc_db),
+    mlwhdb_session: Session = Depends(get_mlwh_db),
 ) -> QcState:
 
-    well_qc = WellQc(session=qcdb_session, run_name=run_name, well_label=well_label)
-    qc_state = well_qc.current_qc_state()
+    mlwh_well = _find_well_product_or_error(id_product, mlwhdb_session)
+
+    well_qc = WellQc(session=qcdb_session)
+    qc_state = well_qc.current_qc_state(id_product)
 
     if qc_state is None:
         raise HTTPException(
@@ -235,7 +252,9 @@ def assign_qc_state(
     qc_state = None
     message = "Error assigning status: "
     try:
-        qc_state = well_qc.assign_qc_state(user=user, **request_body.dict())
+        qc_state = well_qc.assign_qc_state(
+            mlwh_well=mlwh_well, user=user, **request_body.dict()
+        )
     except (InvalidDictValueError, InconsistentInputError) as err:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -243,3 +262,15 @@ def assign_qc_state(
         )
 
     return QcState.from_orm(qc_state)
+
+
+def _find_well_product_or_error(id_product, mlwhdb_session):
+
+    mlwh_well = WellWh(session=mlwhdb_session).get_mlwh_well_by_product_id(
+        id_product=id_product
+    )
+    if mlwh_well is None:
+        raise HTTPException(
+            404, detail=f"PacBio well for product ID {id_product} not found."
+        )
+    return mlwh_well

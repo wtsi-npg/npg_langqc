@@ -86,6 +86,11 @@ class SubProductAttr(Base):
         foreign_keys="[SubProduct.id_attr_two]",
         back_populates="sub_product_attr_",
     )
+    sub_product__ = relationship(
+        "SubProduct",
+        foreign_keys="[SubProduct.id_attr_three]",
+        back_populates="sub_product_attr__",
+    )
 
 
 class User(Base):
@@ -163,6 +168,9 @@ class SubProduct(Base):
         ForeignKeyConstraint(
             ["id_attr_two"], ["sub_product_attr.id_attr"], name="fk_subproduct_attr2"
         ),
+        ForeignKeyConstraint(
+            ["id_attr_three"], ["sub_product_attr.id_attr"], name="fk_subproduct_attr3"
+        ),
     )
 
     id_sub_product = Column(BIGINT, primary_key=True)
@@ -170,6 +178,8 @@ class SubProduct(Base):
     value_attr_one = Column(String(20), nullable=False, index=True)
     id_attr_two = Column(INTEGER, nullable=False, index=True)
     value_attr_two = Column(String(20), nullable=False, index=True)
+    id_attr_three = Column(INTEGER, nullable=True, index=True)
+    value_attr_three = Column(String(20), nullable=True, index=True)
     properties = Column(JSON, nullable=False)
     properties_digest = Column(CHAR(64), nullable=False, unique=True)
     tags = Column(String(255), index=True)
@@ -179,6 +189,9 @@ class SubProduct(Base):
     )
     sub_product_attr_ = relationship(
         "SubProductAttr", foreign_keys=[id_attr_two], back_populates="sub_product_"
+    )
+    sub_product_attr__ = relationship(
+        "SubProductAttr", foreign_keys=[id_attr_three], back_populates="sub_product__"
     )
     seq_products = relationship(
         "SeqProduct", secondary="product_layout", back_populates="sub_products"

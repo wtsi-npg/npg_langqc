@@ -4,9 +4,17 @@ import pytest
 from npg_id_generation.pac_bio import PacBioEntity
 from sqlalchemy import insert, select
 
-from lang_qc.db.helper.well import WellQc
 from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
-from lang_qc.db.qc_schema import QcStateDict, QcType, SeqPlatform, SubProductAttr, User
+from lang_qc.db.qc_schema import (
+    QcState,
+    QcStateDict,
+    QcType,
+    SeqPlatform,
+    SeqProduct,
+    SubProduct,
+    SubProductAttr,
+    User,
+)
 
 QC_TYPES = [
     {"qc_type": "sequencing", "description": "Sequencing process evaluation"},
@@ -36,6 +44,7 @@ ATTRIBUTE_NAMES = [
         "description": "The name of the PacBio run according to LIMS",
     },
     {"attr_name": "well_label", "description": "PacBio well (or cell) label"},
+    {"attr_name": "plate_number", "description": "PacBio plate number"},
     {
         "attr_name": "flowcell_id",
         "description": "ONT flowcell id as recorded by the instrument",
@@ -51,24 +60,27 @@ USERS = [
 ]
 
 # A combination of all QC states and final/not final.
-# Data in each list: run name, well label, qc state description, is_preliminary flag, date
+# Data in each list: run name, well label, qc state description,
+# is_preliminary flag, date, plate number
 QC_DATA = [
-    ["TRACTION_RUN_1", "A1", "Claimed", True, "2022-12-07 07:15:19"],
-    ["TRACTION_RUN_1", "B1", "On hold", True, "2022-12-08 07:15:19"],
-    ["TRACTION_RUN_1", "C1", "Claimed", True, "2022-12-08 08:15:19"],
-    ["TRACTION_RUN_1", "D1", "On hold", True, "2022-12-08 09:15:19"],
-    ["TRACTION_RUN_1", "E1", "Claimed", True, "2022-12-07 09:15:19"],
-    ["TRACTION_RUN_2", "A1", "Failed, Instrument", True, "2022-12-07 15:13:56"],
-    ["TRACTION_RUN_2", "B1", "Failed, Instrument", False, "2022-12-08 15:18:56"],
-    ["TRACTION_RUN_2", "C1", "Failed, SMRT cell", True, "2022-12-08 18:14:56"],
-    ["TRACTION_RUN_2", "D1", "Failed, SMRT cell", False, "2022-12-07 15:23:56"],
-    ["TRACTION_RUN_4", "A1", "Failed", True, "2022-12-12 16:02:57"],
-    ["TRACTION_RUN_4", "B1", "Failed", False, "2022-12-12 12:02:57"],
-    ["TRACTION_RUN_5", "A1", "Passed", True, "2022-12-22 16:21:06"],
-    ["TRACTION_RUN_5", "B1", "Passed", False, "2022-12-21 14:21:06"],
-    ["TRACTION_RUN_6", "A1", "Aborted", True, "2022-12-15 11:42:33"],
-    ["TRACTION_RUN_6", "B1", "Aborted", True, "2022-12-15 10:42:33"],
-    ["TRACTION_RUN_7", "A1", "Failed", True, "2022-02-15 10:42:33"],
+    ["TRACTION_RUN_1", "A1", "Claimed", True, "2022-12-07 07:15:19", None],
+    ["TRACTION_RUN_1", "B1", "On hold", True, "2022-12-08 07:15:19", None],
+    ["TRACTION_RUN_1", "C1", "Claimed", True, "2022-12-08 08:15:19", None],
+    ["TRACTION_RUN_1", "D1", "On hold", True, "2022-12-08 09:15:19", None],
+    ["TRACTION_RUN_1", "E1", "Claimed", True, "2022-12-07 09:15:19", None],
+    ["TRACTION_RUN_2", "A1", "Failed, Instrument", True, "2022-12-07 15:13:56", 1],
+    ["TRACTION_RUN_2", "B1", "Failed, Instrument", False, "2022-12-08 15:18:56", 1],
+    ["TRACTION_RUN_2", "C1", "Failed, SMRT cell", True, "2022-12-08 18:14:56", 1],
+    ["TRACTION_RUN_2", "D1", "Failed, SMRT cell", False, "2022-12-07 15:23:56", 1],
+    ["TRACTION_RUN_4", "A1", "Failed", True, "2022-12-12 16:02:57", 1],
+    ["TRACTION_RUN_4", "B1", "Failed", False, "2022-12-12 12:02:57", 1],
+    ["TRACTION_RUN_5", "A1", "Passed", True, "2022-12-22 16:21:06", None],
+    ["TRACTION_RUN_5", "B1", "Passed", False, "2022-12-21 14:21:06", None],
+    ["TRACTION_RUN_6", "A1", "Aborted", True, "2022-12-15 11:42:33", 1],
+    ["TRACTION_RUN_6", "B1", "Aborted", True, "2022-12-15 10:42:33", 1],
+    ["TRACTION_RUN_7", "A1", "Failed", True, "2022-02-15 10:42:33", 1],
+    ["TRACTION_RUN_16", "A1", "Claimed", True, "2022-02-15 10:42:34", 1],
+    ["TRACTION_RUN_16", "A1", "On hold", True, "2022-02-15 10:42:35", 2],
 ]
 
 # A set of fake warehouse entries for the QC states above.
@@ -203,6 +215,70 @@ MLWH_DATA = [
         "12345",
         "Revio",
         1,
+    ],
+    [
+        "TRACTION_RUN_2",
+        "A1",
+        "2022-12-02 15:11:22",
+        "2022-12-09 11:26:27",
+        "2022-12-02 15:21:20",
+        "2022-12-04 06:43:31",
+        "Complete",
+        "Complete",
+        "OffInstrument",
+        3672109,
+        1081531,
+        "12345",
+        "Revio",
+        2,
+    ],
+    [
+        "TRACTION_RUN_2",
+        "B1",
+        "2022-12-02 15:11:22",
+        "2022-12-09 11:26:27",
+        "2022-12-03 18:41:10",
+        "2022-12-05 03:14:01",
+        "Complete",
+        "Complete",
+        "OffInstrument",
+        6312394,
+        2109216,
+        "12345",
+        "Revio",
+        2,
+    ],
+    [
+        "TRACTION_RUN_2",
+        "C1",
+        "2022-12-02 15:11:22",
+        "2022-12-09 11:26:27",
+        "2022-12-04 21:52:27",
+        "2022-12-06 11:08:40",
+        "Complete",
+        "Complete",
+        "OffInstrument",
+        6342397,
+        2106718,
+        "12345",
+        "Revio",
+        2,
+    ],
+    [
+        "TRACTION_RUN_2",
+        "D1",
+        "2022-12-02 15:11:22",
+        "2022-12-09 11:26:27",
+        "2022-12-06 01:20:31",
+        "2022-12-07 14:13:56",
+        "Complete",
+        "Complete",
+        "OffInstrument",
+        6342590,
+        2160710,
+        "12345",
+        "Revio",
+        2,
     ],
     [
         "TRACTION_RUN_3",
@@ -585,8 +661,8 @@ MLWH_DATA = [
         3989714,
         2227107,
         "1234",
-        "Revio",
-        1,
+        "Sequel2",
+        None,
     ],
     [
         "SUBTRACTION_RUN_15",
@@ -668,6 +744,38 @@ MLWH_DATA = [
         "Revio",
         1,
     ],
+    [
+        "TRACTION_RUN_16",
+        "A1",
+        "2022-06-11 11:15:41",
+        "2022-06-16 07:39:59",
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        "1234",
+        "Revio",
+        1,
+    ],
+    [
+        "TRACTION_RUN_16",
+        "A1",
+        "2022-06-11 11:15:41",
+        "2022-06-16 07:39:59",
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        "1234",
+        "Revio",
+        2,
+    ],
 ]
 
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
@@ -692,21 +800,66 @@ def load_data4well_retrieval(
 
     users = qcdb_test_session.execute(select(User)).scalars().all()
 
-    # Each record will be committed individually
+    db_types = qcdb_test_session.execute(select(QcType)).scalars().all()
+    qc_types = {row.qc_type: row for row in db_types}
+
+    db_states = qcdb_test_session.execute(select(QcStateDict)).scalars().all()
+    qc_states = {row.state: row for row in db_states}
+
+    platform = qcdb_test_session.execute(
+        select(SeqPlatform).where(SeqPlatform.name == "PacBio")
+    ).scalar_one()
+
+    product_attr_rn = qcdb_test_session.execute(
+        select(SubProductAttr).where(SubProductAttr.attr_name == "run_name")
+    ).scalar_one()
+    product_attr_wl = qcdb_test_session.execute(
+        select(SubProductAttr).where(SubProductAttr.attr_name == "well_label")
+    ).scalar_one()
+    product_attr_pn = qcdb_test_session.execute(
+        select(SubProductAttr).where(SubProductAttr.attr_name == "plate_number")
+    ).scalar_one()
+
     for qc_data in QC_DATA:
-        helper = WellQc(
-            session=qcdb_test_session, run_name=qc_data[0], well_label=qc_data[1]
+
+        pbe = PacBioEntity(
+            run_name=qc_data[0], well_label=qc_data[1], plate_number=qc_data[5]
         )
-        # Create data for both QC types.
-        for qc_type_definition in QC_TYPES:
-            qc_type = qc_type_definition["qc_type"]
-            helper.assign_qc_state(
-                user=users[0],
-                qc_state=qc_data[2],
+        id_product = pbe.hash_product_id()
+        json = pbe.json()
+        date = datetime.strptime(qc_data[4], DATE_FORMAT)
+
+        seq_product = SeqProduct(
+            id_product=id_product,
+            seq_platform=platform,
+            sub_products=[
+                SubProduct(
+                    sub_product_attr=product_attr_rn,
+                    sub_product_attr_=product_attr_wl,
+                    sub_product_attr__=product_attr_pn,
+                    value_attr_one=qc_data[0],
+                    value_attr_two=qc_data[1],
+                    properties=json,
+                    properties_digest=id_product,
+                ),
+            ],
+        )
+        qcdb_test_session.add(seq_product)
+
+        for qc_type in ["sequencing", "library"]:
+            qc_state = QcState(
+                created_by="LangQC",
                 is_preliminary=qc_data[3],
-                date_updated=datetime.strptime(qc_data[4], DATE_FORMAT),
-                qc_type=qc_type,
+                qc_state_dict=qc_states[qc_data[2]],
+                qc_type=qc_types[qc_type],
+                date_created=date,
+                date_updated=date,
+                seq_product=seq_product,
+                user=users[0],
             )
+            qcdb_test_session.add(qc_state)
+
+    qcdb_test_session.commit()
 
     # We want some wells to be in the inbox. For that their run_complete dates
     # should be within last four weeks. Therefore, we need to update the timestamps
@@ -730,7 +883,7 @@ def load_data4well_retrieval(
                 "polymerase_num_reads": record[9],
                 "hifi_num_reads": record[10],
                 "id_pac_bio_product": PacBioEntity(
-                    run_name=record[0], well_label=record[1]
+                    run_name=record[0], well_label=record[1], plate_number=record[13]
                 ).hash_product_id(),
                 "instrument_name": record[11],
                 "instrument_type": record[12],

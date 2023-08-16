@@ -84,6 +84,7 @@ def test_on_hold_filter(test_client: TestClient, load_data4well_retrieval):
     expected_data = [
         {"TRACTION_RUN_1:D1": "On hold"},
         {"TRACTION_RUN_1:B1": "On hold"},
+        {"TRACTION_RUN_16:A1": "On hold"},
     ]
     num_total = len(expected_data)
 
@@ -116,6 +117,7 @@ def test_in_progress_filter(test_client: TestClient, load_data4well_retrieval):
         {"TRACTION_RUN_1:C1": "Claimed"},
         {"TRACTION_RUN_2:A1": "Failed, Instrument"},
         {"TRACTION_RUN_1:A1": "Claimed"},
+        {"TRACTION_RUN_16:A1": "Claimed"},
         {"TRACTION_RUN_7:A1": "Failed"},
     ]
     # One entity is removed after paging since no mlwh data is available
@@ -130,7 +132,12 @@ def test_in_progress_filter(test_client: TestClient, load_data4well_retrieval):
     response = test_client.get(
         "/pacbio/wells?qc_status=in_progress&page_size=5&page_number=2"
     )
-    _assert_filtered_results(response, expected_data[5:], 5, 2, num_total)
+    _assert_filtered_results(response, expected_data[5:9], 5, 2, num_total)
+
+    response = test_client.get(
+        "/pacbio/wells?qc_status=in_progress&page_size=5&page_number=3"
+    )
+    _assert_filtered_results(response, expected_data[9:], 5, 3, num_total)
 
 
 def test_inbox_filter(test_client: TestClient, load_data4well_retrieval):

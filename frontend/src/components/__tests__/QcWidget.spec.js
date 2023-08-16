@@ -14,10 +14,9 @@ describe('QC widgets render with no prior QC state, i.e. pending/ready', () => {
                 initialState: {
                     focusWell: {
                         well: {
-                            run_info: {
-                                pac_bio_run_name: 'TEST',
-                                well_label: 'A1',
-                            }
+                            id_product: 'ABCDEF',
+                            run_name: 'TEST',
+                            label: 'A1',
                         }
                     },
                 },
@@ -107,10 +106,9 @@ describe('QC widget acquires state from prior outcome in run-table', () => {
                 initialState: {
                     focusWell: {
                         well: {
-                            run_info: {
-                                pac_bio_run_name: 'TEST',
-                                well_label: 'A1',
-                            },
+                            id_product: 'ABCDEF',
+                            run_name: 'TEST',
+                            label: 'A1',
                             qc_state: {
                                 qc_state: 'Claimed',
                                 is_preliminary: true,

@@ -37,22 +37,26 @@ export function generateUrl(existingSettings, newSettings, path) {
 }
 
 export function qcQueryChanged(before, after) {
-  // Compares ?qcLabel and ?qcRun in the URL to tell when new data will be needed
-  // Invoke while watching vue-router.route.query
+  // Compares ?idProduct in the URL to tell when new data will
+  // be needed. Invoke while watching vue-router.route.query
   if (
-    (after.qcLabel || after.qcRun)
+    (after.idProduct)
     && (
+      // New page load
       before === undefined
       || (
-        !before['qcLabel'] && !before['qcRun']
+        // Focus removed in previous nav, e.g. go home
+        !before['idProduct']
       )
       || (
-        before.qcLabel && before.qcRun && (after.qcLabel != before.qcLabel || after.qcRun != before.qcRun)
+        // Change of focus within page
+        before.idProduct
+        && (after.idProduct != before.idProduct)
       )
     )
   ) {
     return true
-  } else if (before !== undefined && (before['qcLabel'] || before['qcRun'])) {
+  } else if (before !== undefined && (before['idProduct'])) {
     // In case all arguments are removed
     return true
   }

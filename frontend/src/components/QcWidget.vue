@@ -56,9 +56,9 @@ function syncWidgetToQcState() {
 }
 
 function submitQcState() {
-    let [name, well] = focusWell.getRunAndLabel;
+    const id_product = focusWell.getIdProduct;
 
-    client.setWellQcState(name, well, widgetQcSetting.value, widgetFinality.value)
+    client.setWellQcState(id_product, widgetQcSetting.value, widgetFinality.value)
         .then(
             (response) => {
                 focusWell.updateWellQcState(response);

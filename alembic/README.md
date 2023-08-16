@@ -16,7 +16,8 @@ What you need:
 - the URL for that database set in `ALEMBIC_DB_URL`
 
 Set `ALEMBIC_DB_URL` env. variable to the SQLAlchemy URL for the database you
-want to operate on. The format is `driver://user:pass@host:port/dbname`.
+want to operate on. The format is `driver://user:pass@host:port/dbname`, where
+for MySQL and our software stack the driver is `mysql+pymysql`.
 
 Ensure `alembic` in on your PATH. Create a revision:
 
