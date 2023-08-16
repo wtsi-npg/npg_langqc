@@ -46,28 +46,13 @@ from lang_qc.db.qc_schema import (
     SubProductAttr,
     User,
 )
+from lang_qc.util.errors import InconsistentInputError, InvalidDictValueError
 
 APPLICATION_NAME = "LangQC"
 DEFAULT_QC_TYPE = "sequencing"
 DEFAULT_QC_STATE = "Claimed"
 DEFAULT_FINALITY = False
 ONLY_PRELIM_STATES = (DEFAULT_QC_STATE, "On hold")
-
-
-class InvalidDictValueError(Exception):
-    """
-    Custom exception for failures to validate input that should
-    correspond to database dictionaries values such as, for example,
-    and unknown QC type.
-    """
-
-
-class InconsistentInputError(Exception):
-    """
-    Custom exception for cases when individual values of attributes
-    are valid, but are inconsistent or mutually exclusive in regards
-    of the QC state that has to be assigned.
-    """
 
 
 class QcDictDB(BaseModel):
