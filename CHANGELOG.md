@@ -3,16 +3,22 @@
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [1.4.0] - 2023-08-16
 
 ### Added
 
 * Tests for bulk retrieval of QC states
+* Third dimension for describing wells added to QC Schema to support multi-plate runs
+
+### Changed
+
+* Browser URLs now use id_product to identify items to show in the QC Viewer instead of the combination of run, label (and plate number)
+* More strict validation of checksums (id_product) when sent to backend API
 
 ### Fixed
 
 * A bug that disregarded the value of the `sequencing_outcomes_only`
-argument in what is now the `get_qc_states_by_id_product_list` function 
+argument in what is now the `get_qc_states_by_id_product_list` function
 
 ## [1.3.0] - 2023-08-02
 
