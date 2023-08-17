@@ -24,8 +24,9 @@ from pydantic import PositiveInt
 from sqlalchemy.orm import Session
 from starlette import status
 
-from lang_qc.db.helper.well import InconsistentInputError, InvalidDictValueError, WellQc
-from lang_qc.db.helper.wells import PacBioPagedWellsFactory, RunNotFoundError, WellWh
+from lang_qc.db.helper.qc import get_qc_state_for_product, qc_state_for_product_exists
+from lang_qc.db.helper.well import WellQc
+from lang_qc.db.helper.wells import PacBioPagedWellsFactory, WellWh
 from lang_qc.db.mlwh_connection import get_mlwh_db
 from lang_qc.db.qc_connection import get_qc_db
 from lang_qc.db.qc_schema import User
@@ -33,6 +34,11 @@ from lang_qc.models.pacbio.well import PacBioPagedWells, PacBioWellFull
 from lang_qc.models.qc_flow_status import QcFlowStatusEnum
 from lang_qc.models.qc_state import QcState, QcStateBasic
 from lang_qc.util.auth import check_user
+from lang_qc.util.errors import (
+    InconsistentInputError,
+    InvalidDictValueError,
+    RunNotFoundError,
+)
 from lang_qc.util.type_checksum import ChecksumSHA256
 
 """
@@ -199,13 +205,13 @@ def claim_qc(
 
     mlwh_well = _find_well_product_or_error(id_product, mlwhdb_session)
 
-    well_qc = WellQc(session=qcdb_session)
-    if well_qc.current_qc_state(id_product):
+    if qc_state_for_product_exists(qcdb_session, id_product):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=f"Well for product {id_product} has already been claimed",
+            detail=f"Well for product {id_product} has QC state assigned",
         )
 
+    well_qc = WellQc(session=qcdb_session)
     # Using default attributes for almost all arguments.
     # The new QC state will be set as preliminary.
     return QcState.from_orm(well_qc.assign_qc_state(mlwh_well=mlwh_well, user=user))
@@ -240,9 +246,7 @@ def assign_qc_state(
 
     mlwh_well = _find_well_product_or_error(id_product, mlwhdb_session)
 
-    well_qc = WellQc(session=qcdb_session)
-    qc_state = well_qc.current_qc_state(id_product)
-
+    qc_state = get_qc_state_for_product(qcdb_session, id_product)
     if qc_state is None:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -252,7 +256,7 @@ def assign_qc_state(
     qc_state = None
     message = "Error assigning status: "
     try:
-        qc_state = well_qc.assign_qc_state(
+        qc_state = WellQc(session=qcdb_session).assign_qc_state(
             mlwh_well=mlwh_well, user=user, **request_body.dict()
         )
     except (InvalidDictValueError, InconsistentInputError) as err:

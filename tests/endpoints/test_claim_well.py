@@ -118,7 +118,7 @@ def test_error_on_already_claimed(test_client: TestClient, load_data4well_retrie
     assert response.status_code == 409
     assert (
         response.json()["detail"]
-        == f"Well for product {id_product_15A1} has already been claimed"
+        == f"Well for product {id_product_15A1} has QC state assigned"
     )
 
 

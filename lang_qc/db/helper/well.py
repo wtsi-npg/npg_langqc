@@ -31,9 +31,10 @@ from typing import Dict
 
 from npg_id_generation.pac_bio import PacBioEntity
 from pydantic import BaseModel, Extra, Field
-from sqlalchemy import and_, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from lang_qc.db.helper.qc import get_qc_state_for_product
 from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
 from lang_qc.db.qc_schema import (
     QcState,
@@ -46,28 +47,13 @@ from lang_qc.db.qc_schema import (
     SubProductAttr,
     User,
 )
+from lang_qc.util.errors import InconsistentInputError, InvalidDictValueError
 
 APPLICATION_NAME = "LangQC"
 DEFAULT_QC_TYPE = "sequencing"
 DEFAULT_QC_STATE = "Claimed"
 DEFAULT_FINALITY = False
 ONLY_PRELIM_STATES = (DEFAULT_QC_STATE, "On hold")
-
-
-class InvalidDictValueError(Exception):
-    """
-    Custom exception for failures to validate input that should
-    correspond to database dictionaries values such as, for example,
-    and unknown QC type.
-    """
-
-
-class InconsistentInputError(Exception):
-    """
-    Custom exception for cases when individual values of attributes
-    are valid, but are inconsistent or mutually exclusive in regards
-    of the QC state that has to be assigned.
-    """
 
 
 class QcDictDB(BaseModel):
@@ -171,36 +157,6 @@ class WellQc(QcDictDB):
 
         return well_product
 
-    def current_qc_state(
-        self, id_product: str, qc_type: str = "sequencing"
-    ) -> QcState | None:
-        """
-        Returns a current record for the product associated with the given
-        product ID in the `qc_state` table for QC. The type of QC is defined
-        by the `qc_type` argument.
-
-        Validates the `qc_type` argument and raises a `ValidationError` if
-        the validation fails.
-
-        Returns `None` if no current QC record for this entity for this type
-        of QC exists.
-        """
-
-        return (
-            self.session.execute(
-                select(QcState)
-                .join(QcState.seq_product)
-                .where(
-                    and_(
-                        SeqProduct.id_product == id_product,
-                        QcState.qc_type == self.qc_type_dict_row(qc_type),
-                    )
-                )
-            )
-            .scalars()
-            .one_or_none()
-        )
-
     def assign_qc_state(
         self,
         mlwh_well: PacBioRunWellMetrics,
@@ -272,7 +228,7 @@ class WellQc(QcDictDB):
         """
 
         id_product = mlwh_well.id_pac_bio_product
-        db_state = self.current_qc_state(id_product, qc_type)
+        db_state = get_qc_state_for_product(self.session, id_product, qc_type)
         if (
             (db_state is not None)
             and (db_state.qc_state_dict.state == qc_state)

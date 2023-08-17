@@ -4,14 +4,10 @@ import pytest
 from npg_id_generation.pac_bio import PacBioEntity
 from sqlalchemy import select
 
-from lang_qc.db.helper.well import (
-    InconsistentInputError,
-    InvalidDictValueError,
-    QcDictDB,
-    WellQc,
-)
+from lang_qc.db.helper.well import QcDictDB, WellQc
 from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
 from lang_qc.db.qc_schema import QcState, QcStateHist, User
+from lang_qc.util.errors import InconsistentInputError, InvalidDictValueError
 from tests.fixtures.well_data import load_data4well_retrieval, load_dicts_and_users
 
 
@@ -67,8 +63,6 @@ def test_well_state_helper(
 
     helper = WellQc(session=session)
 
-    assert helper.current_qc_state(id) is None
-
     # Expect a new QC state and product record are created
     state_obj = helper.assign_qc_state(
         mlwh_well=mlwh_well, user=users[0], qc_state="Claimed"
@@ -94,15 +88,6 @@ def test_well_state_helper(
     hist_objs = _hist_objects(session, id_seq_product)
     assert len(hist_objs) == 1
     _test_hist_object(state_obj, hist_objs[0])
-
-    # Current QC state is defined now
-    current_qc_state = helper.current_qc_state(id)
-    assert current_qc_state == state_obj
-    # ... but not for a library
-    assert helper.current_qc_state(id, "library") is None
-    # Check that the date is very recent
-    delta = current_qc_state.date_created - time_now
-    assert delta.total_seconds() <= 1
 
     args = {
         "mlwh_well": mlwh_well,
@@ -141,11 +126,6 @@ def test_well_state_helper(
     hist_objs = _hist_objects(session, id_seq_product)
     assert len(hist_objs) == 3
     _test_hist_object(state_obj, hist_objs[2])
-
-    # Current QC state is defined for library QC
-    assert helper.current_qc_state(id, "library") == state_obj
-    # ... and is different from the current QC state for sequencing
-    assert helper.current_qc_state(id, "sequencing") != state_obj
 
     args["is_preliminary"] = False
     state_obj = helper.assign_qc_state(**args)
