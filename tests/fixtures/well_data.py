@@ -805,20 +805,7 @@ def load_data4well_retrieval(
 
     db_states = qcdb_test_session.execute(select(QcStateDict)).scalars().all()
     qc_states = {row.state: row for row in db_states}
-
-    platform = qcdb_test_session.execute(
-        select(SeqPlatform).where(SeqPlatform.name == "PacBio")
-    ).scalar_one()
-
-    product_attr_rn = qcdb_test_session.execute(
-        select(SubProductAttr).where(SubProductAttr.attr_name == "run_name")
-    ).scalar_one()
-    product_attr_wl = qcdb_test_session.execute(
-        select(SubProductAttr).where(SubProductAttr.attr_name == "well_label")
-    ).scalar_one()
-    product_attr_pn = qcdb_test_session.execute(
-        select(SubProductAttr).where(SubProductAttr.attr_name == "plate_number")
-    ).scalar_one()
+    dict_rows = _get_dict_of_dict_rows(qcdb_test_session)
 
     for qc_data in QC_DATA:
 
@@ -831,14 +818,15 @@ def load_data4well_retrieval(
 
         seq_product = SeqProduct(
             id_product=id_product,
-            seq_platform=platform,
+            seq_platform=dict_rows["platform"],
             sub_products=[
                 SubProduct(
-                    sub_product_attr=product_attr_rn,
-                    sub_product_attr_=product_attr_wl,
-                    sub_product_attr__=product_attr_pn,
+                    sub_product_attr=dict_rows["product_attr_rn"],
+                    sub_product_attr_=dict_rows["product_attr_wl"],
+                    sub_product_attr__=dict_rows["product_attr_pn"],
                     value_attr_one=qc_data[0],
                     value_attr_two=qc_data[1],
+                    value_attr_three=qc_data[5],
                     properties=json,
                     properties_digest=id_product,
                 ),
@@ -847,6 +835,14 @@ def load_data4well_retrieval(
         qcdb_test_session.add(seq_product)
 
         for qc_type in ["sequencing", "library"]:
+            if qc_data[0] == "TRACTION_RUN_16":
+                if qc_data[5] == 1:
+                    if qc_type == "library":
+                        continue
+                else:
+                    if qc_type == "sequencing":
+                        continue
+
             qc_state = QcState(
                 created_by="LangQC",
                 is_preliminary=qc_data[3],
@@ -894,6 +890,58 @@ def load_data4well_retrieval(
     mlwhdb_test_session.commit()
 
     return MLWH_DATA
+
+
+@pytest.fixture(scope="module")
+def load_data4qc_assign(load_dicts_and_users, qcdb_test_session):
+
+    dict_rows = _get_dict_of_dict_rows(qcdb_test_session)
+    # Just seq_product, no QC states
+    for label in ["A1", "B1"]:
+        p = PacBioEntity(run_name="TRACTION_RUN_2", well_label=label, plate_number=2)
+        id = p.hash_product_id()
+        seq_product = SeqProduct(
+            id_product=id,
+            seq_platform=dict_rows["platform"],
+            sub_products=[
+                SubProduct(
+                    sub_product_attr=dict_rows["product_attr_rn"],
+                    sub_product_attr_=dict_rows["product_attr_wl"],
+                    sub_product_attr__=dict_rows["product_attr_pn"],
+                    value_attr_one="TRACTION_RUN_2",
+                    value_attr_two=label,
+                    value_attr_three="2",
+                    properties=p.json(),
+                    properties_digest=id,
+                ),
+            ],
+        )
+        qcdb_test_session.add(seq_product)
+    qcdb_test_session.commit()
+
+
+def _get_dict_of_dict_rows(qcdb_test_session):
+
+    platform = qcdb_test_session.execute(
+        select(SeqPlatform).where(SeqPlatform.name == "PacBio")
+    ).scalar_one()
+
+    product_attr_rn = qcdb_test_session.execute(
+        select(SubProductAttr).where(SubProductAttr.attr_name == "run_name")
+    ).scalar_one()
+    product_attr_wl = qcdb_test_session.execute(
+        select(SubProductAttr).where(SubProductAttr.attr_name == "well_label")
+    ).scalar_one()
+    product_attr_pn = qcdb_test_session.execute(
+        select(SubProductAttr).where(SubProductAttr.attr_name == "plate_number")
+    ).scalar_one()
+
+    return {
+        "platform": platform,
+        "product_attr_rn": product_attr_rn,
+        "product_attr_wl": product_attr_wl,
+        "product_attr_pn": product_attr_pn,
+    }
 
 
 def _update_timestamps4inbox():
