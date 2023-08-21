@@ -12,6 +12,8 @@ let input = ref('');
 let searchMode = ref('search');
 let appConfig = ref(null);
 const apiClient = new LangQc();
+const VERSION = APP_VERSION; // defined in vite.config.js
+const DEVMODE = import.meta.env.DEV
 
 let route = useRoute()
 
@@ -30,7 +32,7 @@ onMounted(() => {
       }
     )
   }
-  catch(error) {
+  catch (error) {
     console.error("Couldn't get app config from backend API")
     ElMessage({
       message: error.message,
@@ -42,7 +44,7 @@ onMounted(() => {
 function goToRun(runName) {
   if (runName != '') {
     if (searchMode.value == 'search') {
-      router.push({ name: 'WellsByRun', params: { runName: [runName] }})
+      router.push({ name: 'WellsByRun', params: { runName: [runName] } })
     } else {
       compareAnotherRun(runName)
     }
@@ -60,10 +62,10 @@ function compareAnotherRun(supplementalRunName) {
         message: "Too many runs",
         type: "error"
       })
-    } else if (! previousRuns.includes(supplementalRunName)) {
+    } else if (!previousRuns.includes(supplementalRunName)) {
       previousRuns.push(supplementalRunName)
       console.log(`Now ${previousRuns}`)
-      router.push({ name: 'WellsByRun', params: { runName: previousRuns }})
+      router.push({ name: 'WellsByRun', params: { runName: previousRuns } })
     }
   }
 }
@@ -82,10 +84,10 @@ function notInWellsByRun() {
 
     <!-- Header -->
     <div>
-      <img alt="Sanger logo" src="@/assets/sanger-logo.png" style="float:right" class="logo"/>
+      <img alt="Sanger logo" src="@/assets/sanger-logo.png" style="float:right" class="logo" />
       <h2 style="float:left">NPG LangQC for PacBio</h2>
     </div>
-    <div style="clear:both"/>
+    <div style="clear:both" />
 
     <nav>
       <!-- Make these RouterLinks again somehow so we don't reload the whole app for nothing -->
@@ -103,24 +105,24 @@ function notInWellsByRun() {
           <el-tooltip content="Top center" placement="top">
             <template #content>Display one run (search)<br />Add one more run (also)</template>
             <el-select v-model="searchMode">
-              <el-option value="search"/>
-              <el-option :disabled="notInWellsByRun()" label="also" value="also"/>
+              <el-option value="search" />
+              <el-option :disabled="notInWellsByRun()" label="also" value="also" />
             </el-select>
           </el-tooltip>
         </template>
         <template #append>
-            <el-button :icon="Search" @click="goToRun(input)"/>
+          <el-button :icon="Search" @click="goToRun(input)" />
         </template>
       </el-input>
     </nav>
     <!-- Header END -->
 
-    <RouterView v-if="appConfig !== null"/>
+    <RouterView v-if="appConfig !== null" />
 
   </el-main>
 
-  <el-footer>Copyright Genome Research Ltd 2023</el-footer>
-
+  <el-footer>Copyright Genome Research Ltd 2023 - client version: {{ VERSION.replace(/['"]+/g) + (DEVMODE ? "+DEV" : "")
+  }}</el-footer>
 </template>
 
 <style scoped>
