@@ -12,7 +12,8 @@ let input = ref('');
 let searchMode = ref('search');
 let appConfig = ref(null);
 const apiClient = new LangQc();
-const VERSION = APP_VERSION; // defined in vite.config.js
+// Some variables managed by vite, see vite.config.js
+const VERSION = APP_VERSION; // eslint-disable-line no-undef
 const DEVMODE = import.meta.env.DEV
 
 let route = useRoute()
