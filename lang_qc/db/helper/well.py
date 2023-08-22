@@ -72,32 +72,18 @@ def _create_well(
     plate_number: int = None,
 ) -> SeqProduct:
 
-    id_seq_platform = (
-        session.execute(select(SeqPlatform).where(SeqPlatform.name == "PacBio"))
-        .scalar_one()
-        .id_seq_platform
-    )
-    product_attr_id_rn = (
-        session.execute(
-            select(SubProductAttr).where(SubProductAttr.attr_name == "run_name")
-        )
-        .scalar_one()
-        .id_attr
-    )
-    product_attr_id_wl = (
-        session.execute(
-            select(SubProductAttr).where(SubProductAttr.attr_name == "well_label")
-        )
-        .scalar_one()
-        .id_attr
-    )
-    product_attr_id_pn = (
-        session.execute(
-            select(SubProductAttr).where(SubProductAttr.attr_name == "plate_number")
-        )
-        .scalar_one()
-        .id_attr
-    )
+    seq_platform = session.execute(
+        select(SeqPlatform).where(SeqPlatform.name == "PacBio")
+    ).scalar_one()
+    product_attr_rn = session.execute(
+        select(SubProductAttr).where(SubProductAttr.attr_name == "run_name")
+    ).scalar_one()
+    product_attr_wl = session.execute(
+        select(SubProductAttr).where(SubProductAttr.attr_name == "well_label")
+    ).scalar_one()
+    product_attr_pn = session.execute(
+        select(SubProductAttr).where(SubProductAttr.attr_name == "plate_number")
+    ).scalar_one()
     product_json = PacBioEntity(
         run_name=run_name, well_label=well_label, plate_number=plate_number
     ).json()
@@ -106,14 +92,14 @@ def _create_well(
     # the `sub_product` table entries we are linking to already exist.
     well_product = SeqProduct(
         id_product=id_product,
-        id_seq_platform=id_seq_platform,
+        seq_platform=seq_platform,
         sub_products=[
             SubProduct(
-                id_attr_one=product_attr_id_rn,
+                sub_product_attr=product_attr_rn,
                 value_attr_one=run_name,
-                id_attr_two=product_attr_id_wl,
+                sub_product_attr_=product_attr_wl,
                 value_attr_two=well_label,
-                id_attr_three=product_attr_id_pn,
+                sub_product_attr__=product_attr_pn,
                 value_attr_three=str(plate_number)
                 if plate_number is not None
                 else None,
