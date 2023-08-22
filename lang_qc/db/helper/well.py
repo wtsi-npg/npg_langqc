@@ -32,14 +32,22 @@ from lang_qc.db.helper.qc import get_seq_product
 from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
 from lang_qc.db.qc_schema import SeqPlatform, SeqProduct, SubProduct, SubProductAttr
 
+"""
+A collection of stand-alone function for retrieving or creating
+PacBio-specific records in the LangQC database.
+"""
+
 
 def well_seq_product_find_or_create(
     session: Session, mlwh_well: PacBioRunWellMetrics
 ) -> SeqProduct:
     """
     Returns a pre-existing `lang_qc.db.qc_schema.SeqProduct` for
-    a PacBio well given as a ml warehouse row record or creates
-    a new one.
+    a PacBio well or creates a new one.
+
+    Arguments:
+        `session` - `sqlalchemy.orm.Session`, a connection for LangQC database.
+        `mlwh_well` - `lang_qc.db.mlwh_schema.PacBioRunWellMetrics` row object for the well.
     """
 
     id_product = mlwh_well.id_pac_bio_product
@@ -106,7 +114,9 @@ def _create_well(
                 id_attr_two=product_attr_id_wl,
                 value_attr_two=well_label,
                 id_attr_three=product_attr_id_pn,
-                value_attr_three=str(plate_number),
+                value_attr_three=str(plate_number)
+                if plate_number is not None
+                else None,
                 properties=product_json,
                 properties_digest=id_product,
             )
