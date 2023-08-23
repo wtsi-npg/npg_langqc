@@ -834,12 +834,18 @@ def load_data4well_retrieval(
         )
         qcdb_test_session.add(seq_product)
 
+        # Create one library type QC state and one sequencing type
+        # QC state for each product created above.
         for qc_type in ["sequencing", "library"]:
             if qc_data[0] == "TRACTION_RUN_16":
+                # For this run for one well (A1 plate 1)
                 if qc_data[5] == 1:
+                    # do not create library QC state,
                     if qc_type == "library":
                         continue
                 else:
+                    # for another well (A1 plate 2)
+                    # do not create sequencing type QC state.
                     if qc_type == "sequencing":
                         continue
 
