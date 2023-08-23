@@ -3,6 +3,7 @@ import pytest
 from lang_qc.db.helper.qc import (
     get_qc_state_for_product,
     get_qc_states_by_id_product_list,
+    qc_state_dict,
     qc_state_for_product_exists,
 )
 from tests.fixtures.well_data import load_data4well_retrieval, load_dicts_and_users
@@ -65,13 +66,40 @@ def test_product_existence(qcdb_test_session, load_data4well_retrieval):
     assert qc_state_for_product_exists(qcdb_test_session, MISSING_CHECKSUM) is False
     for id in two_good_ids_list:
         assert qc_state_for_product_exists(qcdb_test_session, id) is True
+        assert qc_state_for_product_exists(qcdb_test_session, id, "sequencing") is True
+        assert qc_state_for_product_exists(qcdb_test_session, id, "library") is True
+
+    # "TRACTION_RUN_16", plate 1
+    id_no_lib_qc = "48056b888e6890a2c2d6020018349167feeb729322b1caff97a28a4a8116d98d"
+    assert (
+        qc_state_for_product_exists(qcdb_test_session, id_no_lib_qc, "sequencing")
+        is True
+    )
+    assert (
+        qc_state_for_product_exists(qcdb_test_session, id_no_lib_qc, "library") is False
+    )
+    assert qc_state_for_product_exists(qcdb_test_session, id_no_lib_qc) is True
+
+    # "TRACTION_RUN_16", plate 2
+    id_no_seq_qc = "dc77c4a7f34d84afbb895fcaee72fc8bead9dac20e8d3a9614091d9dd4519acd"
+    assert (
+        qc_state_for_product_exists(qcdb_test_session, id_no_seq_qc, "sequencing")
+        is False
+    )
+    assert (
+        qc_state_for_product_exists(qcdb_test_session, id_no_seq_qc, "library") is True
+    )
+    assert qc_state_for_product_exists(qcdb_test_session, id_no_seq_qc) is True
+
+    with pytest.raises(Exception, match=r"QC type 'some_type' is invalid"):
+        qc_state_for_product_exists(qcdb_test_session, id_no_seq_qc, "some_type")
 
 
 def test_product_qc_state_retrieval(qcdb_test_session, load_data4well_retrieval):
 
     assert get_qc_state_for_product(qcdb_test_session, MISSING_CHECKSUM) is None
 
-    with pytest.raises(Exception, match=r"QC type some_type is not valid"):
+    with pytest.raises(Exception, match=r"QC type 'some_type' is invalid"):
         get_qc_state_for_product(
             session=qcdb_test_session,
             id_product=SECOND_GOOD_CHECKSUM,
@@ -113,3 +141,18 @@ def test_product_qc_state_retrieval(qcdb_test_session, load_data4well_retrieval)
     assert qc_state.seq_product.id_product == SECOND_GOOD_CHECKSUM
     assert qc_state.qc_type.qc_type == "library"
     assert qc_state.qc_state_dict.state == "Failed, Instrument"
+
+
+def test_dict_helper(qcdb_test_session, load_dicts_and_users):
+
+    expected_sorted_states = [
+        "Passed",
+        "Aborted",
+        "Failed",
+        "Failed, Instrument",
+        "Failed, SMRT cell",
+        "Claimed",
+        "On hold",
+        "Undecided",
+    ]
+    assert list(qc_state_dict(qcdb_test_session).keys()) == expected_sorted_states

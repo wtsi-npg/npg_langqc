@@ -107,10 +107,7 @@ def test_error_inconsistent_preliminary_flag(
         headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
     )
     assert response.status_code == 400
-    assert (
-        response.json()["detail"]
-        == "Error assigning status: QC state 'On hold' cannot be final"
-    )
+    assert response.json()["detail"] == "QC state 'On hold' cannot be final"
 
 
 def test_error_invalid_state(test_client: TestClient, load_data4well_retrieval):
@@ -129,9 +126,28 @@ def test_error_invalid_state(test_client: TestClient, load_data4well_retrieval):
         headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
     )
     assert response.status_code == 400
+    assert response.json()["detail"] == "QC state 'On reprimand' is invalid"
+
+
+def test_error_wrong_qc_type(test_client: TestClient, load_data4well_retrieval):
+    """Error if we try to assign 'Claimed QC' state for a non-sequencing QC type"""
+
+    post_data_lib = """
+    {
+        "qc_type": "library",
+        "qc_state": "Claimed",
+        "is_preliminary": true
+    }
+    """
+    response = test_client.put(
+        f"/pacbio/products/{id_product_2A1}/qc_assign",
+        post_data_lib,
+        headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
+    )
+    assert response.status_code == 400
     assert (
         response.json()["detail"]
-        == "Error assigning status: QC state 'On reprimand' is invalid"
+        == "QC state 'Claimed' is incompatible with QC type 'library'"
     )
 
 
@@ -216,7 +232,14 @@ def test_permutations_of_plates(test_client: TestClient, load_data4well_retrieva
             post_data_update,
             headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
         )
-        assert response.status_code == 200
-        r = response.json()
-        assert r["qc_state"] == "Passed"
-        assert r["id_product"] == id_product
+        if pn == 1:
+            assert response.status_code == 200
+            r = response.json()
+            assert r["qc_state"] == "Passed"
+            assert r["id_product"] == id_product
+        else:
+            assert response.status_code == 409
+            assert (
+                response.json()["detail"]
+                == "QC state of an unclaimed well cannot be updated"
+            )

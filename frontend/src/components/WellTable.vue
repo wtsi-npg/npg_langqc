@@ -25,7 +25,7 @@ defineEmits(['wellSelected'])
       <th>Well time start</th>
       <th>Well time complete</th>
     </tr>
-    <tr :key="wellObj.run_name + ':' + wellObj.label" v-for="wellObj in wellCollection">
+    <tr :key="wellObj.id_product" v-for="wellObj in wellCollection">
       <td>{{ wellObj.run_name }}</td>
       <td class="well_selector">
         <button v-on:click="$emit('wellSelected', { idProduct: wellObj.id_product })">
