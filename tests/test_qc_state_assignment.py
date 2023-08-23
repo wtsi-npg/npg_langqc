@@ -45,7 +45,9 @@ def test_claim_qc(qcdb_test_session, load_data4well_retrieval, load_data4qc_assi
     assert len(hist_objs) == 1
     _test_hist_object(state_obj, hist_objs[0])
 
-    # New QC state record is not created
+    # Call the function again for the same product, but with a different
+    # user. New QC state record is not created, the user record is not
+    # changed.
     state_obj = claim_qc_for_product(
         session=qcdb_test_session, seq_product=seq_product, user=user2
     )
@@ -76,7 +78,11 @@ def test_assign_qc_success(
         select(SeqProduct).where(SeqProduct.id_product == id)
     ).scalar_one()
     id_seq_product = seq_product.id_seq_product
-    # In case oly this test is run, claim.
+
+    # In a normal QC process via the UI, the well is claimed before
+    # any other QC state is assigned to it. This test might be run in
+    # isolation, without the above test_claim_qc being run prior to it.
+    # To ensure that the well is claimed, call the function below.
     claim_qc_for_product(session=qcdb_test_session, seq_product=seq_product, user=user2)
 
     new_state = QcStateBasic(
@@ -100,7 +106,8 @@ def test_assign_qc_success(
     assert len(hist_objs) == 2
     _test_hist_object(state_obj, hist_objs[1])
 
-    # Expect no update despite a different user
+    # Call the function again with all arguments the same, apart from the
+    # user. Expect no update.
     args["user"] = users[0]
     state_obj_the_same = assign_qc_state_to_product(qcdb_test_session, **args)
     assert state_obj == state_obj_the_same
