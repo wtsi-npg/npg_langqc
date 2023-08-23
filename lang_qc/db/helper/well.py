@@ -20,386 +20,95 @@
 # this program. If not, see <http://www.gnu.org/licenses/>
 
 """
-A module bringing together classes used in QC state assignments for a PacBio
-well. A low-level API for the assignment of QC states, which does not depend on
-the web API.
+A collection of specific to PacBio platform helper functions
+for interaction with the LangQC database.
 """
 
-from datetime import datetime
-from functools import cached_property
-from typing import Dict
-
 from npg_id_generation.pac_bio import PacBioEntity
-from pydantic import BaseModel, Extra, Field
-from sqlalchemy import and_, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from lang_qc.db.helper.qc import get_seq_product
 from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
-from lang_qc.db.qc_schema import (
-    QcState,
-    QcStateDict,
-    QcStateHist,
-    QcType,
-    SeqPlatform,
-    SeqProduct,
-    SubProduct,
-    SubProductAttr,
-    User,
-)
+from lang_qc.db.qc_schema import SeqPlatform, SeqProduct, SubProduct, SubProductAttr
 
-APPLICATION_NAME = "LangQC"
-DEFAULT_QC_TYPE = "sequencing"
-DEFAULT_QC_STATE = "Claimed"
-DEFAULT_FINALITY = False
-ONLY_PRELIM_STATES = (DEFAULT_QC_STATE, "On hold")
+"""
+A collection of stand-alone function for retrieving or creating
+PacBio-specific records in the LangQC database.
+"""
 
 
-class InvalidDictValueError(Exception):
+def well_seq_product_find_or_create(
+    session: Session, mlwh_well: PacBioRunWellMetrics
+) -> SeqProduct:
     """
-    Custom exception for failures to validate input that should
-    correspond to database dictionaries values such as, for example,
-    and unknown QC type.
+    Returns a pre-existing `lang_qc.db.qc_schema.SeqProduct` for
+    a PacBio well or creates a new one.
+
+    Arguments:
+        `session` - `sqlalchemy.orm.Session`, a connection for LangQC database.
+        `mlwh_well` - `lang_qc.db.mlwh_schema.PacBioRunWellMetrics` row object for the well.
     """
 
+    id_product = mlwh_well.id_pac_bio_product
+    well_product = get_seq_product(session, id_product)
+    if well_product is None:
+        well_product = _create_well(
+            session,
+            id_product,
+            mlwh_well.pac_bio_run_name,
+            mlwh_well.well_label,
+            mlwh_well.plate_number,
+        )
 
-class InconsistentInputError(Exception):
-    """
-    Custom exception for cases when individual values of attributes
-    are valid, but are inconsistent or mutually exclusive in regards
-    of the QC state that has to be assigned.
-    """
+    return well_product
 
 
-class QcDictDB(BaseModel):
-    """
-    A cache layer for LangQC database dictionary entries.
-    """
+def _create_well(
+    session: Session,
+    id_product: str,
+    run_name: str,
+    well_label: str,
+    plate_number: int = None,
+) -> SeqProduct:
 
-    session: Session = Field(
-        title="SQLAlchemy Session",
-        description="A SQLAlchemy Session for the LangQC database",
+    seq_platform = session.execute(
+        select(SeqPlatform).where(SeqPlatform.name == "PacBio")
+    ).scalar_one()
+    product_attr_rn = session.execute(
+        select(SubProductAttr).where(SubProductAttr.attr_name == "run_name")
+    ).scalar_one()
+    product_attr_wl = session.execute(
+        select(SubProductAttr).where(SubProductAttr.attr_name == "well_label")
+    ).scalar_one()
+    product_attr_pn = session.execute(
+        select(SubProductAttr).where(SubProductAttr.attr_name == "plate_number")
+    ).scalar_one()
+    product_json = PacBioEntity(
+        run_name=run_name, well_label=well_label, plate_number=plate_number
+    ).json()
+
+    # TODO: in future for composite products we have to check whether any of
+    # the `sub_product` table entries we are linking to already exist.
+    well_product = SeqProduct(
+        id_product=id_product,
+        seq_platform=seq_platform,
+        sub_products=[
+            SubProduct(
+                sub_product_attr=product_attr_rn,
+                value_attr_one=run_name,
+                sub_product_attr_=product_attr_wl,
+                value_attr_two=well_label,
+                sub_product_attr__=product_attr_pn,
+                value_attr_three=str(plate_number)
+                if plate_number is not None
+                else None,
+                properties=product_json,
+                properties_digest=id_product,
+            )
+        ],
     )
+    session.add(well_product)
+    session.commit()
 
-    class Config:
-        arbitrary_types_allowed = True
-        # A workaround for a bug in pydantic in order to use the cached_property
-        # decorator.
-        keep_untouched = (cached_property,)
-
-    @cached_property
-    def qc_types(self) -> Dict:
-        """
-        A cached dictionary of QC type dictionary rows, where the QcType objects
-        representing the database rows are values and the string descriptions of the
-        QC types are keys.
-        """
-
-        db_types = self.session.execute(select(QcType)).scalars().all()
-        return {row.qc_type: row for row in db_types}
-
-    def qc_type_dict_row(self, qc_type_name: str) -> QcType:
-        """
-        Given a description of the QC type, returns an object that
-        corresponds to a relevant row in the `qc_type` table.
-        Raises a `ValidationError` if no corresponding record is found.
-        """
-
-        if qc_type_name not in self.qc_types.keys():
-            raise InvalidDictValueError(f"QC type '{qc_type_name}' is invalid")
-
-        return self.qc_types[qc_type_name]
-
-    @cached_property
-    def qc_states(self) -> Dict:
-        """
-        A cached dictionary of QC state dictionary rows, where the QcStateDict objects
-        representing the database rows are values abd the string descriptions of the
-        state are keys.
-        """
-
-        db_states = (
-            self.session.execute(
-                select(QcStateDict).order_by(
-                    QcStateDict.outcome.desc(), QcStateDict.state
-                )
-            )
-            .scalars()
-            .all()
-        )
-
-        return {row.state: row for row in db_states}
-
-    def qc_state_dict_row(self, qc_state_name: str) -> QcStateDict:
-        """
-        Given a description of the QC state, returns an object that
-        corresponds to a relevant row in the `qc_state_dict` table.
-        Raises a `ValidationError` if no corresponding dictionary record
-        is found.
-        """
-
-        if qc_state_name not in self.qc_states.keys():
-            raise InvalidDictValueError(f"QC state '{qc_state_name}' is invalid")
-
-        return self.qc_states[qc_state_name]
-
-
-class WellQc(QcDictDB):
-    """
-    A data access class for routine SQLAlchemy operations on PacBio well
-    QC data in LangQC database.
-    """
-
-    class Config:
-        allow_mutation = False
-        extra = Extra.forbid
-
-    def seq_product4well(self, mlwh_well: PacBioRunWellMetrics) -> SeqProduct:
-        """
-        Returns a pre-existing `lang_qc.db.qc_schema.SeqProduct`, for a well
-        or creates a new one.
-        """
-
-        id_product = mlwh_well.id_pac_bio_product
-        well_product = self._find_well(id_product)
-        if well_product is None:
-            well_product = self._create_well(
-                id_product,
-                mlwh_well.pac_bio_run_name,
-                mlwh_well.well_label,
-                mlwh_well.plate_number,
-            )
-
-        return well_product
-
-    def current_qc_state(
-        self, id_product: str, qc_type: str = "sequencing"
-    ) -> QcState | None:
-        """
-        Returns a current record for the product associated with the given
-        product ID in the `qc_state` table for QC. The type of QC is defined
-        by the `qc_type` argument.
-
-        Validates the `qc_type` argument and raises a `ValidationError` if
-        the validation fails.
-
-        Returns `None` if no current QC record for this entity for this type
-        of QC exists.
-        """
-
-        return (
-            self.session.execute(
-                select(QcState)
-                .join(QcState.seq_product)
-                .where(
-                    and_(
-                        SeqProduct.id_product == id_product,
-                        QcState.qc_type == self.qc_type_dict_row(qc_type),
-                    )
-                )
-            )
-            .scalars()
-            .one_or_none()
-        )
-
-    def assign_qc_state(
-        self,
-        mlwh_well: PacBioRunWellMetrics,
-        user: User,
-        qc_state: str = DEFAULT_QC_STATE,
-        qc_type: str = DEFAULT_QC_TYPE,
-        is_preliminary: bool = not DEFAULT_FINALITY,
-        application: str = APPLICATION_NAME,
-        date_updated: datetime = None,
-    ) -> QcState:
-        """
-        Creates and persists a new QC state of type `qc_type` for this instance.
-        Returns an QcState object representing the new/updated/unchanged
-        row in the `qc_state` table.
-
-        A new row is created if there was no corresponding QC state in the DB.
-
-        The current row is returned if the current QC state in the DB matches
-         `qc_type`, `qc_state` and `is_preliminary` arguments.
-
-        An updated row is returned in all other cases.
-
-        Changing of `qc_type` for an existing row is not permitted.
-
-        Records for different types of QC for the same entity can co-exist.
-        For example: A sequencing QC record
-            (qc_type="sequencing", qc_state="DONE", is_preliminary=true)
-        can exist at the same time as
-            (qc_type="library", qc_state="DONE", is_preliminary=true)
-        without conflict. These are independent kinds of QC assessment.
-
-        A QC state change can be initiated by any user, and any QC state can
-        replace any other. Enforcement of business rules must be handled at the
-        application level.
-
-        A `ValidationError` is raised if the values of either `qc_state` or `qc_type`
-        attributes are invalid.
-
-        For each new or updated record in the `qc_state` table a new record is
-        created in the `qc_state_hist` table, thereby preserving a history of all
-        changes.
-
-        If a record for the product defined by this instance is not present in the
-        `seq_product` table, it is created alongside corresponding records in the
-        `sub_product` and `product_layout` tables.
-
-        Arguments:
-            mlwh_well: PacBioRunWellMetrics object that defines the product which
-            will have the QC state assigned.
-
-            user - an instance of the existing in the database lang_qc.db.qc_schema.User,
-            object, required
-
-            new_qc_state - a string description of the QC state to be assigned
-
-            qc_type - a string representing QC type
-
-            is_preliminary - a boolean value representing the preliminary nature of the
-            QC state. False == final, i.e completed with no further changes intended.
-
-            application - a string, the name of the application using this API,
-            defaults to `Lang QC`. For differentiating between changes via GUI and
-            other changes made by scripts or pipelines.
-
-            date_updated - an optional `datetime` for explicitly setting when the QC state was
-            changed. Normally the database will set the timestamp, but a manual setting can be
-            used for testing and data manipulation. If the QC outcome for this entity does not
-            exist, the value of this argument is used for the `date_created` column as well.
-        """
-
-        id_product = mlwh_well.id_pac_bio_product
-        db_state = self.current_qc_state(id_product, qc_type)
-        if (
-            (db_state is not None)
-            and (db_state.qc_state_dict.state == qc_state)
-            and (bool(db_state.is_preliminary) == is_preliminary)
-        ):
-            # Do not update the state if it has not changed.
-            # Return early, nothing more to do.
-            return db_state
-
-        qc_state_dict_row = self.qc_state_dict_row(qc_state)
-
-        # 'Claimed' and 'On hold' states cannot be final.
-        # By enforcing this we simplify rules for assigning QC states
-        # to QC flow statuses.
-        # Two options: either to change is_preliminary to True or error.
-        if (is_preliminary is False) and (qc_state in ONLY_PRELIM_STATES):
-            raise InconsistentInputError(f"QC state '{qc_state}' cannot be final")
-
-        values = {
-            "qc_state_dict": qc_state_dict_row,
-            "is_preliminary": 1 if is_preliminary is True else 0,
-            "user": user,
-            "created_by": application,
-            "qc_type": self.qc_types[qc_type],
-            "seq_product": self.seq_product4well(mlwh_well),
-        }
-
-        if db_state is not None:
-            # Update some of the values of the existing record.
-            # No need to update the QC type, it stays the same.
-            db_state.qc_state_dict = values["qc_state_dict"]
-            db_state.is_preliminary = values["is_preliminary"]
-            db_state.user = values["user"]
-            db_state.created_by = values["created_by"]
-            if date_updated:
-                db_state.date_updated = date_updated
-        else:
-            # Create a new record, date_updated=None is accepted by the ORM as
-            # deferring to the schema defaults
-            db_state = QcState(
-                date_created=date_updated, date_updated=date_updated, **values
-            )
-
-        self.session.add(db_state)
-        self.session.commit()  # to generate and propagate timestamps
-
-        qc_state_hist = QcStateHist(
-            # Clone timestamps whether from argument or generated by the DB
-            date_created=db_state.date_created,
-            date_updated=db_state.date_updated,
-            **values,
-        )
-
-        self.session.add(qc_state_hist)
-        self.session.commit()
-
-        return db_state
-
-    def _find_well(self, id_product: str) -> SeqProduct:
-
-        return (
-            self.session.execute(
-                select(SeqProduct).where(SeqProduct.id_product == id_product)
-            )
-            .scalars()
-            .one_or_none()
-        )
-
-    def _create_well(
-        self, id_product: str, run_name: str, well_label: str, plate_number: int = None
-    ) -> SeqProduct:
-
-        id_seq_platform = (
-            self.session.execute(
-                select(SeqPlatform).where(SeqPlatform.name == "PacBio")
-            )
-            .scalar_one()
-            .id_seq_platform
-        )
-
-        product_attr_id_rn = (
-            self.session.execute(
-                select(SubProductAttr).where(SubProductAttr.attr_name == "run_name")
-            )
-            .scalar_one()
-            .id_attr
-        )
-
-        product_attr_id_wl = (
-            self.session.execute(
-                select(SubProductAttr).where(SubProductAttr.attr_name == "well_label")
-            )
-            .scalar_one()
-            .id_attr
-        )
-
-        product_attr_id_pn = (
-            self.session.execute(
-                select(SubProductAttr).where(SubProductAttr.attr_name == "plate_number")
-            )
-            .scalar_one()
-            .id_attr
-        )
-
-        product_json = PacBioEntity(
-            run_name=run_name, well_label=well_label, plate_number=plate_number
-        ).json()
-        # TODO: in future for composite products we have to check whether any of
-        # the `sub_product` table entries we are linking to already exist.
-        well_product = SeqProduct(
-            id_product=id_product,
-            id_seq_platform=id_seq_platform,
-            sub_products=[
-                SubProduct(
-                    id_attr_one=product_attr_id_rn,
-                    value_attr_one=run_name,
-                    id_attr_two=product_attr_id_wl,
-                    value_attr_two=well_label,
-                    id_attr_three=product_attr_id_pn,
-                    value_attr_three=str(plate_number),
-                    properties=product_json,
-                    properties_digest=id_product,
-                )
-            ],
-        )
-
-        self.session.add(well_product)
-        self.session.commit()
-
-        return well_product
+    return well_product

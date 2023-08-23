@@ -24,8 +24,13 @@ from pydantic import PositiveInt
 from sqlalchemy.orm import Session
 from starlette import status
 
-from lang_qc.db.helper.well import InconsistentInputError, InvalidDictValueError, WellQc
-from lang_qc.db.helper.wells import PacBioPagedWellsFactory, RunNotFoundError, WellWh
+from lang_qc.db.helper.qc import (
+    assign_qc_state_to_product,
+    claim_qc_for_product,
+    qc_state_for_product_exists,
+)
+from lang_qc.db.helper.well import well_seq_product_find_or_create
+from lang_qc.db.helper.wells import PacBioPagedWellsFactory, WellWh
 from lang_qc.db.mlwh_connection import get_mlwh_db
 from lang_qc.db.qc_connection import get_qc_db
 from lang_qc.db.qc_schema import User
@@ -33,6 +38,11 @@ from lang_qc.models.pacbio.well import PacBioPagedWells, PacBioWellFull
 from lang_qc.models.qc_flow_status import QcFlowStatusEnum
 from lang_qc.models.qc_state import QcState, QcStateBasic
 from lang_qc.util.auth import check_user
+from lang_qc.util.errors import (
+    InconsistentInputError,
+    InvalidDictValueError,
+    RunNotFoundError,
+)
 from lang_qc.util.type_checksum import ChecksumSHA256
 
 """
@@ -64,6 +74,7 @@ different means:
   3. for POST requests, by adding and a special field to the payload (see qc_type
      in models in lang_qc.models.qc_state).
 """
+
 
 router = APIRouter(
     prefix="/pacbio",
@@ -199,16 +210,21 @@ def claim_qc(
 
     mlwh_well = _find_well_product_or_error(id_product, mlwhdb_session)
 
-    well_qc = WellQc(session=qcdb_session)
-    if well_qc.current_qc_state(id_product):
+    # Checking for any type of QC state
+    if qc_state_for_product_exists(qcdb_session, id_product):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=f"Well for product {id_product} has already been claimed",
+            detail=f"Well for product {id_product} has QC state assigned",
         )
 
-    # Using default attributes for almost all arguments.
-    # The new QC state will be set as preliminary.
-    return QcState.from_orm(well_qc.assign_qc_state(mlwh_well=mlwh_well, user=user))
+    claimed_qc_state = claim_qc_for_product(
+        session=qcdb_session,
+        seq_product=well_seq_product_find_or_create(
+            session=qcdb_session, mlwh_well=mlwh_well
+        ),
+        user=user,
+    )
+    return QcState.from_orm(claimed_qc_state)
 
 
 @router.put(
@@ -240,28 +256,32 @@ def assign_qc_state(
 
     mlwh_well = _find_well_product_or_error(id_product, mlwhdb_session)
 
-    well_qc = WellQc(session=qcdb_session)
-    qc_state = well_qc.current_qc_state(id_product)
-
-    if qc_state is None:
+    if (
+        qc_state_for_product_exists(qcdb_session, id_product, request_body.qc_type)
+        is False
+    ):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="QC state of an unclaimed well cannot be updated",
         )
 
-    qc_state = None
-    message = "Error assigning status: "
+    new_qc_state = None
     try:
-        qc_state = well_qc.assign_qc_state(
-            mlwh_well=mlwh_well, user=user, **request_body.dict()
+        new_qc_state = assign_qc_state_to_product(
+            session=qcdb_session,
+            seq_product=well_seq_product_find_or_create(
+                session=qcdb_session, mlwh_well=mlwh_well
+            ),
+            qc_state=request_body,
+            user=user,
         )
     except (InvalidDictValueError, InconsistentInputError) as err:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=message + str(err),
+            detail=str(err),
         )
 
-    return QcState.from_orm(qc_state)
+    return QcState.from_orm(new_qc_state)
 
 
 def _find_well_product_or_error(id_product, mlwhdb_session):

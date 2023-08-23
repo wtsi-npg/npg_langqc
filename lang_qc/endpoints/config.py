@@ -22,7 +22,7 @@ from typing import Dict, List
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from lang_qc.db.helper.well import QcDictDB
+from lang_qc.db.helper.qc import qc_state_dict
 from lang_qc.db.qc_connection import get_qc_db
 from lang_qc.models.qc_flow_status import QcFlowStatusEnum
 
@@ -63,7 +63,7 @@ def get_config(
 def _states_for_update(session) -> List:
 
     states = []
-    for (name, row) in QcDictDB(session=session).qc_states.items():
+    for (name, row) in qc_state_dict(session).items():
         if name not in ["Aborted", "Claimed"]:
             states.append({"description": name, "only_prelim": row.state == "On hold"})
 

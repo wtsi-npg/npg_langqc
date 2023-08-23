@@ -34,20 +34,13 @@ from lang_qc.models.pacbio.well import PacBioPagedWells, PacBioWell
 from lang_qc.models.pager import PagedResponse
 from lang_qc.models.qc_flow_status import QcFlowStatusEnum
 from lang_qc.models.qc_state import QcState as QcStateModel
+from lang_qc.util.errors import EmptyListOfRunNamesError, RunNotFoundError
 
 """
 This package is using an undocumented feature of Pydantic, type
 `ClassVar`, which was introduced in https://github.com/pydantic/pydantic/pull/339
 Here this type is used to mark a purely internal to the class variables.
 """
-
-
-class EmptyListOfRunNamesError(Exception):
-    """Exception to be used when the list of run names is empty."""
-
-
-class RunNotFoundError(Exception):
-    """Exception to be used when no well metrics data for a run is found."""
 
 
 class WellWh(BaseModel):
