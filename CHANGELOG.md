@@ -3,6 +3,30 @@
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+
+## [1.4.1] - 2023-08-23
+
+### Added
+
+* Display of the release version in UI.
+* A constraint for `Claimed` QC state, made it applicable for `sequencing`
+  QC type only.
+
+### Changed
+
+* Split the code for creating and updating QC sates into PacBio-specific
+  and sequencing platform independent. Converted all methods to self-
+  contained functions, discontinued use of classes where no object state
+  has to be maintained.
+
+### Fixed
+
+* UI - ensured uniqueness of the row key for the well table.
+* A bug in creating a new product record in the LangQC database.
+  The bug affected records with undefined value of the plate number,
+  which was pushed to the database as a `'None'` string instead of `NULL`.
+
 ## [1.4.0] - 2023-08-16
 
 ### Added
