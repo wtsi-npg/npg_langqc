@@ -864,34 +864,40 @@ def load_data4well_retrieval(
     qcdb_test_session.commit()
 
     # We want some wells to be in the inbox. For that their run_complete dates
-    # should be within last four weeks. Therefore, we need to update the timestamps
-    # for these runs.
+    # should be within, for example, last four weeks. Therefore, we need to
+    #  update the timestamps for these runs.
     _update_timestamps4inbox()
 
     # Transform a list of lists into a list of hashes, which map to db rows.
     mlwh_data4insert = []
     for record in MLWH_DATA:
-        mlwh_data4insert.append(
-            {
-                "pac_bio_run_name": record[0],
-                "well_label": record[1],
-                "run_start": record[2],
-                "run_complete": record[3],
-                "well_start": record[4],
-                "well_complete": record[5],
-                "well_status": record[6],
-                "run_status": record[7],
-                "ccs_execution_mode": record[8],
-                "polymerase_num_reads": record[9],
-                "hifi_num_reads": record[10],
-                "id_pac_bio_product": PacBioEntity(
-                    run_name=record[0], well_label=record[1], plate_number=record[13]
-                ).hash_product_id(),
-                "instrument_name": record[11],
-                "instrument_type": record[12],
-                "plate_number": record[13],
-            }
-        )
+        data = {
+            "pac_bio_run_name": record[0],
+            "well_label": record[1],
+            "run_start": record[2],
+            "run_complete": record[3],
+            "well_start": record[4],
+            "well_complete": record[5],
+            "well_status": record[6],
+            "run_status": record[7],
+            "ccs_execution_mode": record[8],
+            "polymerase_num_reads": record[9],
+            "hifi_num_reads": record[10],
+            "id_pac_bio_product": PacBioEntity(
+                run_name=record[0], well_label=record[1], plate_number=record[13]
+            ).hash_product_id(),
+            "instrument_name": record[11],
+            "instrument_type": record[12],
+            "plate_number": record[13],
+        }
+        # Add QC state for one runs.
+        if (data["pac_bio_run_name"] == "TRACTION_RUN_4") and (
+            data["well_label"] in ("A1", "B1")
+        ):
+            data["qc_seq_state"] = "Failed"
+            data["qc_seq_date"] = data["run_complete"]
+        mlwh_data4insert.append(data)
+
     mlwhdb_test_session.execute(insert(PacBioRunWellMetrics), mlwh_data4insert)
     mlwhdb_test_session.commit()
 
