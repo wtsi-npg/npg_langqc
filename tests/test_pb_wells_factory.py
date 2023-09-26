@@ -174,12 +174,14 @@ def test_paged_retrieval_for_statuses(
         QcFlowStatusEnum.IN_PROGRESS.name: 11,
         QcFlowStatusEnum.ON_HOLD.name: 2,
         QcFlowStatusEnum.QC_COMPLETE.name: 4,
+        QcFlowStatusEnum.UPCOMING.name: 4,
     }
 
     for status in [
         QcFlowStatusEnum.IN_PROGRESS,
         QcFlowStatusEnum.ON_HOLD,
         QcFlowStatusEnum.QC_COMPLETE,
+        QcFlowStatusEnum.UPCOMING,
     ]:
 
         factory = PacBioPagedWellsFactory(

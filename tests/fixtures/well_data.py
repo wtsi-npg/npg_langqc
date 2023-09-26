@@ -441,6 +441,38 @@ MLWH_DATA = [
         1,
     ],
     [
+        "TRACTION_RUN_6",
+        "A1",
+        "2022-12-12 15:47:25",
+        "2022-12-19 16:43:31",
+        "2022-12-12 15:57:31",
+        "2022-12-14 06:42:33",
+        "Running",
+        "Running",
+        "OnInstrument",
+        None,
+        None,
+        "1234",
+        "Revio",
+        2,
+    ],
+    [
+        "TRACTION_RUN_6",
+        "B1",
+        "2022-12-12 15:47:25",
+        "2022-12-19 16:43:31",
+        "2022-12-13 20:52:47",
+        "2022-12-15 10:37:35",
+        "Running",
+        "Running",
+        "OnInstrument",
+        None,
+        None,
+        "1234",
+        "Revio",
+        2,
+    ],
+    [
         "TRACTION_RUN_7",
         "A1",
         "2022-12-21 11:08:51",
@@ -866,7 +898,7 @@ def load_data4well_retrieval(
     # We want some wells to be in the inbox. For that their run_complete dates
     # should be within, for example, last four weeks. Therefore, we need to
     #  update the timestamps for these runs.
-    _update_timestamps4inbox()
+    _update_timestamps()
 
     # Transform a list of lists into a list of hashes, which map to db rows.
     mlwh_data4insert = []
@@ -890,7 +922,7 @@ def load_data4well_retrieval(
             "instrument_type": record[12],
             "plate_number": record[13],
         }
-        # Add QC state for one runs.
+        # Add QC state for one run.
         if (data["pac_bio_run_name"] == "TRACTION_RUN_4") and (
             data["well_label"] in ("A1", "B1")
         ):
@@ -956,31 +988,35 @@ def _get_dict_of_dict_rows(qcdb_test_session):
     }
 
 
-def _update_timestamps4inbox():
+def _update_timestamps():
 
     # Designated inbox wells:
     # TRACTION_RUN_3 - A1, B1,
     # TRACTION_RUN_4 - C1, D1,
     # TRACTION_RUN_10 - A1, B1, C1
     # TRACTION_RUN_12 - A1
-
+    #
     # These wells do not have a record in a fixture for the LangQC database,
     # values for their run status, ccs_execution_mode, polymerase_num_reads,
     # hifi_num_reads are set in a way that makes them eligible for the QC
     # inbox. Here we make sure that these wells have recent (ie within 4 weeks)
     # completion dates.
-    # We also update dates for TRACTION_RUN_1, which does have wells in QC.
+
+    # We also update dates for TRACTION_RUN_1, which does have wells in QC,
+    # and TRACTION_RUN_6, which partially fits into the upcoming status.
 
     # Find the earliest date in the set.
-    inbox_runs = [f"TRACTION_RUN_{run}" for run in (1, 3, 4, 10, 12)]
+    runs = [f"TRACTION_RUN_{run}" for run in (1, 3, 4, 6, 10, 12)]
     date_tuples = [
         (record[2], record[3], record[4], record[5])
         for record in MLWH_DATA
-        if record[0] in inbox_runs
+        if record[0] in runs
     ]
     dates = []
     for dt in date_tuples:
-        dates.extend([datetime.strptime(date, DATE_FORMAT) for date in dt])
+        dates.extend(
+            [datetime.strptime(date, DATE_FORMAT) for date in dt if date is not None]
+        )
     old_earliest = min(dates)
     # Find the date 26 days from today.
     new_earliest = date.today() - timedelta(days=26)
@@ -989,9 +1025,10 @@ def _update_timestamps4inbox():
         datetime(new_earliest.year, new_earliest.month, new_earliest.day) - old_earliest
     )
     delta_plus = timedelta(delta.days)
-    # Amend all dates for the inbox data by adding delta.
+    # Amend all dates by adding delta.
     for index, record in enumerate(MLWH_DATA):
-        if record[0] in inbox_runs:
+        if record[0] in runs:
             for i in (2, 3, 4, 5):
-                time = datetime.strptime(record[i], DATE_FORMAT) + delta_plus
-                MLWH_DATA[index][i] = time.strftime(DATE_FORMAT)
+                if record[i] is not None:
+                    time = datetime.strptime(record[i], DATE_FORMAT) + delta_plus
+                    MLWH_DATA[index][i] = time.strftime(DATE_FORMAT)

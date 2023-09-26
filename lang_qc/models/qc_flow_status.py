@@ -43,8 +43,13 @@ class QcFlowStatus(BaseModel):
 @unique
 class QcFlowStatusEnum(str, Enum):
     """
-    An enumeration of known QC flow states. The order of the statuses is
+    An enumeration of known QC flow statuses. The order of the statuses is
     consistent with the temporal flow of the manual QC process.
+
+    Logically the upcoming status should be in the beginning. In order
+    to keep the order of tab consistent with early versions and to separate
+    this status from more relevant to teh QC process statuses, this status
+    is placed at the end.
     """
 
     INBOX = "inbox"
@@ -53,6 +58,7 @@ class QcFlowStatusEnum(str, Enum):
     QC_COMPLETE = "qc_complete"
     ABORTED = "aborted"
     UNKNOWN = "unknown"
+    UPCOMING = "upcoming"
 
     @classmethod
     def qc_flow_statuses(cls) -> "List[QcFlowStatus]":
