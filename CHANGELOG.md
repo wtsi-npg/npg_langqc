@@ -5,6 +5,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+* Increased the look-back period for the inbox query from 4 weeks to
+  12 weeks. Introduced a preliminary filtering by the QC state, which is
+  now available in ml warehouse. Since the ml warehouse QC state might not
+  be up-to-date, a final check against the LangQC database is retained.
+
 ## [1.4.1] - 2023-08-23
 
 ### Added
