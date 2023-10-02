@@ -5,6 +5,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+* Back-end code for the 'Upcoming' tab. The 'Upcoming' tab is
+  automatically appended to the collection of the UI tabs for
+  filtering wells.
+
 ### Changed
 
 * Increased the look-back period for the inbox query from 4 weeks to
