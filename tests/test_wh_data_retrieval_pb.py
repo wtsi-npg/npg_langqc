@@ -17,8 +17,6 @@ def test_completed_wells_retrieval(mlwhdb_test_session, load_data4well_retrieval
         ["TRACTION_RUN_1", "B1"],
         ["TRACTION_RUN_1", "C1"],
         ["TRACTION_RUN_1", "D1"],
-        ["TRACTION_RUN_4", "A1"],
-        ["TRACTION_RUN_4", "B1"],
         ["TRACTION_RUN_4", "C1"],
         ["TRACTION_RUN_4", "D1"],
         ["TRACTION_RUN_3", "A1"],
@@ -42,7 +40,7 @@ def test_completed_wells_retrieval(mlwhdb_test_session, load_data4well_retrieval
         .scalars()
         .all()
     )
-    time = datetime.now() - timedelta(days=40)
+    time = datetime.now() - timedelta(days=130)
     for row in wells_to_update:
         if row.well_complete is not None:
             row.well_complete = time

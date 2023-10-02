@@ -54,7 +54,7 @@ class WellWh(BaseModel):
         title="SQLAlchemy Session",
         description="A SQLAlchemy Session for the ml warehouse database",
     )
-    INBOX_LOOK_BACK_NUM_WEEKS: ClassVar = 4
+    INBOX_LOOK_BACK_NUM_WEEKS: ClassVar = 12
 
     class Config:
         allow_mutation = False
@@ -77,18 +77,16 @@ class WellWh(BaseModel):
 
     def recent_completed_wells(self) -> List[PacBioRunWellMetrics]:
         """
-        Get recent completed wells from the mlwh database.
-        The implementation of the inbox query might change when the QC outcomes
-        become available in mlwh.
+        Get recent not QC-ed completed wells from the mlwh database.
         """
 
         ######
         # It is important not to show aborted wells in the inbox.
         #
-        # The well can be complete as in Illumina 'run complete' but that's not
-        # the same as analysis complete which the other conditions are trying for.
-        # It potentially gets a bit easier with v11 but those conditions should
-        # still work ok.
+        # The well can be complete, but that's not the same as analysis
+        # complete which the other conditions are trying for.
+        # It potentially gets a bit easier with v11 but those conditions
+        # should still work ok.
         #
 
         # Using current local time.
@@ -97,11 +95,15 @@ class WellWh(BaseModel):
         my_date = date.today() - timedelta(weeks=self.INBOX_LOOK_BACK_NUM_WEEKS)
         look_back_min_date = datetime(my_date.year, my_date.month, my_date.day)
 
+        # Select the wells that has not been QC-ed, but later double-check against
+        # the LangQC database.
+
         # TODO: fall back to run_complete when well_complete is undefined
 
         query = (
             select(PacBioRunWellMetrics)
             .where(PacBioRunWellMetrics.well_status == "Complete")
+            .where(PacBioRunWellMetrics.qc_seq_state.is_(None))
             .where(PacBioRunWellMetrics.run_complete > look_back_min_date)
             .where(PacBioRunWellMetrics.polymerase_num_reads.is_not(None))
             .where(
