@@ -15,6 +15,7 @@ def test_get_config(test_client: TestClient, load_dicts_and_users):
             {"label": "QC Complete", "param": "qc_complete"},
             {"label": "Aborted", "param": "aborted"},
             {"label": "Unknown", "param": "unknown"},
+            {"label": "Upcoming", "param": "upcoming"},
         ],
         "qc_states": [
             {"description": "Passed", "only_prelim": False},

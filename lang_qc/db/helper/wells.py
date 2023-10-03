@@ -27,7 +27,10 @@ from pydantic import BaseModel, Extra, Field
 from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
-from lang_qc.db.helper.qc import get_qc_states_by_id_product_list
+from lang_qc.db.helper.qc import (
+    get_qc_states_by_id_product_list,
+    qc_state_for_product_exists,
+)
 from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
 from lang_qc.db.qc_schema import QcState, QcStateDict, QcType
 from lang_qc.models.pacbio.well import PacBioPagedWells, PacBioWell
@@ -42,6 +45,8 @@ This package is using an undocumented feature of Pydantic, type
 Here this type is used to mark a purely internal to the class variables.
 """
 
+INBOX_LOOK_BACK_NUM_WEEKS = 12
+
 
 class WellWh(BaseModel):
     """
@@ -54,7 +59,6 @@ class WellWh(BaseModel):
         title="SQLAlchemy Session",
         description="A SQLAlchemy Session for the ml warehouse database",
     )
-    INBOX_LOOK_BACK_NUM_WEEKS: ClassVar = 12
 
     class Config:
         allow_mutation = False
@@ -78,6 +82,8 @@ class WellWh(BaseModel):
     def recent_completed_wells(self) -> List[PacBioRunWellMetrics]:
         """
         Get recent not QC-ed completed wells from the mlwh database.
+        Recent wells are defined as wells that completed within the
+        last 12 weeks.
         """
 
         ######
@@ -92,7 +98,7 @@ class WellWh(BaseModel):
         # Using current local time.
         # Generating a date rather than a timestamp here in order to have a consistent
         # earliest date for the look-back period during the QC team's working day.
-        my_date = date.today() - timedelta(weeks=self.INBOX_LOOK_BACK_NUM_WEEKS)
+        my_date = date.today() - timedelta(weeks=INBOX_LOOK_BACK_NUM_WEEKS)
         look_back_min_date = datetime(my_date.year, my_date.month, my_date.day)
 
         # Select the wells that has not been QC-ed, but later double-check against
@@ -213,6 +219,8 @@ class PacBioPagedWellsFactory(WellWh, PagedResponse):
             QcFlowStatusEnum.UNKNOWN,
         ]:
             wells = self._aborted_and_unknown_wells(qc_flow_status)
+        elif qc_flow_status == QcFlowStatusEnum.UPCOMING:
+            wells = self._upcoming_wells()
         else:
             wells = self._get_wells_for_status(qc_flow_status)
 
@@ -321,6 +329,60 @@ class PacBioPagedWellsFactory(WellWh, PagedResponse):
                 )
             else:
                 well.copy_run_tracking_info(db_well)
+
+    def _upcoming_wells(self):
+        """
+        Upcoming wells are recent wells, which do not belong to any other
+        QC flow statuses as defined in QcFlowStatus. Recent wells are defined
+        as wells that belong to runs that started within the last 12 weeks.
+        """
+
+        recent_completed_product_ids = [
+            w.id_pac_bio_product for w in self.recent_completed_wells()
+        ]
+
+        my_date = date.today() - timedelta(weeks=INBOX_LOOK_BACK_NUM_WEEKS)
+        look_back_min_date = datetime(my_date.year, my_date.month, my_date.day)
+
+        # If queries for any other filters change, this query should be revised
+        # since we are repeating (but negating) a few condition that are
+        # associated with some of the statuses (filters).
+
+        query = (
+            select(PacBioRunWellMetrics)
+            .where(PacBioRunWellMetrics.run_start > look_back_min_date)
+            .where(PacBioRunWellMetrics.qc_seq_state.is_(None))
+            .where(
+                PacBioRunWellMetrics.id_pac_bio_product.not_in(
+                    recent_completed_product_ids
+                )
+            )
+            .where(PacBioRunWellMetrics.well_status.not_like("Abort%"))
+            .where(PacBioRunWellMetrics.well_status.not_like("Terminat%"))
+            .where(PacBioRunWellMetrics.well_status.not_like("Fail%"))
+            .where(PacBioRunWellMetrics.well_status.not_like("Error%"))
+            .where(PacBioRunWellMetrics.well_status.not_in(["Unknown", "On hold"]))
+            .order_by(
+                PacBioRunWellMetrics.run_start,
+                PacBioRunWellMetrics.pac_bio_run_name,
+                PacBioRunWellMetrics.plate_number,
+                PacBioRunWellMetrics.well_label,
+            )
+        )
+
+        wells = []
+        for w in self.session.execute(query).scalars().all():
+            if (
+                qc_state_for_product_exists(
+                    session=self.qcdb_session, id_product=w.id_pac_bio_product
+                )
+                is False
+            ):
+                wells.append(w)
+
+        self.total_number_of_items = len(wells)  # Save the number of retrieved wells.
+
+        return self._well_models(self.slice_data(wells), False)
 
     def _recent_inbox_wells(self, recent_wells):
 
