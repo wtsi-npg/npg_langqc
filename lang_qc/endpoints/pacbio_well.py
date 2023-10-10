@@ -77,7 +77,6 @@ different means:
      in models in lang_qc.models.qc_state).
 """
 
-
 router = APIRouter(
     prefix="/pacbio",
     tags=["pacbio"],
@@ -89,6 +88,7 @@ router = APIRouter(
 OptionalPositiveInt = Annotated[int | None, Query(gt=0)]
 # We cannot get this from pydantic as of v2, so we use Python 3.9 annotated type support
 # and FastAPI query constraints on URL query chunks.
+
 
 @router.get(
     "/wells",

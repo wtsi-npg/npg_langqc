@@ -24,7 +24,7 @@ def test_get_qc_by_product_id(test_client: TestClient, load_data4well_retrieval)
 
     response = test_client.post("/products/qc", json=[SHORT_CHECKSUM])
     assert response.status_code == 422
-    error =  response.json()["detail"][0]
+    error = response.json()["detail"][0]
     assert error["loc"] == ["body", 0]
     assert error["msg"] == "Value error, Invalid SHA256 checksum format"
 

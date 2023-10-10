@@ -31,7 +31,8 @@ def test_invalid_length_checksums():
     for l in [20, 40]:
         id = l * "a2"
         with pytest.raises(
-            Exception, match=r"product_chcksm\s+Value error, Invalid SHA256 checksum format"
+            Exception,
+            match=r"product_chcksm\s+Value error, Invalid SHA256 checksum format",
         ):
             ChecksumSHA256User(product_chcksm=id)
 
