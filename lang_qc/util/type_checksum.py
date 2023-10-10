@@ -1,5 +1,7 @@
 import re
 
+from pydantic_core import core_schema
+
 CHECKSUM_REGEX = re.compile("^[a-fA-F0-9]{64}$")
 
 
@@ -13,30 +15,28 @@ class ChecksumSHA256(str):
     of the product ID, which is a SHA256 checksum, is needed in
     multiple modules of this distribution.
 
-    See https://docs.pydantic.dev/1.10/usage/types/#custom-data-types
+    Cribbed from https://github.com/pydantic/pydantic-extra-types/blob/main/pydantic_extra_types/mac_address.py # noqa: E501
+    due to opaque handling of fundamental types in Pydantic docs
     """
 
     @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
-
-    @classmethod
-    def __modify_schema__(cls, field_schema):
-        field_schema.update(
-            pattern=CHECKSUM_REGEX,
-            examples=[
-                "e47765a207c810c2c281d5847e18c3015f3753b18bd92e8a2bea1219ba3127ea"
-            ],
+    def __get_pydantic_core_schema__(cls, source_type, handler):
+        return core_schema.with_info_before_validator_function(
+            cls.validate, core_schema.str_schema()
         )
 
     @classmethod
-    def validate(cls, v):
+    def _validate(cls, __input_value, _):
+        return cls.validate(__input_value.encode())
+
+    @classmethod
+    def validate(cls, v, _):
         if not isinstance(v, str):
             raise TypeError("String required")
         m = CHECKSUM_REGEX.fullmatch(v)
         if not m:
             raise ValueError("Invalid SHA256 checksum format")
-        return cls(v)
+        return v
 
     def __repr__(self):
         return f"ChecksumSHA256({super().__repr__()})"

@@ -19,28 +19,22 @@ def test_get_qc_by_product_id(test_client: TestClient, load_data4well_retrieval)
     BAD_STRING = "exec('rm -rf /')"
 
     response = test_client.post("/products/qc", json=[MISSING_CHECKSUM])
-    assert response.ok is True
+    assert response.status_code == 200
     assert response.json() == {}
 
     response = test_client.post("/products/qc", json=[SHORT_CHECKSUM])
-    assert response.ok is False
     assert response.status_code == 422
-    assert response.json()["detail"] == [
-        {
-            "loc": ["body", 0],
-            "msg": "Invalid SHA256 checksum format",
-            "type": "value_error",
-        }
-    ]
+    error =  response.json()["detail"][0]
+    assert error["loc"] == ["body", 0]
+    assert error["msg"] == "Value error, Invalid SHA256 checksum format"
 
     response = test_client.post("/products/qc", json=[BAD_STRING])
-    assert response.ok is False
     assert response.status_code == 422
 
     response = test_client.post(
         "/products/qc", json=[FIRST_GOOD_CHECKSUM, SECOND_GOOD_CHECKSUM]
     )
-    assert response.ok is True
+    assert response.status_code == 200
     response_data = response.json()
     assert len(response_data) == 2
     assert FIRST_GOOD_CHECKSUM in response_data
@@ -58,7 +52,7 @@ def test_get_qc_by_product_id(test_client: TestClient, load_data4well_retrieval)
     response = test_client.post(
         "/products/qc", json=[MISSING_CHECKSUM, FIRST_GOOD_CHECKSUM]
     )
-    assert response.ok is True
+    assert response.status_code == 200
     response_data = response.json()
     assert len(response_data) == 1
     assert MISSING_CHECKSUM not in response_data

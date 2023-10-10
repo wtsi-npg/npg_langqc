@@ -3,6 +3,7 @@
 # Authors:
 #   Adam Blanchet
 #   Marina Gourtovaia <mg8@sanger.ac.uk>
+#   Kieron Taylor <kt19@sanger.ac.uk>
 #
 # This file is part of npg_langqc.
 #
@@ -19,8 +20,9 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import PositiveInt
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from starlette import status
 
@@ -84,6 +86,9 @@ router = APIRouter(
     },
 )
 
+OptionalPositiveInt = Annotated[int | None, Query(gt=0)]
+# We cannot get this from pydantic as of v2, so we use Python 3.9 annotated type support
+# and FastAPI query constraints on URL query chunks.
 
 @router.get(
     "/wells",
@@ -104,8 +109,8 @@ router = APIRouter(
     response_model=PacBioPagedWells,
 )
 def get_wells_filtered_by_status(
-    page_size: PositiveInt,
-    page_number: PositiveInt,
+    page_size: OptionalPositiveInt,
+    page_number: OptionalPositiveInt,
     qc_status: QcFlowStatusEnum = QcFlowStatusEnum.INBOX,
     qcdb_session: Session = Depends(get_qc_db),
     mlwh_session: Session = Depends(get_mlwh_db),
@@ -138,8 +143,8 @@ def get_wells_filtered_by_status(
 )
 def get_wells_in_run(
     run_name: str,
-    page_size: PositiveInt = 20,
-    page_number: PositiveInt = 1,
+    page_size: OptionalPositiveInt = 20,
+    page_number: OptionalPositiveInt = 1,
     qcdb_session: Session = Depends(get_qc_db),
     mlwh_session: Session = Depends(get_mlwh_db),
 ):

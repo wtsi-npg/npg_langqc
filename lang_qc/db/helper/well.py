@@ -86,7 +86,7 @@ def _create_well(
     ).scalar_one()
     product_json = PacBioEntity(
         run_name=run_name, well_label=well_label, plate_number=plate_number
-    ).json()
+    ).model_dump_json()
 
     # TODO: in future for composite products we have to check whether any of
     # the `sub_product` table entries we are linking to already exist.

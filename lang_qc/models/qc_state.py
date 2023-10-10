@@ -3,6 +3,7 @@
 # Authors:
 #  Adam Blanchet
 #  Marina Gourtovaia <mg8@sanger.ac.uk>
+#  Kieron Taylor <kt19@sanger.ac.uk>
 #
 # This file is part of npg_langqc.
 #
@@ -22,7 +23,7 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from lang_qc.db.qc_schema import QcState as QcStateDB
 
@@ -90,9 +91,7 @@ class QcState(QcStateBasic):
         assignment of the this QC state.
         """,
     )
-
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
     @classmethod
     def from_orm(cls, obj: QcStateDB):

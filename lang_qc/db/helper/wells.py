@@ -23,7 +23,7 @@ import logging
 from datetime import date, datetime, timedelta
 from typing import ClassVar, List
 
-from pydantic import BaseModel, Extra, Field
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
@@ -59,11 +59,9 @@ class WellWh(BaseModel):
         title="SQLAlchemy Session",
         description="A SQLAlchemy Session for the ml warehouse database",
     )
-
-    class Config:
-        allow_mutation = False
-        arbitrary_types_allowed = True
-        allow_population_by_field_name = True
+    model_config = ConfigDict(arbitrary_types_allowed=True, populate_by_name=True)
+    # frozen=True from Pydantic v2 does not work the way we want it to during testing.
+    # The TestClient seems to be keeping these instances alive and changing them.
 
     def get_mlwh_well_by_product_id(
         self, id_product: str
@@ -187,10 +185,7 @@ class PacBioPagedWellsFactory(WellWh, PagedResponse):
         ),
     }
 
-    class Config:
-        arbitrary_types_allowed = True
-        extra = Extra.forbid
-        allow_mutation = True
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra="forbid")
 
     def create_for_qc_status(
         self, qc_flow_status: QcFlowStatusEnum
@@ -461,7 +456,7 @@ class PacBioPagedWellsFactory(WellWh, PagedResponse):
                 # A well can have only one or zero current sequencing outcomes.
                 if qced_products is not None:
                     attrs["qc_state"] = qced_products[0]
-            pb_well = PacBioWell.parse_obj(attrs)
+            pb_well = PacBioWell.model_validate(attrs)
             pb_well.copy_run_tracking_info(db_well)
             pb_wells.append(pb_well)
 

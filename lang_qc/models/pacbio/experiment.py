@@ -2,6 +2,7 @@
 #
 # Authors:
 #   Marina Gourtovaia <mg8@sanger.ac.uk>
+#   Kieron Taylor <kt19@sanger.ac.uk>
 #
 # This file is part of npg_langqc.
 #
@@ -20,7 +21,7 @@
 
 from typing import List
 
-from pydantic import BaseModel, Extra, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from lang_qc.db.mlwh_schema import PacBioRun
 
@@ -100,10 +101,7 @@ class PacBioExperiment(BaseModel):
         The pac_bio_library_tube_barcode from TRACTION, AKA pool name
         """,
     )
-
-    class Config:
-        orm_mode = True
-        extra = Extra.forbid
+    model_config = ConfigDict(from_attributes=True, extra="forbid")
 
     @classmethod
     def from_orm(cls, lims_db_rows: List[PacBioRun]):
@@ -151,4 +149,4 @@ class PacBioExperiment(BaseModel):
         for key in ("library_type", "study_id"):
             lims_data[key] = sorted(lims_data[key])
 
-        return cls.parse_obj(lims_data)
+        return cls.model_validate(lims_data)

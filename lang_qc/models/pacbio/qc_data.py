@@ -1,6 +1,9 @@
 # Copyright (c) 2022, 2023 Genome Research Ltd.
 #
-# Author: Marina Gourtovaia <mg8@sanger.ac.uk>
+# Authors:
+#   Marina Gourtovaia <mg8@sanger.ac.uk>
+#   Kieron Taylor <kt19@sanger.ac.uk>
+#
 #
 # This file is part of npg_langqc.
 #
@@ -17,7 +20,7 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
 
@@ -122,16 +125,14 @@ class QCDataWell(BaseModel):
     percentage_deplexed_bases: dict = Field(
         default=None, title="Percentage of bases deplexed"
     )
-
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
     @classmethod
     def from_orm(cls, obj: PacBioRunWellMetrics):
 
         # Introspect the class definition, get a dictionary of specs
         # for properties with property names as the keys.
-        attrs = cls.schema()["properties"]
+        attrs = cls.model_json_schema()["properties"]
         qc_data = {}
 
         for name in attrs:
@@ -151,4 +152,4 @@ class QCDataWell(BaseModel):
                 else:
                     qc_data[name]["value"] = getattr(obj, name, None)
 
-        return cls.parse_obj(qc_data)
+        return cls.model_validate(qc_data)
