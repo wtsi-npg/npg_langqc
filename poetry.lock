@@ -16,11 +16,11 @@ tz = ["python-dateutil"]
 
 [[package]]
 name = "annotated-types"
-version = "0.5.0"
+version = "0.6.0"
 description = "Reusable constraint types to use with typing.Annotated"
 category = "main"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 
 [[package]]
 name = "anyio"
@@ -532,7 +532,7 @@ all = ["phonenumbers (>=8,<9)", "pycountry (>=22,<23)"]
 name = "pydantic-settings"
 version = "2.0.3"
 description = "Settings management using Pydantic"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 
@@ -777,7 +777,7 @@ python-versions = ">=3.7"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "8db790af0001d68dadc9a45f9b6fa355965abb310e22a1fc692900786370be18"
+content-hash = "f3996e1402568319fa5817510a4cf803a9efda55ac9576ae9ceaa99e5ecc07b5"
 
 [metadata.files]
 alembic = [
@@ -785,8 +785,8 @@ alembic = [
     {file = "alembic-1.12.0.tar.gz", hash = "sha256:8e7645c32e4f200675e69f0745415335eb59a3663f5feb487abfa0b30c45888b"},
 ]
 annotated-types = [
-    {file = "annotated_types-0.5.0-py3-none-any.whl", hash = "sha256:58da39888f92c276ad970249761ebea80ba544b77acddaa1a4d6cf78287d45fd"},
-    {file = "annotated_types-0.5.0.tar.gz", hash = "sha256:47cdc3490d9ac1506ce92c7aaa76c579dc3509ff11e098fc867e5130ab7be802"},
+    {file = "annotated_types-0.6.0-py3-none-any.whl", hash = "sha256:0641064de18ba7a25dee8f96403ebc39113d0cb953a01429249d5c7564666a43"},
+    {file = "annotated_types-0.6.0.tar.gz", hash = "sha256:563339e807e53ffd9c267e99fc6d9ea23eb8443c08f112651963e24e22f84a5d"},
 ]
 anyio = [
     {file = "anyio-3.7.1-py3-none-any.whl", hash = "sha256:91dee416e570e92c64041bd18b900d1d6fa78dff7048769ce5ac5ddad004fbb5"},
