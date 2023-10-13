@@ -22,13 +22,9 @@ def test_get_well_info(
 
     response = test_client.get("/pacbio/products/342/seq_level")
     assert response.status_code == 422
-    assert response.json()["detail"] == [
-        {
-            "loc": ["path", "id_product"],
-            "msg": "Invalid SHA256 checksum format",
-            "type": "value_error",
-        }
-    ]
+    error = response.json()["detail"][0]
+    assert error["loc"] == ["path", "id_product"]
+    assert error["msg"] == "Value error, Invalid SHA256 checksum format"
 
     id_product = "cf18bd66e0f0895ea728c1d08103c62d3de8a57a5f879cee45f7b0acc028aa61"
     response = test_client.get(f"/pacbio/products/{id_product}/seq_level")

@@ -20,17 +20,17 @@ def test_error_invalid_product_id(test_client: TestClient, load_data4well_retrie
 
     response = test_client.put(
         "/pacbio/products/12345q/qc_assign",
-        post_data,
+        content=post_data,
         headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
     )
     assert response.status_code == 422
-    assert response.json()["detail"] == [
-        {
-            "loc": ["path", "id_product"],
-            "msg": "Invalid SHA256 checksum format",
-            "type": "value_error",
-        }
-    ]
+    # Pydantic version upgrade makes full response check cumbersome.
+    # e.g. it includes a versioned URL to pydantic's error docs
+    error = response.json()
+    assert len(error["detail"]) == 1
+    assert error["detail"][0]["loc"] == ["path", "id_product"]
+    assert error["detail"][0]["msg"] == "Value error, Invalid SHA256 checksum format"
+    assert error["detail"][0]["input"] == "12345q"
 
 
 def test_error_nonexistent_well(test_client: TestClient, load_data4well_retrieval):
@@ -39,7 +39,7 @@ def test_error_nonexistent_well(test_client: TestClient, load_data4well_retrieva
     id = 32 * "a" + 32 * "b"
     response = test_client.put(
         f"/pacbio/products/{id}/qc_assign",
-        post_data,
+        content=post_data,
         headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
     )
     assert response.status_code == 404
@@ -51,7 +51,7 @@ def test_error_unknown_user(test_client: TestClient, load_data4well_retrieval):
 
     response = test_client.put(
         f"/pacbio/products/{id_product_2A1}/qc_assign",
-        post_data,
+        content=post_data,
         headers={"OIDC_CLAIM_EMAIL": "intruder@example.com"},
     )
     assert response.status_code == 403
@@ -65,7 +65,7 @@ def test_error_no_user(test_client: TestClient, load_data4well_retrieval):
     """Expect an error when updating a well if no user is in the header."""
 
     response = test_client.put(
-        f"/pacbio/products/{id_product_2A1}/qc_assign", post_data
+        f"/pacbio/products/{id_product_2A1}/qc_assign", content=post_data
     )
     assert response.status_code == 401
     assert response.json()["detail"] == "No user provided, is the user logged in?"
@@ -81,7 +81,7 @@ def test_error_updating_unclaimed_well(
     ).hash_product_id()
     response = test_client.put(
         f"/pacbio/products/{id_product_15A1}/qc_assign",
-        post_data,
+        content=post_data,
         headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
     )
     assert response.status_code == 409
@@ -103,7 +103,7 @@ def test_error_inconsistent_preliminary_flag(
     """
     response = test_client.put(
         f"/pacbio/products/{id_product_2A1}/qc_assign",
-        post_data_prelim,
+        content=post_data_prelim,
         headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
     )
     assert response.status_code == 400
@@ -122,7 +122,7 @@ def test_error_invalid_state(test_client: TestClient, load_data4well_retrieval):
     """
     response = test_client.put(
         f"/pacbio/products/{id_product_2A1}/qc_assign",
-        post_data_state,
+        content=post_data_state,
         headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
     )
     assert response.status_code == 400
@@ -141,7 +141,7 @@ def test_error_wrong_qc_type(test_client: TestClient, load_data4well_retrieval):
     """
     response = test_client.put(
         f"/pacbio/products/{id_product_2A1}/qc_assign",
-        post_data_lib,
+        content=post_data_lib,
         headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
     )
     assert response.status_code == 400
@@ -156,7 +156,7 @@ def test_assign_state(test_client: TestClient, load_data4well_retrieval):
 
     response = test_client.put(
         f"/pacbio/products/{id_product_2A1}/qc_assign",
-        post_data,
+        content=post_data,
         headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
     )
     content = response.json()
@@ -187,7 +187,7 @@ def test_assign_state(test_client: TestClient, load_data4well_retrieval):
     """
     response = test_client.put(
         f"/pacbio/products/{id_product_2A1}/qc_assign",
-        post_data_update,
+        content=post_data_update,
         headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
     )
     content = response.json()
@@ -217,7 +217,7 @@ def test_permutations_of_plates(test_client: TestClient, load_data4well_retrieva
     ).hash_product_id()
     response = test_client.put(
         f"/pacbio/products/{id_product_1A1}/qc_assign",
-        post_data_update,
+        content=post_data_update,
         headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
     )
     assert response.status_code == 200
@@ -229,7 +229,7 @@ def test_permutations_of_plates(test_client: TestClient, load_data4well_retrieva
         ).hash_product_id()
         response = test_client.put(
             f"/pacbio/products/{id_product}/qc_assign",
-            post_data_update,
+            content=post_data_update,
             headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
         )
         if pn == 1:

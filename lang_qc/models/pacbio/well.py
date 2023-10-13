@@ -3,6 +3,7 @@
 # Authors:
 #  Adam Blanchet
 #  Marina Gourtovaia <mg8@sanger.ac.uk>
+#  Kieron Taylor <kt19@sanger.ac.uk>
 #
 # This file is part of npg_langqc.
 #
@@ -20,9 +21,9 @@
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
 from datetime import datetime
-from typing import List
+from typing import Optional
 
-from pydantic import BaseModel, Extra, Field
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.orm import Session
 
 from lang_qc.db.helper.qc import get_qc_states_by_id_product_list
@@ -33,7 +34,7 @@ from lang_qc.models.pager import PagedResponse
 from lang_qc.models.qc_state import QcState
 
 
-class PacBioWell(BaseModel, extra=Extra.forbid):
+class PacBioWell(BaseModel, extra="forbid"):
     """
     A response model for a single PacBio well on a particular PacBio run.
     The class contains the attributes that uniquely define this well (`run_name`
@@ -47,7 +48,7 @@ class PacBioWell(BaseModel, extra=Extra.forbid):
     # Well identifies.
     id_product: str = Field(title="Product identifier")
     label: str = Field(title="Well label", description="The label of the PacBio well")
-    plate_number: int = Field(
+    plate_number: Optional[int] = Field(
         default=None,
         title="Plate number",
         description="Plate number, relevant for Revio instruments only",
@@ -90,12 +91,12 @@ class PacBioWell(BaseModel, extra=Extra.forbid):
         self.instrument_type = db_well.instrument_type
 
 
-class PacBioPagedWells(PagedResponse, extra=Extra.forbid):
+class PacBioPagedWells(PagedResponse, extra="forbid"):
     """
     A response model for paged data about PacBio wells.
     """
 
-    wells: List[PacBioWell] = Field(
+    wells: list[PacBioWell] = Field(
         default=[],
         title="A list of PacBioWell objects",
         description="""
@@ -123,10 +124,7 @@ class PacBioWellFull(PacBioWell):
         Laboratory experiment tracking information for this well, if available.
         """,
     )
-
-    class Config:
-        orm_mode = True
-        extra = Extra.forbid
+    model_config = ConfigDict(from_attributes=True, extra="forbid")
 
     @classmethod
     def from_orm(cls, mlwh_db_row: PacBioRunWellMetrics, qc_session: Session):

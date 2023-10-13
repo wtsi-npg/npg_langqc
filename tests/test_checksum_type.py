@@ -17,13 +17,13 @@ def test_valid_checksum():
 
 
 def test_undefined_checksums():
-    with pytest.raises(Exception, match=r"product_chcksm\s+field required"):
+    with pytest.raises(Exception, match=r"product_chcksm\s+Field required"):
         ChecksumSHA256User()
 
 
 def test_numeric_checksums():
     id = int(64 * "2")
-    with pytest.raises(Exception, match=r"product_chcksm\s+String required"):
+    with pytest.raises(Exception, match=r"String required"):
         ChecksumSHA256User(product_chcksm=id)
 
 
@@ -31,7 +31,8 @@ def test_invalid_length_checksums():
     for l in [20, 40]:
         id = l * "a2"
         with pytest.raises(
-            Exception, match=r"product_chcksm\s+Invalid SHA256 checksum format"
+            Exception,
+            match=r"product_chcksm\s+Value error, Invalid SHA256 checksum format",
         ):
             ChecksumSHA256User(product_chcksm=id)
 
@@ -39,6 +40,6 @@ def test_invalid_length_checksums():
 def test_invalid_chars_checksums():
     id = 15 * "a1B2" + "34aq"
     with pytest.raises(
-        Exception, match=r"product_chcksm\s+Invalid SHA256 checksum format"
+        Exception, match=r"product_chcksm\s+Value error, Invalid SHA256 checksum format"
     ):
         ChecksumSHA256User(product_chcksm=id)

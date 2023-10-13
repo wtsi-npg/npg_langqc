@@ -10,18 +10,19 @@ license = "GPL-3.0-or-later"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-fastapi = { version = "^0.78", extras = ["standard"] }
+fastapi = { version = "^0.103", extras = ["standard"] }
 uvicorn = { version = "^0.17", extras = ["standard"] }
 cryptography = { version = "^40.0.2" }
 SQLAlchemy = { version = "^2.0.1", extras = ["pymysql"] }
-pydantic = "^1.9.0"
-npg_id_generation = { git = "https://github.com/wtsi-npg/npg_id_generation.git", tag="4.0.0" }
+pydantic = "^2.4"
+pydantic-settings = "^2.0"
+npg_id_generation = { git = "https://github.com/wtsi-npg/npg_id_generation.git", tag="4.0.1" }
 
 [tool.poetry.dev-dependencies]
 black = "^22.3.0"
 flake8 = "^4.0.1"
 pytest = "^7.1.1"
-fastapi = { extras = ["all"], version = "^0.78.0" }
+fastapi = { extras = ["all"], version = "^0.103.0" }
 alembic = "^1.9.2"
 isort = { version = "^5.10.1", extras = ["colors"] }
 pandas = "1.5.2"
