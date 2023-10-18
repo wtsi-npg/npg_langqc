@@ -441,6 +441,38 @@ MLWH_DATA = [
         1,
     ],
     [
+        "TRACTION_RUN_6",
+        "A1",
+        "2022-12-12 15:47:25",
+        "2022-12-19 16:43:31",
+        "2022-12-12 15:57:31",
+        "2022-12-14 06:42:33",
+        "Running",
+        "Running",
+        "OnInstrument",
+        None,
+        None,
+        "1234",
+        "Revio",
+        2,
+    ],
+    [
+        "TRACTION_RUN_6",
+        "B1",
+        "2022-12-12 15:47:25",
+        "2022-12-19 16:43:31",
+        "2022-12-13 20:52:47",
+        "2022-12-15 10:37:35",
+        "Running",
+        "Running",
+        "OnInstrument",
+        None,
+        None,
+        "1234",
+        "Revio",
+        2,
+    ],
+    [
         "TRACTION_RUN_7",
         "A1",
         "2022-12-21 11:08:51",
@@ -813,7 +845,7 @@ def load_data4well_retrieval(
             run_name=qc_data[0], well_label=qc_data[1], plate_number=qc_data[5]
         )
         id_product = pbe.hash_product_id()
-        json = pbe.json()
+        json = pbe.model_dump_json()
         date = datetime.strptime(qc_data[4], DATE_FORMAT)
 
         seq_product = SeqProduct(
@@ -864,34 +896,40 @@ def load_data4well_retrieval(
     qcdb_test_session.commit()
 
     # We want some wells to be in the inbox. For that their run_complete dates
-    # should be within last four weeks. Therefore, we need to update the timestamps
-    # for these runs.
-    _update_timestamps4inbox()
+    # should be within, for example, last four weeks. Therefore, we need to
+    #  update the timestamps for these runs.
+    _update_timestamps()
 
     # Transform a list of lists into a list of hashes, which map to db rows.
     mlwh_data4insert = []
     for record in MLWH_DATA:
-        mlwh_data4insert.append(
-            {
-                "pac_bio_run_name": record[0],
-                "well_label": record[1],
-                "run_start": record[2],
-                "run_complete": record[3],
-                "well_start": record[4],
-                "well_complete": record[5],
-                "well_status": record[6],
-                "run_status": record[7],
-                "ccs_execution_mode": record[8],
-                "polymerase_num_reads": record[9],
-                "hifi_num_reads": record[10],
-                "id_pac_bio_product": PacBioEntity(
-                    run_name=record[0], well_label=record[1], plate_number=record[13]
-                ).hash_product_id(),
-                "instrument_name": record[11],
-                "instrument_type": record[12],
-                "plate_number": record[13],
-            }
-        )
+        data = {
+            "pac_bio_run_name": record[0],
+            "well_label": record[1],
+            "run_start": record[2],
+            "run_complete": record[3],
+            "well_start": record[4],
+            "well_complete": record[5],
+            "well_status": record[6],
+            "run_status": record[7],
+            "ccs_execution_mode": record[8],
+            "polymerase_num_reads": record[9],
+            "hifi_num_reads": record[10],
+            "id_pac_bio_product": PacBioEntity(
+                run_name=record[0], well_label=record[1], plate_number=record[13]
+            ).hash_product_id(),
+            "instrument_name": record[11],
+            "instrument_type": record[12],
+            "plate_number": record[13],
+        }
+        # Add QC state for one run.
+        if (data["pac_bio_run_name"] == "TRACTION_RUN_4") and (
+            data["well_label"] in ("A1", "B1")
+        ):
+            data["qc_seq_state"] = "Failed"
+            data["qc_seq_date"] = data["run_complete"]
+        mlwh_data4insert.append(data)
+
     mlwhdb_test_session.execute(insert(PacBioRunWellMetrics), mlwh_data4insert)
     mlwhdb_test_session.commit()
 
@@ -917,7 +955,7 @@ def load_data4qc_assign(load_dicts_and_users, qcdb_test_session):
                     value_attr_one="TRACTION_RUN_2",
                     value_attr_two=label,
                     value_attr_three="2",
-                    properties=p.json(),
+                    properties=p.model_dump_json(),
                     properties_digest=id,
                 ),
             ],
@@ -950,31 +988,35 @@ def _get_dict_of_dict_rows(qcdb_test_session):
     }
 
 
-def _update_timestamps4inbox():
+def _update_timestamps():
 
     # Designated inbox wells:
     # TRACTION_RUN_3 - A1, B1,
     # TRACTION_RUN_4 - C1, D1,
     # TRACTION_RUN_10 - A1, B1, C1
     # TRACTION_RUN_12 - A1
-
+    #
     # These wells do not have a record in a fixture for the LangQC database,
     # values for their run status, ccs_execution_mode, polymerase_num_reads,
     # hifi_num_reads are set in a way that makes them eligible for the QC
     # inbox. Here we make sure that these wells have recent (ie within 4 weeks)
     # completion dates.
-    # We also update dates for TRACTION_RUN_1, which does have wells in QC.
+
+    # We also update dates for TRACTION_RUN_1, which does have wells in QC,
+    # and TRACTION_RUN_6, which partially fits into the upcoming status.
 
     # Find the earliest date in the set.
-    inbox_runs = [f"TRACTION_RUN_{run}" for run in (1, 3, 4, 10, 12)]
+    runs = [f"TRACTION_RUN_{run}" for run in (1, 3, 4, 6, 10, 12)]
     date_tuples = [
         (record[2], record[3], record[4], record[5])
         for record in MLWH_DATA
-        if record[0] in inbox_runs
+        if record[0] in runs
     ]
     dates = []
     for dt in date_tuples:
-        dates.extend([datetime.strptime(date, DATE_FORMAT) for date in dt])
+        dates.extend(
+            [datetime.strptime(date, DATE_FORMAT) for date in dt if date is not None]
+        )
     old_earliest = min(dates)
     # Find the date 26 days from today.
     new_earliest = date.today() - timedelta(days=26)
@@ -983,9 +1025,10 @@ def _update_timestamps4inbox():
         datetime(new_earliest.year, new_earliest.month, new_earliest.day) - old_earliest
     )
     delta_plus = timedelta(delta.days)
-    # Amend all dates for the inbox data by adding delta.
+    # Amend all dates by adding delta.
     for index, record in enumerate(MLWH_DATA):
-        if record[0] in inbox_runs:
+        if record[0] in runs:
             for i in (2, 3, 4, 5):
-                time = datetime.strptime(record[i], DATE_FORMAT) + delta_plus
-                MLWH_DATA[index][i] = time.strftime(DATE_FORMAT)
+                if record[i] is not None:
+                    time = datetime.strptime(record[i], DATE_FORMAT) + delta_plus
+                    MLWH_DATA[index][i] = time.strftime(DATE_FORMAT)

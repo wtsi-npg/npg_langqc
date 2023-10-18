@@ -17,9 +17,7 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
-from typing import List
-
-from pydantic import BaseModel, Field, PositiveInt
+from pydantic import BaseModel, Field
 
 
 class PagedResponse(BaseModel):
@@ -27,14 +25,16 @@ class PagedResponse(BaseModel):
     A response model for paged data.
     """
 
-    page_size: PositiveInt = Field(
+    page_size: int = Field(
+        gt=0,
         title="Size of the page",
         description="""
         Size of the page, i.e. the number of objects that the client expects
         to receive.
         """,
     )
-    page_number: PositiveInt = Field(
+    page_number: int = Field(
+        gt=0,
         title="Page sequential number",
         description="""
         The sequential number of the page that is requested by the client.
@@ -51,7 +51,7 @@ class PagedResponse(BaseModel):
         """,
     )
 
-    def slice_data(self, data: List) -> List:
+    def slice_data(self, data: list) -> list:
         """
         A helper method to enable child classes to select pages in a uniform
         way.

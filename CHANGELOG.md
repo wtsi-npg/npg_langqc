@@ -3,7 +3,21 @@
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [1.5.0]
+
+### Added
+
+* Back-end code for the 'Upcoming' tab. The 'Upcoming' tab is
+  automatically appended to the collection of the UI tabs for
+  filtering wells.
+
+### Changed
+
+* Increased the look-back period for the inbox query from 4 weeks to
+  12 weeks. Introduced a preliminary filtering by the QC state, which is
+  now available in ml warehouse. Since the ml warehouse QC state might not
+  be up-to-date, a final check against the LangQC database is retained.
+* Major upgrade of FastAPI, Pydantic and related dependencies.
 
 ## [1.4.1] - 2023-08-23
 

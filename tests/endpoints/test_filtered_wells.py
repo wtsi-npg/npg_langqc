@@ -251,6 +251,22 @@ def test_aborted_filter(test_client: TestClient, load_data4well_retrieval):
     _assert_filtered_results(response, [], 10, 100, num_total)
 
 
+def test_upcoming_filter(test_client: TestClient, load_data4well_retrieval):
+    """Test passing `upcoming` filter."""
+
+    expected_data = [
+        {"TRACTION_RUN_12:B1": None},
+        {"TRACTION_RUN_12:C1": None},
+        {"TRACTION_RUN_6:A1": None},
+        {"TRACTION_RUN_6:B1": None},
+    ]
+    num_total = len(expected_data)
+    response = test_client.get(
+        "/pacbio/wells?qc_status=upcoming&page_size=10&page_number=1"
+    )
+    _assert_filtered_results(response, expected_data, 10, 1, num_total)
+
+
 def _assert_filtered_results(
     response, expected_data, page_size, page_number, total_number
 ):

@@ -26,7 +26,7 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
 
 from lang_qc.endpoints import config, pacbio_well, product
 
