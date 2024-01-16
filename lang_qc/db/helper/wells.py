@@ -29,7 +29,7 @@ from sqlalchemy.orm import Session
 
 from lang_qc.db.helper.qc import (
     get_qc_states_by_id_product_list,
-    qc_state_for_product_exists,
+    qc_state_for_products_exists,
 )
 from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
 from lang_qc.db.qc_schema import QcState, QcStateDict, QcType
@@ -365,15 +365,11 @@ class PacBioPagedWellsFactory(WellWh, PagedResponse):
             )
         )
 
-        wells = []
-        for w in self.session.execute(query).scalars().all():
-            if (
-                qc_state_for_product_exists(
-                    session=self.qcdb_session, id_product=w.id_pac_bio_product
-                )
-                is False
-            ):
-                wells.append(w)
+        wells = self.session.execute(query).scalars().all()
+        ids_with_qc_state = qc_state_for_products_exists(
+            session=self.qcdb_session, ids=[w.id_pac_bio_product for w in wells]
+        )
+        wells = [w for w in wells if w.id_pac_bio_product not in ids_with_qc_state]
 
         self.total_number_of_items = len(wells)  # Save the number of retrieved wells.
 

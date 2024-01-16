@@ -40,6 +40,7 @@ All functions are sequencing platform independent.
 
 APPLICATION_NAME = "LangQC"
 DEFAULT_QC_TYPE = "sequencing"
+SEQUENCING_QC_TYPE = DEFAULT_QC_TYPE
 CLAIMED_QC_STATE = "Claimed"
 DEFAULT_FINALITY = False
 ONLY_PRELIM_STATES = (CLAIMED_QC_STATE, "On hold")
@@ -78,7 +79,7 @@ def get_qc_states_by_id_product_list(
 
     If only sequencing type QC states are required, an optional
     argument, sequencing_outcomes_only, should be set to True.
-    If this case it is guaranteed that the list of QcState objects
+    In this case it is guaranteed that the list of QcState objects
     has only one member.
 
     Product IDs for which no QC states are found are omitted
@@ -132,6 +133,38 @@ def qc_state_for_product_exists(
     return bool(session.execute(query).scalar_one())
 
 
+def qc_state_for_products_exists(
+    session: Session, ids: list[ChecksumSHA256], sequencing_outcomes_only: bool = False
+) -> set[ChecksumSHA256]:
+    """
+    Given a list of product IDs, returns a potentially empty subset of this list
+    as a Set object. Each product, identified by the product ID in the returned
+    set, has some QC state associated with it. If `sequencing_outcome_only`
+    boolean flag is true, the product has the `sequencing` QC state associated
+    with it.
+
+    Arguments:
+        `session` - `sqlalchemy.orm.Session`, a connection for LangQC database.
+        `ids` - a list of string product IDs.
+        `sequencing_outcome_only` - a boolean flag indicating whether the caller
+        is interested in `sequencing` QC states only
+    """
+
+    query = (
+        select(SeqProduct.id_product)
+        .select_from(SeqProduct)
+        .where(SeqProduct.id_product.in_(ids))
+    )
+    if sequencing_outcomes_only is True:
+        query = query.join(SeqProduct.qc_state).where(
+            QcStateDb.qc_type == _get_qc_type_row(session, SEQUENCING_QC_TYPE)
+        )
+
+    product_ids = [row[0] for row in session.execute(query).all()]
+
+    return set(product_ids)
+
+
 def get_seq_product(session: Session, id_product: ChecksumSHA256) -> SeqProduct:
     """
     Given a product ID, returns a SeqProduct row for a database entity with
@@ -149,7 +182,7 @@ def get_seq_product(session: Session, id_product: ChecksumSHA256) -> SeqProduct:
 
 
 def get_qc_state_for_product(
-    session: Session, id_product: ChecksumSHA256, qc_type: str = "sequencing"
+    session: Session, id_product: ChecksumSHA256, qc_type: str = DEFAULT_QC_TYPE
 ) -> QcStateDb:
     """
     Returns a QcState database row associated with the product with the
