@@ -101,7 +101,7 @@ def get_qc_states_by_id_product_list(
     )
 
 
-def qc_state_for_product_exists(
+def product_has_qc_state(
     session: Session, id_product: ChecksumSHA256, qc_type: str = None
 ) -> bool:
     """
@@ -133,7 +133,7 @@ def qc_state_for_product_exists(
     return bool(session.execute(query).scalar_one())
 
 
-def qc_state_for_products_exists(
+def products_have_qc_state(
     session: Session, ids: list[ChecksumSHA256], sequencing_outcomes_only: bool = False
 ) -> set[ChecksumSHA256]:
     """

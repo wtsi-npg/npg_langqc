@@ -3,9 +3,9 @@ import pytest
 from lang_qc.db.helper.qc import (
     get_qc_state_for_product,
     get_qc_states_by_id_product_list,
+    product_has_qc_state,
+    products_have_qc_state,
     qc_state_dict,
-    qc_state_for_product_exists,
-    qc_state_for_products_exists,
 )
 from tests.fixtures.well_data import load_data4well_retrieval, load_dicts_and_users
 
@@ -68,34 +68,32 @@ def test_bulk_retrieval(qcdb_test_session, load_data4well_retrieval):
 
 def test_product_existence(qcdb_test_session, load_data4well_retrieval):
 
-    assert qc_state_for_product_exists(qcdb_test_session, MISSING_CHECKSUM) is False
+    assert product_has_qc_state(qcdb_test_session, MISSING_CHECKSUM) is False
     for id in two_good_ids_list:
-        assert qc_state_for_product_exists(qcdb_test_session, id) is True
-        assert qc_state_for_product_exists(qcdb_test_session, id, "sequencing") is True
-        assert qc_state_for_product_exists(qcdb_test_session, id, "library") is True
+        assert product_has_qc_state(qcdb_test_session, id) is True
+        assert product_has_qc_state(qcdb_test_session, id, "sequencing") is True
+        assert product_has_qc_state(qcdb_test_session, id, "library") is True
 
     assert (
-        qc_state_for_product_exists(qcdb_test_session, NO_LIB_QC_CHECKSUM, "sequencing")
+        product_has_qc_state(qcdb_test_session, NO_LIB_QC_CHECKSUM, "sequencing")
         is True
     )
     assert (
-        qc_state_for_product_exists(qcdb_test_session, NO_LIB_QC_CHECKSUM, "library")
-        is False
+        product_has_qc_state(qcdb_test_session, NO_LIB_QC_CHECKSUM, "library") is False
     )
-    assert qc_state_for_product_exists(qcdb_test_session, NO_LIB_QC_CHECKSUM) is True
+    assert product_has_qc_state(qcdb_test_session, NO_LIB_QC_CHECKSUM) is True
 
     assert (
-        qc_state_for_product_exists(qcdb_test_session, NO_SEQ_QC_CHECKSUM, "sequencing")
+        product_has_qc_state(qcdb_test_session, NO_SEQ_QC_CHECKSUM, "sequencing")
         is False
     )
     assert (
-        qc_state_for_product_exists(qcdb_test_session, NO_SEQ_QC_CHECKSUM, "library")
-        is True
+        product_has_qc_state(qcdb_test_session, NO_SEQ_QC_CHECKSUM, "library") is True
     )
-    assert qc_state_for_product_exists(qcdb_test_session, NO_SEQ_QC_CHECKSUM) is True
+    assert product_has_qc_state(qcdb_test_session, NO_SEQ_QC_CHECKSUM) is True
 
     with pytest.raises(Exception, match=r"QC type 'some_type' is invalid"):
-        qc_state_for_product_exists(qcdb_test_session, NO_SEQ_QC_CHECKSUM, "some_type")
+        product_has_qc_state(qcdb_test_session, NO_SEQ_QC_CHECKSUM, "some_type")
 
 
 def test_products_existence(qcdb_test_session, load_data4well_retrieval):
@@ -107,22 +105,22 @@ def test_products_existence(qcdb_test_session, load_data4well_retrieval):
         NO_SEQ_QC_CHECKSUM,
     ]
 
-    assert qc_state_for_products_exists(qcdb_test_session, [MISSING_CHECKSUM]) == set()
-    assert qc_state_for_products_exists(
-        qcdb_test_session, [FIRST_GOOD_CHECKSUM]
-    ) == set([FIRST_GOOD_CHECKSUM])
-    assert qc_state_for_products_exists(
+    assert products_have_qc_state(qcdb_test_session, [MISSING_CHECKSUM]) == set()
+    assert products_have_qc_state(qcdb_test_session, [FIRST_GOOD_CHECKSUM]) == set(
+        [FIRST_GOOD_CHECKSUM]
+    )
+    assert products_have_qc_state(
         qcdb_test_session, [MISSING_CHECKSUM, FIRST_GOOD_CHECKSUM]
     ) == set([FIRST_GOOD_CHECKSUM])
-    assert qc_state_for_products_exists(qcdb_test_session, ids) == set(ids)
+    assert products_have_qc_state(qcdb_test_session, ids) == set(ids)
 
     assert (
-        qc_state_for_products_exists(
+        products_have_qc_state(
             qcdb_test_session, [MISSING_CHECKSUM, NO_SEQ_QC_CHECKSUM], True
         )
         == set()
     )
-    assert qc_state_for_products_exists(qcdb_test_session, ids, True) == set(
+    assert products_have_qc_state(qcdb_test_session, ids, True) == set(
         [FIRST_GOOD_CHECKSUM, SECOND_GOOD_CHECKSUM, NO_LIB_QC_CHECKSUM]
     )
 
