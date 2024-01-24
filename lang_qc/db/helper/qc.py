@@ -140,8 +140,8 @@ def qc_state_for_products_exists(
     Given a list of product IDs, returns a potentially empty subset of this list
     as a Set object. Each product, identified by the product ID in the returned
     set, has some QC state associated with it. If `sequencing_outcome_only`
-    boolean flag is true, the product has the `sequencing` QC state associated
-    with it.
+    boolean flag is true, the product must have sequencing QC state associated
+    with it; `library` QC state is excluded.
 
     Arguments:
         `session` - `sqlalchemy.orm.Session`, a connection for LangQC database.
@@ -150,16 +150,14 @@ def qc_state_for_products_exists(
         is interested in `sequencing` QC states only
     """
 
-    query = (
-        select(SeqProduct.id_product)
-        .select_from(SeqProduct)
-        .where(SeqProduct.id_product.in_(ids))
-    )
+    query = select(SeqProduct.id_product).where(SeqProduct.id_product.in_(ids))
     if sequencing_outcomes_only is True:
         query = query.join(SeqProduct.qc_state).where(
             QcStateDb.qc_type == _get_qc_type_row(session, SEQUENCING_QC_TYPE)
         )
 
+    # We asked to retrieve data for one column only. The return value for
+    # each row is an array with a single value from this column.
     product_ids = [row[0] for row in session.execute(query).all()]
 
     return set(product_ids)

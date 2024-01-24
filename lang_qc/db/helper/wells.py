@@ -416,7 +416,7 @@ class PacBioPagedWellsFactory(WellWh, PagedResponse):
             .all()
         )
 
-        qc_state_applicable = 1
+        qc_state_applicable = True
         if qc_flow_status == QcFlowStatusEnum.UNKNOWN:
             # Remove the wells that the QC team has dealt with.
             ids_with_qc_state = qc_state_for_products_exists(
@@ -425,7 +425,7 @@ class PacBioPagedWellsFactory(WellWh, PagedResponse):
                 sequencing_outcomes_only=True,
             )
             wells = [w for w in wells if w.id_pac_bio_product not in ids_with_qc_state]
-            qc_state_applicable = 0
+            qc_state_applicable = False
 
         # Save the number of retrieved rows.
         self.total_number_of_items = len(wells)

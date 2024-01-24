@@ -1,6 +1,6 @@
 import pytest
 from npg_id_generation.pac_bio import PacBioEntity
-from sqlalchemy import insert, select
+from sqlalchemy import select
 
 from lang_qc.db.helper.wells import PacBioPagedWellsFactory, RunNotFoundError
 from lang_qc.db.qc_schema import QcState, QcType, SeqProduct
@@ -443,7 +443,9 @@ def test_retrieval_for_unknown_status(
         page_number=1,
     )
     paged_wells = factory.create_for_qc_status(QcFlowStatusEnum.UNKNOWN)
-    assert paged_wells.total_number_of_items == 2
+    assert (
+        paged_wells.total_number_of_items == 2
+    ), "two wells with unknown status, no qc state"
 
     # Create seq QC states for these wells and test that they are gone
     # from the Unknown status.
@@ -471,7 +473,10 @@ def test_retrieval_for_unknown_status(
     qcdb_test_session.commit()
 
     paged_wells = factory.create_for_qc_status(QcFlowStatusEnum.UNKNOWN)
-    assert paged_wells.total_number_of_items == 2
+    assert (
+        paged_wells.total_number_of_items == 2
+    ), """assigning library qc state to a well does not affect
+          its selection for the unknown status"""
 
     qc_type_row = (
         qcdb_test_session.execute(select(QcType).where(QcType.qc_type == "sequencing"))
@@ -490,4 +495,7 @@ def test_retrieval_for_unknown_status(
     qcdb_test_session.commit()
 
     paged_wells = factory.create_for_qc_status(QcFlowStatusEnum.UNKNOWN)
-    assert paged_wells.total_number_of_items == 1
+    assert (
+        paged_wells.total_number_of_items == 1
+    ), """assigning sequencing qc state to a well removes it
+          from the selection for the unknown status"""
