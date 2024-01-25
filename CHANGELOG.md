@@ -3,6 +3,28 @@
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+* The 'Unknown' UI tab no longer displays the wells that have any
+  sequencing QC state associated with it. This feature was requested
+  by the users.
+
+* To increase code readability, renamed qc_state_for_product_exists
+  method in lang_qc::db::helper::qc to product_has_qc_state.
+
+* Added method products_have_qc_state to lang_qc::db::helper::qc,
+  used it to optimise (reduce the number of database queries) some
+  of the existing back-end code.
+
+### Fixed
+
+* The client side JavaScript dependency, element-plus, is pinned
+  to version 2.4.4. In mid-January 2024 this was the highest version
+  that worked with our code. The version expression we had "^2.3.7"
+  allowed for fetching the latest available version of this library. 
+
 ## [1.5.0]
 
 ### Added
