@@ -29,7 +29,7 @@ from sqlalchemy.orm import Session
 
 from lang_qc.db.helper.qc import (
     get_qc_states_by_id_product_list,
-    qc_state_for_product_exists,
+    products_have_qc_state,
 )
 from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
 from lang_qc.db.qc_schema import QcState, QcStateDict, QcType
@@ -365,15 +365,11 @@ class PacBioPagedWellsFactory(WellWh, PagedResponse):
             )
         )
 
-        wells = []
-        for w in self.session.execute(query).scalars().all():
-            if (
-                qc_state_for_product_exists(
-                    session=self.qcdb_session, id_product=w.id_pac_bio_product
-                )
-                is False
-            ):
-                wells.append(w)
+        wells = self.session.execute(query).scalars().all()
+        ids_with_qc_state = products_have_qc_state(
+            session=self.qcdb_session, ids=[w.id_pac_bio_product for w in wells]
+        )
+        wells = [w for w in wells if w.id_pac_bio_product not in ids_with_qc_state]
 
         self.total_number_of_items = len(wells)  # Save the number of retrieved wells.
 
@@ -420,10 +416,21 @@ class PacBioPagedWellsFactory(WellWh, PagedResponse):
             .all()
         )
 
+        qc_state_applicable = True
+        if qc_flow_status == QcFlowStatusEnum.UNKNOWN:
+            # Remove the wells that the QC team has dealt with.
+            ids_with_qc_state = products_have_qc_state(
+                session=self.qcdb_session,
+                ids=[w.id_pac_bio_product for w in wells],
+                sequencing_outcomes_only=True,
+            )
+            wells = [w for w in wells if w.id_pac_bio_product not in ids_with_qc_state]
+            qc_state_applicable = False
+
         # Save the number of retrieved rows.
         self.total_number_of_items = len(wells)
 
-        return self._well_models(self.slice_data(wells), True)
+        return self._well_models(self.slice_data(wells), qc_state_applicable)
 
     def _well_models(
         self,
@@ -454,7 +461,7 @@ class PacBioPagedWellsFactory(WellWh, PagedResponse):
                     sequencing_outcomes_only=True,
                 ).get(id_product)
                 # A well can have only one or zero current sequencing outcomes.
-                if qced_products is not None:
+                if qced_products is not None and (len(qced_products) > 0):
                     attrs["qc_state"] = qced_products[0]
             pb_well = PacBioWell.model_validate(attrs)
             pb_well.copy_run_tracking_info(db_well)
