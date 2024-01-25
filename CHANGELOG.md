@@ -5,6 +5,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [1.5.1] - 2024-01-25
+
 ### Changed
 
 * The 'Unknown' UI tab no longer displays the wells that have any
