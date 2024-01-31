@@ -1,8 +1,9 @@
 import pytest
 from npg_id_generation.pac_bio import PacBioEntity
+from sqlalchemy import select
 
 from lang_qc.db.helper.wells import PacBioPagedWellsFactory, RunNotFoundError
-from lang_qc.db.qc_schema import QcState
+from lang_qc.db.qc_schema import QcState, QcType, SeqProduct
 from lang_qc.models.pacbio.well import PacBioPagedWells, PacBioWell
 from lang_qc.models.qc_flow_status import QcFlowStatusEnum
 from lang_qc.models.qc_state import QcState as QcStateModel
@@ -175,6 +176,7 @@ def test_paged_retrieval_for_statuses(
         QcFlowStatusEnum.ON_HOLD.name: 2,
         QcFlowStatusEnum.QC_COMPLETE.name: 4,
         QcFlowStatusEnum.UPCOMING.name: 4,
+        QcFlowStatusEnum.UNKNOWN.name: 2,
     }
 
     for status in [
@@ -182,6 +184,7 @@ def test_paged_retrieval_for_statuses(
         QcFlowStatusEnum.ON_HOLD,
         QcFlowStatusEnum.QC_COMPLETE,
         QcFlowStatusEnum.UPCOMING,
+        QcFlowStatusEnum.UNKNOWN,
     ]:
 
         factory = PacBioPagedWellsFactory(
@@ -425,3 +428,74 @@ def test_known_run_names_input(
     qc_state_objs = [well.qc_state for well in wells]
     assert qc_state_objs[0] is None
     assert qc_state_objs[1] is None
+
+
+def test_retrieval_for_unknown_status(
+    qcdb_test_session, mlwhdb_test_session, load_data4well_retrieval
+):
+    # SUBTRACTION_RUN_15:A1
+    # TRACTION_RUN_14:B1
+
+    factory = PacBioPagedWellsFactory(
+        qcdb_session=qcdb_test_session,
+        mlwh_session=mlwhdb_test_session,
+        page_size=10,
+        page_number=1,
+    )
+    paged_wells = factory.create_for_qc_status(QcFlowStatusEnum.UNKNOWN)
+    assert (
+        paged_wells.total_number_of_items == 2
+    ), "two wells with unknown status, no qc state"
+
+    # Create seq QC states for these wells and test that they are gone
+    # from the Unknown status.
+
+    id = PacBioEntity(run_name="TRACTION_RUN_14", well_label="B1").hash_product_id()
+
+    seq_product = SeqProduct(id_product=id, id_seq_platform=1, has_seq_data=1)
+    qcdb_test_session.add(seq_product)
+    qcdb_test_session.commit()
+
+    qc_type_row = (
+        qcdb_test_session.execute(select(QcType).where(QcType.qc_type == "library"))
+        .scalars()
+        .one()
+    )
+    qc_state = QcState(
+        created_by="LangQC",
+        is_preliminary=1,
+        id_qc_state_dict=2,
+        qc_type=qc_type_row,
+        seq_product=seq_product,
+        id_user=1,
+    )
+    qcdb_test_session.add(qc_state)
+    qcdb_test_session.commit()
+
+    paged_wells = factory.create_for_qc_status(QcFlowStatusEnum.UNKNOWN)
+    assert (
+        paged_wells.total_number_of_items == 2
+    ), """assigning library qc state to a well does not affect
+          its selection for the unknown status"""
+
+    qc_type_row = (
+        qcdb_test_session.execute(select(QcType).where(QcType.qc_type == "sequencing"))
+        .scalars()
+        .one()
+    )
+    qc_state = QcState(
+        created_by="LangQC",
+        is_preliminary=1,
+        id_qc_state_dict=3,
+        qc_type=qc_type_row,
+        seq_product=seq_product,
+        id_user=1,
+    )
+    qcdb_test_session.add(qc_state)
+    qcdb_test_session.commit()
+
+    paged_wells = factory.create_for_qc_status(QcFlowStatusEnum.UNKNOWN)
+    assert (
+        paged_wells.total_number_of_items == 1
+    ), """assigning sequencing qc state to a well removes it
+          from the selection for the unknown status"""

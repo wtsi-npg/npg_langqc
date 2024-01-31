@@ -29,7 +29,7 @@ from starlette import status
 from lang_qc.db.helper.qc import (
     assign_qc_state_to_product,
     claim_qc_for_product,
-    qc_state_for_product_exists,
+    product_has_qc_state,
 )
 from lang_qc.db.helper.well import well_seq_product_find_or_create
 from lang_qc.db.helper.wells import PacBioPagedWellsFactory, WellWh
@@ -216,7 +216,7 @@ def claim_qc(
     mlwh_well = _find_well_product_or_error(id_product, mlwhdb_session)
 
     # Checking for any type of QC state
-    if qc_state_for_product_exists(qcdb_session, id_product):
+    if product_has_qc_state(qcdb_session, id_product):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"Well for product {id_product} has QC state assigned",
@@ -261,10 +261,7 @@ def assign_qc_state(
 
     mlwh_well = _find_well_product_or_error(id_product, mlwhdb_session)
 
-    if (
-        qc_state_for_product_exists(qcdb_session, id_product, request_body.qc_type)
-        is False
-    ):
+    if product_has_qc_state(qcdb_session, id_product, request_body.qc_type) is False:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="QC state of an unclaimed well cannot be updated",
