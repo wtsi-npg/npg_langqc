@@ -24,7 +24,6 @@ A collection of specific to PacBio platform helper functions
 for interaction with the LangQC database.
 """
 
-from npg_id_generation.pac_bio import PacBioEntity
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -84,9 +83,6 @@ def _create_well(
     product_attr_pn = session.execute(
         select(SubProductAttr).where(SubProductAttr.attr_name == "plate_number")
     ).scalar_one()
-    product_json = PacBioEntity(
-        run_name=run_name, well_label=well_label, plate_number=plate_number
-    ).model_dump_json()
 
     # TODO: in future for composite products we have to check whether any of
     # the `sub_product` table entries we are linking to already exist.
@@ -103,7 +99,6 @@ def _create_well(
                 value_attr_three=str(plate_number)
                 if plate_number is not None
                 else None,
-                properties=product_json,
                 properties_digest=id_product,
             )
         ],

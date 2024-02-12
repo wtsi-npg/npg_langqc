@@ -16,9 +16,9 @@ cryptography = { version = "^40.0.2" }
 SQLAlchemy = { version = "^2.0.1", extras = ["pymysql"] }
 pydantic = "^2.4"
 pydantic-settings = "^2.0"
-npg_id_generation = { git = "https://github.com/wtsi-npg/npg_id_generation.git", tag="4.0.1" }
 
 [tool.poetry.dev-dependencies]
+npg_id_generation = { git = "https://github.com/wtsi-npg/npg_id_generation.git", tag="4.0.1" }
 black = "^22.3.0"
 flake8 = "^4.0.1"
 pytest = "^7.1.1"

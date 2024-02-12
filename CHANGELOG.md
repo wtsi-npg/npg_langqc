@@ -5,6 +5,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+* The properties column of the LangQC sub_product database table
+  is made nullable. The correctness of data in this column is no
+  longer guaranteed, the column will be dropped in future.
+
+* The production code no longer depends on the npg_id_generation
+  package, therefore this dependency was moved to the dev section
+  of pyproject.toml. The package is still used by tests and test
+  fixtures.
+
 ## [1.5.1] - 2024-01-25
 
 ### Changed

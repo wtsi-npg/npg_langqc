@@ -845,7 +845,6 @@ def load_data4well_retrieval(
             run_name=qc_data[0], well_label=qc_data[1], plate_number=qc_data[5]
         )
         id_product = pbe.hash_product_id()
-        json = pbe.model_dump_json()
         date = datetime.strptime(qc_data[4], DATE_FORMAT)
 
         seq_product = SeqProduct(
@@ -859,7 +858,6 @@ def load_data4well_retrieval(
                     value_attr_one=qc_data[0],
                     value_attr_two=qc_data[1],
                     value_attr_three=qc_data[5],
-                    properties=json,
                     properties_digest=id_product,
                 ),
             ],
@@ -955,7 +953,6 @@ def load_data4qc_assign(load_dicts_and_users, qcdb_test_session):
                     value_attr_one="TRACTION_RUN_2",
                     value_attr_two=label,
                     value_attr_three="2",
-                    properties=p.model_dump_json(),
                     properties_digest=id,
                 ),
             ],

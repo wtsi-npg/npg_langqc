@@ -5,7 +5,7 @@
 Planned changes should be applied in [lang_qc/db/qc_schema.py](../lang_qc/db/qc_schema.py).
 We recommend doing this manually.
 
-Changes to unit test,test fixtures and the source code should be applied as
+Changes to unit tests, test fixtures and the source code should be applied as
 appropriate. 
 
 ## Creating migrations for the QC database schema
