@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   of pyproject.toml. The package is still used by tests and test
   fixtures.
 
+* Upgraded some of dev dependencies: npg_id_generation to 5.0.1,
+  alembic to 1.13.0 or later.
+
+* Regenerated poetry.lock file.
+
 ## [1.5.1] - 2024-01-25
 
 ### Changed
