@@ -19,13 +19,27 @@ Set `ALEMBIC_DB_URL` env. variable to the SQLAlchemy URL for the database you
 want to operate on. The format is `driver://user:pass@host:port/dbname`, where
 for MySQL and our software stack the driver is `mysql+pymysql`.
 
-Ensure `alembic` in on your PATH. Create a revision:
+Ensure `alembic` is on your PATH. Run all commands from the root of the
+repository, where the configuration for alembic `alembic.ini` resides.
 
-```alembic revision -m 'This is a revision description'```
+Create a revision:
 
-Define explicitly SQL statements that have to be executed both for the
-`upgrade` and `downgrade` function definitions in the generated script.
-Call execution of these statements, one at a time. Executing multiple
+```
+ # This example command generates alembic/versions/2.0.0_drop_json_properties_column.py
+ # python script, which contains an empty template for defining the migration.
+ alembic revision -m 'drop_json_properties_column' --rev-id 2.0.0 --head 3814003a709a
+```
+
+If `--rev_id` is not specified, `alembic` generates a random id for the migration,
+which does not present the problem immideately, but makes it difficult long term to
+understand the order of migrations and identify the latest migration. Set `--rev_id`
+to the next release version.
+
+The value of the `--head` argument is the version of the previous migration.
+
+Edit the newly generated script. Define explicitly SQL statements that have to be
+executed both for the `upgrade` and `downgrade` function definitions in the
+script. Call execution of these statements, one at a time. Executing multiple
 statements in one go does not work. See examples in the [versions](./versions)
 directory.
 
