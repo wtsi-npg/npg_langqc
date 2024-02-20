@@ -7,9 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
-* The properties column of the LangQC sub_product database table
-  is made nullable. The correctness of data in this column is no
-  longer guaranteed, the column will be dropped in future.
+* The correctness of data in the 'properties' column of the
+  LangQC 'sub_product' database table is no longer guaranteed
+  because of the changes introduced in v. 5.0.0 of https://github.com/wtsi-npg/npg_id_generation
+  The column is made nullable and then dropped. The ORM for
+  the LangQC database is updated accordingly.
 
 * The production code no longer depends on the npg_id_generation
   package, therefore this dependency was moved to the dev section
