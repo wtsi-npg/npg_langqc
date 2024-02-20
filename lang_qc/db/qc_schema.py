@@ -180,7 +180,6 @@ class SubProduct(Base):
     value_attr_two = Column(String(20), nullable=False, index=True)
     id_attr_three = Column(INTEGER, nullable=True, index=True)
     value_attr_three = Column(String(20), nullable=True, index=True)
-    properties = Column(JSON, nullable=False)
     properties_digest = Column(CHAR(64), nullable=False, unique=True)
     tags = Column(String(255), index=True)
 

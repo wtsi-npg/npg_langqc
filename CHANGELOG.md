@@ -5,6 +5,24 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+* The correctness of data in the 'properties' column of the
+  LangQC 'sub_product' database table is no longer guaranteed
+  because of the changes introduced in v. 5.0.0 of https://github.com/wtsi-npg/npg_id_generation
+  The column is made nullable and then dropped. The ORM for
+  the LangQC database is updated accordingly.
+
+* The production code no longer depends on the npg_id_generation
+  package, therefore this dependency was moved to the dev section
+  of pyproject.toml. The package is still used by tests and test
+  fixtures.
+
+* Upgraded some of dev dependencies: npg_id_generation to 5.0.1,
+  alembic to 1.13.0 or later.
+
+* Regenerated poetry.lock file.
+
 ## [1.5.1] - 2024-01-25
 
 ### Changed

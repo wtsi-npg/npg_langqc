@@ -170,7 +170,6 @@ def test_data_factory(mlwhdb_test_session, qcdb_test_session):
                 mlwhdb_test_session.add(run_metrics)
 
                 if state is not None:
-                    json = pbe.model_dump_json()
 
                     qc_state = QcState(
                         created_by="me",
@@ -186,7 +185,6 @@ def test_data_factory(mlwhdb_test_session, qcdb_test_session):
                                     sub_product_attr_=well_label_attr,
                                     value_attr_one=run_name,
                                     value_attr_two=well_label,
-                                    properties=json,
                                     properties_digest=id,
                                 ),
                             ],
