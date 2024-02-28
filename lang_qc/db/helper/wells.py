@@ -310,21 +310,6 @@ class PacBioPagedWellsFactory(WellWh, PagedResponse):
 
         return wells
 
-    def _add_tracking_info(self, wells: List[PacBioWell]):
-
-        for well in wells:
-            # One query for all or query per well? The latter for now to avoid the need
-            # to match the records later. Should be fast enough for small-ish pages, we
-            # query on a unique key.
-            db_well = self.get_mlwh_well_by_product_id(product_id=well.product_id)
-            if db_well is None:
-                # No error if no matching mlwh record is found.
-                logging.warning(
-                    f"No mlwh record for run '{well.run_name}' well '{well.label}'"
-                )
-            else:
-                well.copy_run_tracking_info(db_well)
-
     def _upcoming_wells(self):
         """
         Upcoming wells are recent wells, which do not belong to any other
