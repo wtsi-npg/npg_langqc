@@ -586,7 +586,7 @@ class PacBioProductMetrics(Base):
         mysqlINTEGER(unsigned=True), nullable=True, comment="The number of HiFi reads"
     )
     hifi_read_length_mean = Column(
-        mysqlSMALLINT(unsigned=True), nullable=True, comment="The mean HiFi read length"
+        mysqlINTEGER(unsigned=True), nullable=True, comment="The mean HiFi read length"
     )
     barcode_quality_score = Column(
         mysqlSMALLINT(unsigned=True),
@@ -594,7 +594,7 @@ class PacBioProductMetrics(Base):
         comment="The mean barcode HiFi quality score",
     )
     hifi_read_quality_mean = Column(
-        mysqlSMALLINT(unsigned=True),
+        mysqlINTEGER(unsigned=True),
         nullable=True,
         comment="The mean HiFi base quality",
     )
