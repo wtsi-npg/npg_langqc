@@ -169,7 +169,7 @@ def get_wells_in_run(
         status.HTTP_404_NOT_FOUND: {"description": "Well product does not exist"},
         status.HTTP_422_UNPROCESSABLE_ENTITY: {"description": "Invalid product ID"},
     },
-    response_model=PacBioWellFull,
+    response_model=None,
 )
 def get_seq_metrics(
     id_product: ChecksumSHA256,
@@ -179,7 +179,7 @@ def get_seq_metrics(
 
     mlwh_well = _find_well_product_or_error(id_product, mlwhdb_session)
 
-    return PacBioWellFull.from_orm(mlwh_well, qcdb_session)
+    return PacBioWellFull(db_well=mlwh_well, qc_session=qcdb_session)
 
 
 @router.post(
