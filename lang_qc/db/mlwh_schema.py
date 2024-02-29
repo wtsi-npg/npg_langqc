@@ -579,6 +579,30 @@ class PacBioProductMetrics(Base):
         index=True,
         comment="The final QC outcome of the product as 0(failed), 1(passed) or NULL",
     )
+    hifi_read_bases = Column(
+        mysqlBIGINT(unsigned=True), nullable=True, comment="The number of HiFi bases"
+    )
+    hifi_num_reads = Column(
+        mysqlINTEGER(unsigned=True), nullable=True, comment="The number of HiFi reads"
+    )
+    hifi_read_length_mean = Column(
+        mysqlINTEGER(unsigned=True), nullable=True, comment="The mean HiFi read length"
+    )
+    barcode_quality_score = Column(
+        mysqlSMALLINT(unsigned=True),
+        nullable=True,
+        comment="The mean barcode HiFi quality score",
+    )
+    hifi_read_quality_mean = Column(
+        mysqlINTEGER(unsigned=True),
+        nullable=True,
+        comment="The mean HiFi base quality",
+    )
+    hifi_bases_percent = Column(
+        mysqlFLOAT(),
+        nullable=True,
+        comment="The HiFi bases expressed as a percentage of the total HiFi bases",
+    )
 
     pac_bio_run_well_metrics = relationship(
         "PacBioRunWellMetrics", back_populates="pac_bio_product_metrics"
