@@ -290,14 +290,8 @@ class PacBioPagedWellsFactory(WellWh, PagedResponse):
             id_product = qc_state_model.id_product
             mlwh_well = self.get_mlwh_well_by_product_id(id_product=id_product)
             if mlwh_well is not None:
-                pbw = PacBioWell(
-                    id_product=id_product,
-                    run_name=mlwh_well.pac_bio_run_name,
-                    plate_number=mlwh_well.plate_number,
-                    label=mlwh_well.well_label,
-                    qc_state=qc_state_model,
-                )
-                pbw.copy_run_tracking_info(mlwh_well)
+                pbw = PacBioWell.model_validate(mlwh_well)
+                pbw.qc_state = qc_state_model
                 wells.append(pbw)
             else:
                 """
@@ -424,32 +418,22 @@ class PacBioPagedWellsFactory(WellWh, PagedResponse):
     ):
 
         # Normally QC data is not available for the inbox, aborted, etc.
-        # wells. If some well with a non-inbox status has QC state assigned,
-        # the same well will also be retrieved by the 'in progress' or
-        # 'on hold' or 'qc complete' queries. However, it is useful to display
-        # the QC state if it is available. The `qc_state_applicable` argument
-        # is a hint to fetch QC state.
+        # wells. The `qc_state_applicable` argument is a hint to fetch
+        # the QC state.
+        qced_products = dict()
+        if qc_state_applicable:
+            product_ids = [db_well.id_pac_bio_product for db_well in db_wells_list]
+            qced_products = get_qc_states_by_id_product_list(
+                session=self.qcdb_session,
+                ids=product_ids,
+                sequencing_outcomes_only=True,
+            )
         pb_wells = []
         for db_well in db_wells_list:
+            pb_well = PacBioWell.model_validate(db_well)
             id_product = db_well.id_pac_bio_product
-            attrs = {
-                "id_product": id_product,
-                "run_name": db_well.pac_bio_run_name,
-                "plate_number": db_well.plate_number,
-                "label": db_well.well_label,
-            }
-            if qc_state_applicable:
-                # TODO: Query by all IDs at once.
-                qced_products = get_qc_states_by_id_product_list(
-                    session=self.qcdb_session,
-                    ids=[id_product],
-                    sequencing_outcomes_only=True,
-                ).get(id_product)
-                # A well can have only one or zero current sequencing outcomes.
-                if qced_products is not None and (len(qced_products) > 0):
-                    attrs["qc_state"] = qced_products[0]
-            pb_well = PacBioWell.model_validate(attrs)
-            pb_well.copy_run_tracking_info(db_well)
+            if id_product in qced_products:
+                pb_well.qc_state = qced_products[id_product][0]
             pb_wells.append(pb_well)
 
         return pb_wells

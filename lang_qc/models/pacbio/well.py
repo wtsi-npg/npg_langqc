@@ -26,7 +26,7 @@ from typing import Optional
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.orm import Session
 
-from lang_qc.db.helper.qc import get_qc_states_by_id_product_list
+from lang_qc.db.helper.qc import get_qc_state_for_product
 from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
 from lang_qc.models.pacbio.experiment import PacBioExperiment
 from lang_qc.models.pacbio.qc_data import QCDataWell
@@ -45,28 +45,51 @@ class PacBioWell(BaseModel, extra="forbid"):
     sequenced or QC metrics or assessment for such data.
     """
 
+    model_config = ConfigDict(
+        populate_by_name=True,
+        from_attributes=True,
+        revalidate_instances="always",
+        extra="forbid",
+    )
+
     # Well identifies.
-    id_product: str = Field(title="Product identifier")
-    label: str = Field(title="Well label", description="The label of the PacBio well")
+    id_product: str = Field(
+        title="Product identifier", validation_alias="id_pac_bio_product"
+    )
+    label: str = Field(
+        title="Well label",
+        description="The label of the PacBio well",
+        validation_alias="well_label",
+    )
     plate_number: Optional[int] = Field(
         default=None,
         title="Plate number",
         description="Plate number, relevant for Revio instruments only",
     )
     run_name: str = Field(
-        title="Run name", description="PacBio run name as registered in LIMS"
+        title="Run name",
+        description="PacBio run name as registered in LIMS",
+        validation_alias="pac_bio_run_name",
     )
     # Run and well tracking information from SMRT Link
-    run_start_time: datetime = Field(default=None, title="Run start time")
-    run_complete_time: datetime = Field(default=None, title="Run complete time")
-    well_start_time: datetime = Field(default=None, title="Well start time")
-    well_complete_time: datetime = Field(default=None, title="Well complete time")
-    run_status: str = Field(default=None, title="Current PacBio run status")
-    well_status: str = Field(default=None, title="Current PacBio well status")
+    run_start_time: datetime | None = Field(
+        default=None, title="Run start time", validation_alias="run_start"
+    )
+    run_complete_time: datetime | None = Field(
+        default=None, title="Run complete time", validation_alias="run_complete"
+    )
+    well_start_time: datetime | None = Field(
+        default=None, title="Well start time", validation_alias="well_start"
+    )
+    well_complete_time: datetime | None = Field(
+        default=None, title="Well complete time", validation_alias="well_complete"
+    )
+    run_status: Optional[str] = Field(default=None, title="Current PacBio run status")
+    well_status: Optional[str] = Field(default=None, title="Current PacBio well status")
     instrument_name: str = Field(default=None, title="Instrument name")
     instrument_type: str = Field(default=None, title="Instrument type")
 
-    qc_state: QcState = Field(
+    qc_state: Optional[QcState] = Field(
         default=None,
         title="Current QC state of this well",
         description="""
@@ -75,20 +98,6 @@ class PacBioWell(BaseModel, extra="forbid"):
         available depends on the lifecycle stage of this well.
         """,
     )
-
-    def copy_run_tracking_info(self, db_well: PacBioRunWellMetrics):
-        """
-        Populates this object with the run and well tracking information
-        from a database row that is passed as an argument.
-        """
-        self.run_start_time = db_well.run_start
-        self.run_complete_time = db_well.run_complete
-        self.well_start_time = db_well.well_start
-        self.well_complete_time = db_well.well_complete
-        self.run_status = db_well.run_status
-        self.well_status = db_well.well_status
-        self.instrument_name = db_well.instrument_name
-        self.instrument_type = db_well.instrument_type
 
 
 class PacBioPagedWells(PagedResponse, extra="forbid"):
@@ -114,47 +123,38 @@ class PacBioWellFull(PacBioWell):
     information, current QC state of this well and QC data for this well.
     """
 
-    metrics: QCDataWell = Field(
+    metrics: Optional[QCDataWell] = Field(
+        default=None,
         title="Currently available QC data for well",
     )
-    experiment_tracking: PacBioExperiment = Field(
+    experiment_tracking: Optional[PacBioExperiment] = Field(
         default=None,
         title="Experiment tracking information",
         description="""
         Laboratory experiment tracking information for this well, if available.
         """,
     )
-    model_config = ConfigDict(from_attributes=True, extra="forbid")
 
     @classmethod
     def from_orm(cls, mlwh_db_row: PacBioRunWellMetrics, qc_session: Session):
 
         id_product = mlwh_db_row.id_pac_bio_product
-        obj = cls(
-            id_product=id_product,
-            run_name=mlwh_db_row.pac_bio_run_name,
-            plate_number=mlwh_db_row.plate_number,
-            label=mlwh_db_row.well_label,
-            metrics=QCDataWell.from_orm(mlwh_db_row),
-        )
-        obj.copy_run_tracking_info(mlwh_db_row)
+        obj = cls.model_validate(mlwh_db_row)
+        obj.metrics = QCDataWell.from_orm(mlwh_db_row)
 
-        experiment_info = []
-        for row in mlwh_db_row.pac_bio_product_metrics:
-            exp_row = row.pac_bio_run
-            if exp_row:
-                experiment_info.append(exp_row)
-            else:
-                # Do not supply incomplete data.
-                experiment_info = []
-                break
-        if len(experiment_info):
+        product_metrics = mlwh_db_row.pac_bio_product_metrics
+        experiment_info = [
+            pbr for pbr in [pm.pac_bio_run for pm in product_metrics] if pbr is not None
+        ]
+        # Occasionally product rows are not linked to LIMS rows.
+        # Go for all or nothing, do not supply incomplete data.
+        if len(experiment_info) and (len(experiment_info) == len(product_metrics)):
             obj.experiment_tracking = PacBioExperiment.from_orm(experiment_info)
 
-        qced_products = get_qc_states_by_id_product_list(
-            session=qc_session, ids=[id_product], sequencing_outcomes_only=True
-        ).get(id_product)
-        if qced_products is not None:
-            obj.qc_state = qced_products[0]
+        qc_state_db = get_qc_state_for_product(
+            session=qc_session, id_product=id_product
+        )
+        if qc_state_db is not None:
+            obj.qc_state = QcState.from_orm(qc_state_db)
 
         return obj
