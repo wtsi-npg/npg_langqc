@@ -179,7 +179,7 @@ def get_seq_metrics(
 
     mlwh_well = _find_well_product_or_error(id_product, mlwhdb_session)
 
-    return PacBioWellFull.from_orm(mlwh_well, qcdb_session)
+    return PacBioWellFull(db_well=mlwh_well, qc_session=qcdb_session)
 
 
 @router.post(

@@ -21,7 +21,7 @@ def test_creating_experiment_object(
     ).hash_product_id()
     well_row = helper.get_mlwh_well_by_product_id(id_product)
 
-    pb_well = PacBioWellFull.from_orm(well_row, qcdb_test_session)
+    pb_well = PacBioWellFull(db_well=well_row, qc_session=qcdb_test_session)
     assert pb_well.id_product == id_product
     assert pb_well.run_name == "TRACTION-RUN-92"
     assert pb_well.label == "A1"
@@ -45,7 +45,7 @@ def test_creating_experiment_object(
     ).hash_product_id()
     well_row = helper.get_mlwh_well_by_product_id(id_product)
 
-    pb_well = PacBioWellFull.from_orm(well_row, qcdb_test_session)
+    pb_well = PacBioWellFull(db_well=well_row, qc_session=qcdb_test_session)
     assert pb_well.id_product == id_product
     assert pb_well.run_name == "TRACTION_RUN_1"
     assert pb_well.label == "B1"
@@ -65,7 +65,7 @@ def test_creating_experiment_object(
     ).hash_product_id()
     well_row = helper.get_mlwh_well_by_product_id(id_product)
 
-    pb_well = PacBioWellFull.from_orm(well_row, qcdb_test_session)
+    pb_well = PacBioWellFull(db_well=well_row, qc_session=qcdb_test_session)
     assert pb_well.id_product == id_product
     assert pb_well.run_name == "TRACTION_RUN_10"
     assert pb_well.label == "C1"
