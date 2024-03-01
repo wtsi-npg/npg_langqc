@@ -8,7 +8,7 @@ COPY ./pyproject.toml ./poetry.lock /tmp/
 
 RUN poetry export -f requirements.txt --output requirements.txt --without-hashes
 
-FROM python:3.10-slim as base
+FROM python:3.13.0a3-slim as base
 
 RUN apt-get update -qq \
     && apt-get install -qq --no-install-recommends git \
