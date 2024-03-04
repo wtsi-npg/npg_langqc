@@ -422,11 +422,18 @@ def _map_to_qc_state_models(
     """
     response = dict()
     for product in seq_products:
-        response[product.id_product] = []
-        for qc in product.qc_state:
-            if sequencing_outcomes_only and (qc.qc_type.qc_type != "sequencing"):
-                continue
-            response[product.id_product].append(QcState.from_orm(qc))
+        # qc_states = []
+        # for qc in product.qc_state:
+        #    if sequencing_outcomes_only and (qc.qc_type.qc_type != "sequencing"):
+        #        continue
+        #    qc_states.append(QcState.from_orm(qc))
+        qc_states = [
+            QcState.from_orm(qc)
+            for qc in product.qc_state
+            if (not sequencing_outcomes_only) or (qc.qc_type.qc_type == "sequencing")
+        ]
+        if len(qc_states) != 0:
+            response[product.id_product] = qc_states
     return response
 
 
