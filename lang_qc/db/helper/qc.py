@@ -19,6 +19,7 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
+from collections import defaultdict
 from datetime import datetime
 
 from sqlalchemy import and_, func, select
@@ -95,18 +96,13 @@ def get_qc_states_by_id_product_list(
         `sequencing_outcomes_only`- a boolean flag, False by default.
     """
 
-    seq_products = _get_seq_product_by_id_list(session, ids)
-    response = dict()
-    for product in seq_products:
-        qc_states = [
-            QcState.from_orm(qc)
-            for qc in product.qc_state
-            if (not sequencing_outcomes_only) or (qc.qc_type.qc_type == "sequencing")
-        ]
-        if len(qc_states) != 0:
-            response[product.id_product] = qc_states
+    qc_states = _get_qc_state_by_id_list(session, ids, sequencing_outcomes_only)
 
-    return response
+    response = defaultdict(list)
+    for state in qc_states:
+        response[state.seq_product.id_product].append(QcState.from_orm(state))
+
+    return dict(response)
 
 
 def product_has_qc_state(
@@ -393,28 +389,30 @@ def assign_qc_state_to_product(
     return qc_state_db
 
 
-def _get_seq_product_by_id_list(
-    session: Session, ids: list[ChecksumSHA256]
-) -> list[SeqProduct]:
+def _get_qc_state_by_id_list(
+    session: Session, ids: list[ChecksumSHA256], sequencing_outcomes_only: bool
+) -> list[QcStateDb]:
     """
     Generates and executes a query for SeqProducts from a list
     of product IDs. Prefetch all related QC states, types, etc.
     """
     query = (
-        select(SeqProduct)
-        .join(QcStateDb)
+        select(QcStateDb)
+        .join(QcStateDb.seq_product)
         .join(QcType)
         .join(QcStateDict)
         .join(User)
         .where(SeqProduct.id_product.in_(ids))
         .options(
-            selectinload(SeqProduct.qc_state).options(
-                selectinload(QcStateDb.qc_type),
-                selectinload(QcStateDb.user),
-                selectinload(QcStateDb.qc_state_dict),
-            )
+            selectinload(QcStateDb.seq_product),
+            selectinload(QcStateDb.qc_type),
+            selectinload(QcStateDb.user),
+            selectinload(QcStateDb.qc_state_dict),
         )
     )
+    if sequencing_outcomes_only is True:
+        query = query.where(QcType.qc_type == SEQUENCING_QC_TYPE)
+
     return session.execute(query).scalars().all()
 
 
