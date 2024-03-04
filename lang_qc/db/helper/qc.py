@@ -95,10 +95,18 @@ def get_qc_states_by_id_product_list(
         `sequencing_outcomes_only`- a boolean flag, False by default.
     """
 
-    return _map_to_qc_state_models(
-        seq_products=_get_seq_product_by_id_list(session, ids),
-        sequencing_outcomes_only=sequencing_outcomes_only,
-    )
+    seq_products = _get_seq_product_by_id_list(session, ids)
+    response = dict()
+    for product in seq_products:
+        qc_states = [
+            QcState.from_orm(qc)
+            for qc in product.qc_state
+            if (not sequencing_outcomes_only) or (qc.qc_type.qc_type == "sequencing")
+        ]
+        if len(qc_states) != 0:
+            response[product.id_product] = qc_states
+
+    return response
 
 
 def product_has_qc_state(
@@ -408,33 +416,6 @@ def _get_seq_product_by_id_list(
         )
     )
     return session.execute(query).scalars().all()
-
-
-def _map_to_qc_state_models(
-    seq_products: list[SeqProduct], sequencing_outcomes_only: bool = False
-) -> dict[ChecksumSHA256, list[QcState]]:
-    """
-    Given a list of SeqProducts, convert all related QC states into
-    QcState response format and hashes them by their product ID.
-
-    If only sequencing type QC states are required, an optional
-    argument, sequencing_outcomes_only, should be set to True.
-    """
-    response = dict()
-    for product in seq_products:
-        # qc_states = []
-        # for qc in product.qc_state:
-        #    if sequencing_outcomes_only and (qc.qc_type.qc_type != "sequencing"):
-        #        continue
-        #    qc_states.append(QcState.from_orm(qc))
-        qc_states = [
-            QcState.from_orm(qc)
-            for qc in product.qc_state
-            if (not sequencing_outcomes_only) or (qc.qc_type.qc_type == "sequencing")
-        ]
-        if len(qc_states) != 0:
-            response[product.id_product] = qc_states
-    return response
 
 
 def _get_qc_type_row(session: Session, qc_type: str) -> QcType:
