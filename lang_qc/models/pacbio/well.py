@@ -57,16 +57,20 @@ class PacBioWell(BaseModel, extra="forbid"):
         title="Run name", description="PacBio run name as registered in LIMS"
     )
     # Run and well tracking information from SMRT Link
-    run_start_time: datetime = Field(default=None, title="Run start time")
-    run_complete_time: datetime = Field(default=None, title="Run complete time")
-    well_start_time: datetime = Field(default=None, title="Well start time")
-    well_complete_time: datetime = Field(default=None, title="Well complete time")
-    run_status: str = Field(default=None, title="Current PacBio run status")
-    well_status: str = Field(default=None, title="Current PacBio well status")
-    instrument_name: str = Field(default=None, title="Instrument name")
-    instrument_type: str = Field(default=None, title="Instrument type")
+    run_start_time: Optional[datetime] = Field(default=None, title="Run start time")
+    run_complete_time: Optional[datetime] = Field(
+        default=None, title="Run complete time"
+    )
+    well_start_time: Optional[datetime] = Field(default=None, title="Well start time")
+    well_complete_time: Optional[datetime] = Field(
+        default=None, title="Well complete time"
+    )
+    run_status: Optional[str] = Field(default=None, title="Current PacBio run status")
+    well_status: Optional[str] = Field(default=None, title="Current PacBio well status")
+    instrument_name: Optional[str] = Field(default=None, title="Instrument name")
+    instrument_type: Optional[str] = Field(default=None, title="Instrument type")
 
-    qc_state: QcState = Field(
+    qc_state: Optional[QcState] = Field(
         default=None,
         title="Current QC state of this well",
         description="""
@@ -117,7 +121,7 @@ class PacBioWellFull(PacBioWell):
     metrics: QCDataWell = Field(
         title="Currently available QC data for well",
     )
-    experiment_tracking: PacBioExperiment = Field(
+    experiment_tracking: Optional[PacBioExperiment] = Field(
         default=None,
         title="Experiment tracking information",
         description="""
