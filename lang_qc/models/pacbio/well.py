@@ -33,7 +33,7 @@ from lang_qc.models.pager import PagedResponse
 from lang_qc.models.qc_state import QcState
 
 
-@dataclass
+@dataclass(kw_only=True, frozen=True)
 class PacBioWell:
     """
     A response model for a single PacBio well on a particular PacBio run.
@@ -126,7 +126,7 @@ class PacBioPagedWells(PagedResponse, extra="forbid"):
     )
 
 
-@dataclass
+@dataclass(kw_only=True, frozen=True)
 class PacBioWellFull(PacBioWell):
     """
     A response model for a single PacBio well on a particular PacBio run.
