@@ -29,6 +29,7 @@ from starlette import status
 from lang_qc.db.helper.qc import (
     assign_qc_state_to_product,
     claim_qc_for_product,
+    get_qc_state_for_product,
     product_has_qc_state,
 )
 from lang_qc.db.helper.well import well_seq_product_find_or_create
@@ -179,7 +180,9 @@ def get_seq_metrics(
 
     mlwh_well = _find_well_product_or_error(id_product, mlwhdb_session)
 
-    return PacBioWellFull.from_orm(mlwh_well, qcdb_session)
+    qc_state_db = get_qc_state_for_product(session=qcdb_session, id_product=id_product)
+    qc_state = None if qc_state_db is None else QcState.from_orm(qc_state_db)
+    return PacBioWellFull(db_well=mlwh_well, qc_state=qc_state)
 
 
 @router.post(

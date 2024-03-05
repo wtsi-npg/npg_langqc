@@ -290,14 +290,7 @@ class PacBioPagedWellsFactory(WellWh, PagedResponse):
             id_product = qc_state_model.id_product
             mlwh_well = self.get_mlwh_well_by_product_id(id_product=id_product)
             if mlwh_well is not None:
-                pbw = PacBioWell(
-                    id_product=id_product,
-                    run_name=mlwh_well.pac_bio_run_name,
-                    plate_number=mlwh_well.plate_number,
-                    label=mlwh_well.well_label,
-                    qc_state=qc_state_model,
-                )
-                pbw.copy_run_tracking_info(mlwh_well)
+                pbw = PacBioWell(db_well=mlwh_well, qc_state=qc_state_model)
                 wells.append(pbw)
             else:
                 """
@@ -398,16 +391,10 @@ class PacBioPagedWellsFactory(WellWh, PagedResponse):
         pb_wells = []
         for db_well in db_wells_list:
             id_product = db_well.id_pac_bio_product
-            attrs = {
-                "id_product": id_product,
-                "run_name": db_well.pac_bio_run_name,
-                "plate_number": db_well.plate_number,
-                "label": db_well.well_label,
-            }
+            qc_state = None
             if id_product in qced_products:
-                attrs["qc_state"] = qced_products[id_product][0]
-            pb_well = PacBioWell.model_validate(attrs)
-            pb_well.copy_run_tracking_info(db_well)
+                qc_state = qced_products[id_product][0]
+            pb_well = PacBioWell(db_well=db_well, qc_state=qc_state)
             pb_wells.append(pb_well)
 
         return pb_wells
