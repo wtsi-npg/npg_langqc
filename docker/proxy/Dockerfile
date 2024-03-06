@@ -1,4 +1,4 @@
-FROM ubuntu:focal as production
+FROM ubuntu:20.04 as production
 
 ENV DEBIAN_FRONTEND noninteractive
 
