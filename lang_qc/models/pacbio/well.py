@@ -33,6 +33,25 @@ from lang_qc.models.pager import PagedResponse
 from lang_qc.models.qc_state import QcState
 
 
+def get_field_names(cls):
+    """Returns a list of field names for a class given as an argument.
+
+    The fields that can only be used at the object initialisation step
+    are excluded.
+    """
+
+    field_names = []
+    for field_name in cls.__dataclass_fields__:
+        field = cls.__dataclass_fields__[field_name]
+        if field.default.init_var is True:
+            continue
+        name = field.default.validation_alias
+        if name is None:
+            name = field.name
+        field_names.append(name)
+    return field_names
+
+
 @dataclass(kw_only=True, frozen=True)
 class PacBioWell:
     """
@@ -48,24 +67,36 @@ class PacBioWell:
     db_well: PacBioRunWellMetrics = Field(init_var=True)
 
     # Well identifies.
-    id_product: str = Field(title="Product identifier")
-    label: str = Field(title="Well label", description="The label of the PacBio well")
+    id_product: str = Field(
+        title="Product identifier", validation_alias="id_pac_bio_product"
+    )
+    label: str = Field(
+        title="Well label",
+        description="The label of the PacBio well",
+        validation_alias="well_label",
+    )
     plate_number: Optional[int] = Field(
         default=None,
         title="Plate number",
         description="Plate number, relevant for Revio instruments only",
     )
     run_name: str = Field(
-        title="Run name", description="PacBio run name as registered in LIMS"
+        title="Run name",
+        description="PacBio run name as registered in LIMS",
+        validation_alias="pac_bio_run_name",
     )
     # Run and well tracking information from SMRT Link
-    run_start_time: Optional[datetime] = Field(default=None, title="Run start time")
-    run_complete_time: Optional[datetime] = Field(
-        default=None, title="Run complete time"
+    run_start_time: Optional[datetime] = Field(
+        default=None, title="Run start time", validation_alias="run_start"
     )
-    well_start_time: Optional[datetime] = Field(default=None, title="Well start time")
+    run_complete_time: Optional[datetime] = Field(
+        default=None, title="Run complete time", validation_alias="run_complete"
+    )
+    well_start_time: Optional[datetime] = Field(
+        default=None, title="Well start time", validation_alias="well_start"
+    )
     well_complete_time: Optional[datetime] = Field(
-        default=None, title="Well complete time"
+        default=None, title="Well complete time", validation_alias="well_complete"
     )
     run_status: Optional[str] = Field(default=None, title="Current PacBio run status")
     well_status: Optional[str] = Field(default=None, title="Current PacBio well status")
@@ -91,19 +122,13 @@ class PacBioWell:
 
         # https://github.com/pydantic/pydantic-core/blob/main/python/pydantic_core/_pydantic_core.pyi
         mlwh_db_row: PacBioRunWellMetrics = values.kwargs["db_well"]
+
+        column_names = [column.key for column in PacBioRunWellMetrics.__table__.columns]
+
         assigned = dict()
-        assigned["id_product"] = mlwh_db_row.id_pac_bio_product
-        assigned["label"] = mlwh_db_row.well_label
-        assigned["plate_number"] = mlwh_db_row.plate_number
-        assigned["run_name"] = mlwh_db_row.pac_bio_run_name
-        assigned["run_start_time"] = mlwh_db_row.run_start
-        assigned["run_complete_time"] = mlwh_db_row.run_complete
-        assigned["well_start_time"] = mlwh_db_row.well_start
-        assigned["well_complete_time"] = mlwh_db_row.well_complete
-        assigned["run_status"] = mlwh_db_row.run_status
-        assigned["well_status"] = mlwh_db_row.well_status
-        assigned["instrument_name"] = mlwh_db_row.instrument_name
-        assigned["instrument_type"] = mlwh_db_row.instrument_type
+        for field_name in get_field_names(cls):
+            if field_name in column_names:
+                assigned[field_name] = getattr(mlwh_db_row, field_name)
 
         if "qc_state" in values.kwargs:
             assigned["qc_state"] = values.kwargs["qc_state"]
