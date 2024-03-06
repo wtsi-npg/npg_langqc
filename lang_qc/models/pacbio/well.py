@@ -60,7 +60,7 @@ class PacBioWell:
     `run_name`, `label`, `plate_number`, and `id_product` fields uniquely
     identify the well. The model also has fields that reflect the time line
     of the run and information about a PacBio instrument. The optional
-    `qc_state  field might contain the current QC state of the well.
+    `qc_state`  field might contain the current QC state of the well.
 
     The best way to instantiate the model is via the constructor, supplying
     the an ORM object representing a database row with information about
