@@ -37,7 +37,8 @@ def get_field_names(cls):
     """Returns a list of field names for a class given as an argument.
 
     The fields that can only be used at the object initialisation step
-    are excluded.
+    are excluded. For fields, which have a validation_alias defined,
+    this alias is returned rather than the field name.
     """
 
     field_names = []
@@ -54,14 +55,24 @@ def get_field_names(cls):
 
 @dataclass(kw_only=True, frozen=True)
 class PacBioWell:
-    """
-    A response model for a single PacBio well on a particular PacBio run.
-    The class contains the attributes that uniquely define this well (`run_name`
-    and `label`), along with the time line and the current QC state of this well,
-    if any.
+    """A basic response model for a single PacBio well.
 
-    This model does not contain any information about data that was
-    sequenced or QC metrics or assessment for such data.
+    `run_name`, `label`, `plate_number`, and `id_product` fields uniquely
+    identify the well. The model also has fields that reflect the time line
+    of the run and information about a PacBio instrument. The optional
+    `qc_state  field might contain the current QC state of the well.
+
+    The best way to instantiate the model is via the constructor, supplying
+    the an ORM object representing a database row with information about
+    the well and, optionally, the model representing the current QC state.
+
+    Examples:
+        well_model = PacBioWell(db_well=well_row)
+        well_model = PacBioWell(db_well=well_row, qc_state=current_qc_state)
+
+    Mapping of the database values to this model's fields is performed by
+    a pre `__init__` hook. To enable automatic mapping, some fields of this
+    model have `validation_alias` set.
     """
 
     db_well: PacBioRunWellMetrics = Field(init_var=True)
@@ -137,9 +148,7 @@ class PacBioWell:
 
 
 class PacBioPagedWells(PagedResponse, extra="forbid"):
-    """
-    A response model for paged data about PacBio wells.
-    """
+    """A response model for paged data about PacBio wells."""
 
     wells: list[PacBioWell] = Field(
         default=[],
@@ -153,11 +162,15 @@ class PacBioPagedWells(PagedResponse, extra="forbid"):
 
 @dataclass(kw_only=True, frozen=True)
 class PacBioWellFull(PacBioWell):
-    """
-    A response model for a single PacBio well on a particular PacBio run.
-    The class contains the attributes that uniquely define this well (`run_name`
-    and `label`), along with the laboratory experiment and sequence run tracking
-    information, current QC state of this well and QC data for this well.
+    """A full response model for a single PacBio well.
+
+    The model has teh fields that uniquely define the well (`run_name`, `label`,
+    `plate_number`, `id_product`), along with the laboratory experiment and
+    sequence run tracking information, current QC state of this well and
+    QC data for this well.
+
+    Instance creation is described in the documentation of this class's parent
+    `PacBioWell`.
     """
 
     metrics: QCDataWell = Field(
