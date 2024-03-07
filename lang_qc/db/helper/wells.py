@@ -33,7 +33,7 @@ from lang_qc.db.helper.qc import (
 )
 from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
 from lang_qc.db.qc_schema import QcState, QcStateDict, QcType
-from lang_qc.models.pacbio.well import PacBioPagedWells, PacBioWell
+from lang_qc.models.pacbio.well import PacBioPagedWells, PacBioWellSummary
 from lang_qc.models.pager import PagedResponse
 from lang_qc.models.qc_flow_status import QcFlowStatusEnum
 from lang_qc.models.qc_state import QcState as QcStateModel
@@ -195,7 +195,7 @@ class PacBioPagedWellsFactory(WellWh, PagedResponse):
         specified by the `page_size`, `page_number` object's attributes and
         `qc_flow_status` argument of this function..
 
-        The `PacBioWell` objects in `wells` attribute of the returned object
+        The `PacBioWellPacBioWell` objects in `wells` attribute of the returned object
         are sorted in a way appropriate for the requested `qc_flow_status`.
         For the 'in progress' and 'on hold' requests the wells with most recently
         assigned QC states come first. For inbox requests the wells with least
@@ -230,7 +230,7 @@ class PacBioPagedWellsFactory(WellWh, PagedResponse):
         """
         Returns `PacBioPagedWells` object that corresponds to the criteria
         specified by the `page_size` and `page_number` attributes.
-        The `PacBioWell` objects in `wells` attribute of the returned object
+        The `PacBioWellSummary` objects in `wells` attribute of the returned object
         belong to runs specified by the `run_name` argument and are sorted
         by the run name and well label.
         """
@@ -281,7 +281,7 @@ class PacBioPagedWellsFactory(WellWh, PagedResponse):
 
     def _get_wells_for_status(
         self, qc_flow_status: QcFlowStatusEnum
-    ) -> List[PacBioWell]:
+    ) -> List[PacBioWellSummary]:
 
         wells = []
 
@@ -290,7 +290,7 @@ class PacBioPagedWellsFactory(WellWh, PagedResponse):
             id_product = qc_state_model.id_product
             mlwh_well = self.get_mlwh_well_by_product_id(id_product=id_product)
             if mlwh_well is not None:
-                pbw = PacBioWell(db_well=mlwh_well, qc_state=qc_state_model)
+                pbw = PacBioWellSummary(db_well=mlwh_well, qc_state=qc_state_model)
                 wells.append(pbw)
             else:
                 """
@@ -394,7 +394,7 @@ class PacBioPagedWellsFactory(WellWh, PagedResponse):
             qc_state = None
             if id_product in qced_products:
                 qc_state = qced_products[id_product][0]
-            pb_well = PacBioWell(db_well=db_well, qc_state=qc_state)
+            pb_well = PacBioWellSummary(db_well=db_well, qc_state=qc_state)
             pb_wells.append(pb_well)
 
         return pb_wells

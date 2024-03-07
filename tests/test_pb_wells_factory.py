@@ -4,7 +4,7 @@ from sqlalchemy import select
 
 from lang_qc.db.helper.wells import PacBioPagedWellsFactory, RunNotFoundError
 from lang_qc.db.qc_schema import QcState, QcType, SeqProduct
-from lang_qc.models.pacbio.well import PacBioPagedWells, PacBioWell
+from lang_qc.models.pacbio.well import PacBioPagedWells, PacBioWellSummary
 from lang_qc.models.qc_flow_status import QcFlowStatusEnum
 from lang_qc.models.qc_state import QcState as QcStateModel
 from tests.conftest import compare_dates
@@ -141,7 +141,7 @@ def test_inbox_wells_retrieval(
     mlwh_data = load_data4well_retrieval
 
     well = paged_wells.wells[0]
-    assert isinstance(well, PacBioWell)
+    assert isinstance(well, PacBioWellSummary)
     assert well.run_name == "TRACTION_RUN_10"
     assert well.label == "C1"
     assert well.qc_state is None
@@ -154,7 +154,7 @@ def test_inbox_wells_retrieval(
     compare_dates(well.well_complete_time, well_fixture[5])
 
     well = paged_wells.wells[1]
-    assert isinstance(well, PacBioWell)
+    assert isinstance(well, PacBioWellSummary)
     assert well.run_name == "TRACTION_RUN_12"
     assert well.label == "A1"
     assert well.qc_state is None
@@ -290,7 +290,7 @@ def test_fully_retrieved_data_for_statuses(
     paged_wells = factory.create_for_qc_status(QcFlowStatusEnum.QC_COMPLETE)
 
     well = paged_wells.wells[0]
-    assert isinstance(well, PacBioWell)
+    assert isinstance(well, PacBioWellSummary)
     assert well.run_name == "TRACTION_RUN_5"
     assert well.label == "B1"
     compare_dates(well.run_start_time, "2022-12-14 11:56:33")
@@ -312,7 +312,7 @@ def test_fully_retrieved_data_for_statuses(
     assert qc_state.created_by == "LangQC"
 
     well = paged_wells.wells[3]
-    assert isinstance(well, PacBioWell)
+    assert isinstance(well, PacBioWellSummary)
     assert well.run_name == "TRACTION_RUN_2"
     assert well.label == "D1"
     compare_dates(well.run_start_time, "2022-12-02 15:11:22")
@@ -394,7 +394,7 @@ def test_known_run_names_input(
     wells = paged_wells_obj.wells
     assert len(wells) == 4
     object_type_set = {type(well) for well in wells}
-    assert object_type_set == {PacBioWell}
+    assert object_type_set == {PacBioWellSummary}
     run_name_set = {well.run_name for well in wells}
     assert run_name_set == {"TRACTION_RUN_1"}
     label_list = [well.label for well in wells]
@@ -419,7 +419,7 @@ def test_known_run_names_input(
     wells = paged_wells_obj.wells
     assert len(wells) == 2
     object_type_set = {type(well) for well in wells}
-    assert object_type_set == {PacBioWell}
+    assert object_type_set == {PacBioWellSummary}
     run_names = [well.run_name for well in wells]
     assert run_names == 2 * ["TRACTION_RUN_3"]
     label_list = [well.label for well in wells]

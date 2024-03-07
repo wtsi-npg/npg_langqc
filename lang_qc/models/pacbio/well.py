@@ -53,6 +53,14 @@ def get_field_names(cls):
     return field_names
 
 
+def get_experiment_info(db_well: PacBioRunWellMetrics):
+    return [
+        pbr
+        for pbr in [pm.pac_bio_run for pm in db_well.pac_bio_product_metrics]
+        if pbr is not None
+    ]
+
+
 @dataclass(kw_only=True, frozen=True)
 class PacBioWell:
     """A basic response model for a single PacBio well.
@@ -133,6 +141,7 @@ class PacBioWell:
 
         # https://github.com/pydantic/pydantic-core/blob/main/python/pydantic_core/_pydantic_core.pyi
         mlwh_db_row: PacBioRunWellMetrics = values.kwargs["db_well"]
+        assert mlwh_db_row
 
         column_names = [column.key for column in PacBioRunWellMetrics.__table__.columns]
 
@@ -147,14 +156,38 @@ class PacBioWell:
         return assigned
 
 
+@dataclass(kw_only=True, frozen=True)
+class PacBioWellSummary(PacBioWell):
+    """A response model for a summary about a single PacBio well.
+
+    Adds `study_names` to a list of attributes of the parent class `PacBioWell`.
+    Instance creation is described in the documentation of the parent class.
+    """
+
+    study_names: list = Field(
+        title="A list of study names",
+    )
+
+    @model_validator(mode="before")
+    def pre_root(cls, values: dict[str, Any]) -> dict[str, Any]:
+
+        assigned = super().pre_root(values)
+        mlwh_db_row: PacBioRunWellMetrics = values.kwargs["db_well"]
+        assigned["study_names"] = [
+            row.study.name for row in get_experiment_info(mlwh_db_row)
+        ]
+
+        return assigned
+
+
 class PacBioPagedWells(PagedResponse, extra="forbid"):
     """A response model for paged data about PacBio wells."""
 
-    wells: list[PacBioWell] = Field(
+    wells: list[PacBioWellSummary] = Field(
         default=[],
-        title="A list of PacBioWell objects",
+        title="A list of PacBioWellSummary objects",
         description="""
-        A list of `PacBioWell` objects that corresponds to the page number
+        A list of `PacBioWellSummary` objects that corresponds to the page number
         and size specified by the `page_size` and `page_number` attributes.
         """,
     )
@@ -193,9 +226,7 @@ class PacBioWellFull(PacBioWell):
         assigned["metrics"] = QCDataWell.from_orm(mlwh_db_row)
 
         product_metrics = mlwh_db_row.pac_bio_product_metrics
-        experiment_info = [
-            pbr for pbr in [pm.pac_bio_run for pm in product_metrics] if pbr is not None
-        ]
+        experiment_info = get_experiment_info(mlwh_db_row)
         # Occasionally product rows are not linked to LIMS rows.
         # Go for all or nothing, do not supply incomplete data.
         if len(experiment_info) and (len(experiment_info) == len(product_metrics)):
