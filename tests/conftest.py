@@ -180,12 +180,11 @@ def insert_from_yaml(session, dir_path, module_name):
             (head, file_name) = os.path.split(file_path)
             # File name example: 200-PacBioRun.yml
             m = re.match(r"\A\d+-([a-zA-Z]+)\.yml\Z", file_name)
-            if m is None:
-                raise Exception(f"Unexpected file {file_path} in fixtures.")
-            class_name = m.group(1)
-            table_class = getattr(module, class_name)
-            data = yaml.safe_load(f)
-            session.execute(insert(table_class), data)
+            if m is not None:
+                class_name = m.group(1)
+                table_class = getattr(module, class_name)
+                data = yaml.safe_load(f)
+                session.execute(insert(table_class), data)
 
     session.commit()
 

@@ -1,7 +1,9 @@
 from npg_id_generation.pac_bio import PacBioEntity
+from sqlalchemy.orm import Session
 
 from lang_qc.db.helper.qc import get_qc_states_by_id_product_list
 from lang_qc.db.helper.wells import WellWh
+from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
 from lang_qc.models.pacbio.well import PacBioWellFull, PacBioWellSummary
 from tests.conftest import compare_dates, insert_from_yaml
 from tests.fixtures.well_data import load_data4well_retrieval, load_dicts_and_users
@@ -9,7 +11,13 @@ from tests.fixtures.well_data import load_data4well_retrieval, load_dicts_and_us
 yaml_is_loaded: bool = False
 
 
-def _prepare_data(mlwhdb_session, qcdb_session, run_name, well_label):
+def _prepare_data(
+    mlwhdb_session: Session,
+    qcdb_session: Session,
+    run_name: str,
+    well_label: str,
+    plate_number: int = None,
+):
     """Loads LIMS data for one well.
 
     Returns a tuple of an mlwh db row and QC state model for that well.
@@ -19,12 +27,12 @@ def _prepare_data(mlwhdb_session, qcdb_session, run_name, well_label):
 
     if yaml_is_loaded is False:
         insert_from_yaml(
-            mlwhdb_session, "tests/data/mlwh_pb_run_92", "lang_qc.db.mlwh_schema"
+            mlwhdb_session, "tests/data/mlwh_pb_runs", "lang_qc.db.mlwh_schema"
         )
         yaml_is_loaded = True
 
     id_product = PacBioEntity(
-        run_name=run_name, well_label=well_label
+        run_name=run_name, well_label=well_label, plate_number=plate_number
     ).hash_product_id()
     well_row = WellWh(session=mlwhdb_session).get_mlwh_well_by_product_id(id_product)
 
@@ -40,7 +48,7 @@ def _prepare_data(mlwhdb_session, qcdb_session, run_name, well_label):
     return (well_row, qc_state)
 
 
-def _examine_well_model_a1(pb_well, id_product):
+def _examine_well_model_a1(pb_well: PacBioRunWellMetrics, id_product: str):
 
     assert pb_well.id_product == id_product
     assert pb_well.run_name == "TRACTION-RUN-92"
@@ -57,7 +65,7 @@ def _examine_well_model_a1(pb_well, id_product):
     assert pb_well.instrument_type == "Sequel2e"
 
 
-def _examine_well_model_b1(pb_well, id_product):
+def _examine_well_model_b1(pb_well: PacBioRunWellMetrics, id_product: str):
 
     assert pb_well.id_product == id_product
     assert pb_well.run_name == "TRACTION_RUN_1"
@@ -70,7 +78,7 @@ def _examine_well_model_b1(pb_well, id_product):
     assert pb_well.instrument_type == "Sequel2"
 
 
-def _examine_well_model_c1(pb_well, id_product):
+def _examine_well_model_c1(pb_well: PacBioRunWellMetrics, id_product: str):
 
     assert pb_well.id_product == id_product
     assert pb_well.run_name == "TRACTION_RUN_10"
@@ -138,3 +146,53 @@ def test_create_summary_model(
     )
     pb_well = PacBioWellFull(db_well=well_row, qc_state=None)
     _examine_well_model_c1(pb_well, well_row.id_pac_bio_product)
+
+
+def test_create_summary_model_study_info(
+    mlwhdb_test_session, qcdb_test_session, load_data4well_retrieval
+):
+    # Well with two samples, none is linked to LIMS
+    (well_row, qc_state) = _prepare_data(
+        mlwhdb_test_session, qcdb_test_session, "TRACTION-RUN-1140", "A1", 1
+    )
+    pb_well = PacBioWellSummary(db_well=well_row)
+    assert pb_well.study_names == []
+
+    # Fully linked wells with one sample
+    (well_row, qc_state) = _prepare_data(
+        mlwhdb_test_session, qcdb_test_session, "TRACTION-RUN-1162", "C1"
+    )
+    pb_well = PacBioWellSummary(db_well=well_row)
+    assert pb_well.study_names == ["DTOL_Darwin R&D"]
+
+    (well_row, qc_state) = _prepare_data(
+        mlwhdb_test_session, qcdb_test_session, "TRACTION-RUN-1162", "D1", 1
+    )
+    pb_well = PacBioWellSummary(db_well=well_row)
+    assert pb_well.study_names == ["DTOL_Darwin Tree of Life"]
+
+    # A fully linked well with multiple samples, all belonging to the same study
+    (well_row, qc_state) = _prepare_data(
+        mlwhdb_test_session, qcdb_test_session, "TRACTION-RUN-1140", "B1", 1
+    )
+    pb_well = PacBioWellSummary(db_well=well_row)
+    assert pb_well.study_names == ["DTOL_Darwin Tree of Life"]
+
+    # A fully linked well with multiple samples, which belong to two studies
+    (well_row, qc_state) = _prepare_data(
+        mlwhdb_test_session, qcdb_test_session, "TRACTION-RUN-1140", "D1", 1
+    )
+    pb_well = PacBioWellSummary(db_well=well_row)
+    assert pb_well.study_names == [
+        "DTOL_Darwin Tree of Life",
+        "ToL_Blaxter_ Reference Genomes_ DNA",
+    ]
+
+    # A partially linked well with three samples, which belong to two studies.
+    # The LIMS link for one of the samples is deleted so that two other samples
+    # belong to the same study.
+    (well_row, qc_state) = _prepare_data(
+        mlwhdb_test_session, qcdb_test_session, "TRACTION-RUN-1140", "C1", 2
+    )
+    pb_well = PacBioWellSummary(db_well=well_row)
+    assert pb_well.study_names == []

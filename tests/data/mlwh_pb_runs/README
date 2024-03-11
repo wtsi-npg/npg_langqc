@@ -1,0 +1,19 @@
+This set of mlwh fixtures contains data for runs TRACTION-RUN-{92,1140,1162}
+
+TRACTION-RUN-1140
+
+plate 1
+A1 2 samples, LIMS links deleted
+B1 3 samples
+C1 2 samples
+D1 4 samples, belong to two studies
+
+plate2
+A1 2 samples
+B1 2 samples
+C1 3 samples, belong to two studies, LIMS link to one samples is deleted,
+D1 4 sample
+
+TRACTION-RUN-1162
+plate1
+C1 and D1, both with 1 sample, different studies 

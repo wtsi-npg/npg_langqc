@@ -54,11 +54,25 @@ def get_field_names(cls):
 
 
 def get_experiment_info(db_well: PacBioRunWellMetrics):
-    return [
-        pbr
-        for pbr in [pm.pac_bio_run for pm in db_well.pac_bio_product_metrics]
-        if pbr is not None
+    """Returns a list of PacBioRun mlwh database rows.
+
+    Returns LIMS information about the PacBio experiment
+    for this well, one pac_bio_run table row per sample
+    (product) in the well.
+
+    If any or all of the pac_bio_product_metrics rows linked
+    to this well record are not linked to the pac_bio_run
+    table, and empty array is returned, thus preventing incomplete
+    data being supplied to the client.
+    """
+    product_metrics = db_well.pac_bio_product_metrics
+    experiment_info = [
+        pbr for pbr in [pm.pac_bio_run for pm in product_metrics] if pbr is not None
     ]
+    if len(experiment_info) != len(product_metrics):
+        experiment_info = []
+
+    return experiment_info
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -162,10 +176,13 @@ class PacBioWellSummary(PacBioWell):
 
     Adds `study_names` to a list of attributes of the parent class `PacBioWell`.
     Instance creation is described in the documentation of the parent class.
+
+    `get_experiment_info` method in this package is used to retrieve study
+    information, see its documentation for details.
     """
 
     study_names: list = Field(
-        title="A list of study names",
+        title="An alphabetically sorted list of distinct study names",
     )
 
     @model_validator(mode="before")
@@ -173,9 +190,9 @@ class PacBioWellSummary(PacBioWell):
 
         assigned = super().pre_root(values)
         mlwh_db_row: PacBioRunWellMetrics = values.kwargs["db_well"]
-        assigned["study_names"] = [
-            row.study.name for row in get_experiment_info(mlwh_db_row)
-        ]
+        assigned["study_names"] = sorted(
+            set([row.study.name for row in get_experiment_info(mlwh_db_row)])
+        )
 
         return assigned
 
@@ -197,13 +214,16 @@ class PacBioPagedWells(PagedResponse, extra="forbid"):
 class PacBioWellFull(PacBioWell):
     """A full response model for a single PacBio well.
 
-    The model has teh fields that uniquely define the well (`run_name`, `label`,
+    The model has the fields that uniquely define the well (`run_name`, `label`,
     `plate_number`, `id_product`), along with the laboratory experiment and
     sequence run tracking information, current QC state of this well and
     QC data for this well.
 
     Instance creation is described in the documentation of this class's parent
     `PacBioWell`.
+
+    `get_experiment_info` method in this package is used to retrieve information
+    about the experiment, see its documentation for details.
     """
 
     metrics: QCDataWell = Field(
@@ -222,14 +242,9 @@ class PacBioWellFull(PacBioWell):
 
         assigned = super().pre_root(values)
         mlwh_db_row: PacBioRunWellMetrics = values.kwargs["db_well"]
-
         assigned["metrics"] = QCDataWell.from_orm(mlwh_db_row)
-
-        product_metrics = mlwh_db_row.pac_bio_product_metrics
         experiment_info = get_experiment_info(mlwh_db_row)
-        # Occasionally product rows are not linked to LIMS rows.
-        # Go for all or nothing, do not supply incomplete data.
-        if len(experiment_info) and (len(experiment_info) == len(product_metrics)):
+        if len(experiment_info):
             assigned["experiment_tracking"] = PacBioExperiment.from_orm(experiment_info)
 
         return assigned

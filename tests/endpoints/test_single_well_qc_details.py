@@ -9,7 +9,7 @@ def test_get_well_info(
 ):
 
     insert_from_yaml(
-        mlwhdb_test_session, "tests/data/mlwh_pb_run_92", "lang_qc.db.mlwh_schema"
+        mlwhdb_test_session, "tests/data/mlwh_pb_runs", "lang_qc.db.mlwh_schema"
     )
 
     id_product = "cf18bd66e0f0895ea728c1d08103c62d3de8a57a5f879cee45f7b0acc028aa67"
