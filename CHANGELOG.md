@@ -3,6 +3,23 @@
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+* To simplify object instantiation and fields' assignment for some
+  of the response models, converted `PacBioWell` and `PacBioWellFull`
+  models to pydantic dataclasses.
+
+### Added
+
+* A new response model `PacBioWellSummary`, which replaces `PacBioWell`
+  in the latest's capacity of the response model for a PacBio well
+  summary.
+* A new field, `study_names`, a potentially empty sorted array of
+  unique study names, is added to the response model for a PacBio
+  well summary.
+
 ## [2.0.0] - 2024-02-20
 
 ### Changed
