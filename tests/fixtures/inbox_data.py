@@ -20,7 +20,6 @@ from lang_qc.db.qc_schema import (
     SubProductAttr,
     User,
 )
-from tests.fixtures.utils import clean_mlwhdb, clean_qcdb
 
 
 @pytest.fixture
@@ -98,8 +97,6 @@ def inbox_data(mlwhdb_test_session):
     mlwhdb_test_session.commit()
 
     yield True
-
-    clean_mlwhdb(mlwhdb_test_session)
 
 
 @pytest.fixture()
@@ -201,6 +198,3 @@ def test_data_factory(mlwhdb_test_session, qcdb_test_session):
         return desired_wells
 
     yield setup_data
-
-    clean_mlwhdb(mlwhdb_test_session)
-    clean_qcdb(qcdb_test_session)
