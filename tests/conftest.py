@@ -20,15 +20,6 @@ from lang_qc.main import app
 test_ini = os.path.join(os.path.dirname(__file__), "testdb.ini")
 
 
-@pytest.fixture(scope="package")
-def config() -> configparser.ConfigParser:
-    # Database credentials for the test MySQL instance are stored here. This
-    # should be an instance in a container, discarded after each test run.
-    test_config = configparser.ConfigParser()
-    test_config.read(test_ini)
-    return test_config
-
-
 def mysql_url(
     config: configparser.ConfigParser,
     section: str,
@@ -68,6 +59,43 @@ def mysql_url(
         f"mysql+pymysql://{user}:{password}@"
         f"{ip_address}:{port}/{schema}?charset=utf8mb4"
     )
+
+
+def insert_from_yaml(session, dir_path, module_name):
+
+    # Load the schema module where the table ORM classes are defined.
+    module = importlib.import_module(module_name)
+
+    # Find all files in a given directory.
+    dir_obj = pathlib.Path(dir_path)
+    file_paths = list(str(f) for f in dir_obj.iterdir())
+    file_paths.sort()
+
+    for file_path in file_paths:
+        with open(file_path, "r") as f:
+            (head, file_name) = os.path.split(file_path)
+            # File name example: 200-PacBioRun.yml
+            m = re.match(r"\A\d+-([a-zA-Z]+)\.yml\Z", file_name)
+            if m is not None:
+                class_name = m.group(1)
+                table_class = getattr(module, class_name)
+                data = yaml.safe_load(f)
+                session.execute(insert(table_class), data)
+
+    session.commit()
+
+
+def compare_dates(date_obj, date_string):
+    assert date_obj.isoformat(sep=" ", timespec="seconds") == date_string
+
+
+@pytest.fixture(scope="package")
+def config() -> configparser.ConfigParser:
+    # Database credentials for the test MySQL instance are stored here. This
+    # should be an instance in a container, discarded after each test run.
+    test_config = configparser.ConfigParser()
+    test_config.read(test_ini)
+    return test_config
 
 
 @pytest.fixture(scope="module", name="mlwhdb_test_sessionfactory")
@@ -165,29 +193,8 @@ def create_test_client(
     return client
 
 
-def insert_from_yaml(session, dir_path, module_name):
-
-    # Load the schema module where the table ORM classes are defined.
-    module = importlib.import_module(module_name)
-
-    # Find all files in a given directory.
-    dir_obj = pathlib.Path(dir_path)
-    file_paths = list(str(f) for f in dir_obj.iterdir())
-    file_paths.sort()
-
-    for file_path in file_paths:
-        with open(file_path, "r") as f:
-            (head, file_name) = os.path.split(file_path)
-            # File name example: 200-PacBioRun.yml
-            m = re.match(r"\A\d+-([a-zA-Z]+)\.yml\Z", file_name)
-            if m is not None:
-                class_name = m.group(1)
-                table_class = getattr(module, class_name)
-                data = yaml.safe_load(f)
-                session.execute(insert(table_class), data)
-
-    session.commit()
-
-
-def compare_dates(date_obj, date_string):
-    assert date_obj.isoformat(sep=" ", timespec="seconds") == date_string
+@pytest.fixture(scope="module", name="mlwhdb_load_runs")
+def mlwhdb_load_from_yaml(mlwhdb_test_session):
+    insert_from_yaml(
+        mlwhdb_test_session, "tests/data/mlwh_pb_runs", "lang_qc.db.mlwh_schema"
+    )

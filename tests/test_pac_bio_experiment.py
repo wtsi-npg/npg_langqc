@@ -3,17 +3,12 @@ from sqlalchemy import select
 
 from lang_qc.db.mlwh_schema import PacBioRun
 from lang_qc.models.pacbio.experiment import PacBioExperiment
-from tests.conftest import insert_from_yaml
 
 
-def test_creating_experiment_object(mlwhdb_test_session):
+def test_creating_experiment_object(mlwhdb_test_session, mlwhdb_load_runs):
 
     run_name = "TRACTION-RUN-92"
     # Four wells, D1 has 40 samples, the rest have one sample each.
-
-    insert_from_yaml(
-        mlwhdb_test_session, "tests/data/mlwh_pb_runs", "lang_qc.db.mlwh_schema"
-    )
 
     query = (
         select(PacBioRun)

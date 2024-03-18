@@ -2,17 +2,12 @@ from npg_id_generation.pac_bio import PacBioEntity
 
 from lang_qc.db.helper.wells import WellWh
 from lang_qc.models.pacbio.qc_data import QCDataWell
-from tests.conftest import insert_from_yaml
 
 
-def test_creating_qc_data_well(mlwhdb_test_session):
+def test_creating_qc_data_well(mlwhdb_test_session, mlwhdb_load_runs):
     """
     Check that run-well metrics are correctly transformed for client rendering
     """
-
-    insert_from_yaml(
-        mlwhdb_test_session, "tests/data/mlwh_pb_runs", "lang_qc.db.mlwh_schema"
-    )
 
     helper = WellWh(session=mlwhdb_test_session)
 

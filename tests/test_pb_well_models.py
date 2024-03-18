@@ -5,7 +5,7 @@ from lang_qc.db.helper.qc import get_qc_states_by_id_product_list
 from lang_qc.db.helper.wells import WellWh
 from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
 from lang_qc.models.pacbio.well import PacBioWellFull, PacBioWellSummary
-from tests.conftest import compare_dates, insert_from_yaml
+from tests.conftest import compare_dates
 from tests.fixtures.well_data import load_data4well_retrieval, load_dicts_and_users
 
 yaml_is_loaded: bool = False
@@ -18,18 +18,10 @@ def _prepare_data(
     well_label: str,
     plate_number: int = None,
 ):
-    """Loads LIMS data for one well.
+    """Returns mlwh data for one well.
 
-    Returns a tuple of an mlwh db row and QC state model for that well.
+    Returns a tuple of an mlwh db row and QC state model for one well.
     """
-
-    global yaml_is_loaded
-
-    if yaml_is_loaded is False:
-        insert_from_yaml(
-            mlwhdb_session, "tests/data/mlwh_pb_runs", "lang_qc.db.mlwh_schema"
-        )
-        yaml_is_loaded = True
 
     id_product = PacBioEntity(
         run_name=run_name, well_label=well_label, plate_number=plate_number
@@ -92,7 +84,7 @@ def _examine_well_model_c1(pb_well: PacBioRunWellMetrics, id_product: str):
 
 
 def test_create_full_model(
-    mlwhdb_test_session, qcdb_test_session, load_data4well_retrieval
+    mlwhdb_test_session, qcdb_test_session, load_data4well_retrieval, mlwhdb_load_runs
 ):
     # Full mlwh data, no data in the lang_qc database.
     (well_row, qc_state) = _prepare_data(
@@ -125,7 +117,7 @@ def test_create_full_model(
 
 
 def test_create_summary_model(
-    mlwhdb_test_session, qcdb_test_session, load_data4well_retrieval
+    mlwhdb_test_session, qcdb_test_session, load_data4well_retrieval, mlwhdb_load_runs
 ):
     (well_row, qc_state) = _prepare_data(
         mlwhdb_test_session, qcdb_test_session, "TRACTION-RUN-92", "A1"
@@ -149,7 +141,7 @@ def test_create_summary_model(
 
 
 def test_create_summary_model_study_info(
-    mlwhdb_test_session, qcdb_test_session, load_data4well_retrieval
+    mlwhdb_test_session, qcdb_test_session, load_data4well_retrieval, mlwhdb_load_runs
 ):
     # Well with two samples, none is linked to LIMS
     (well_row, qc_state) = _prepare_data(
