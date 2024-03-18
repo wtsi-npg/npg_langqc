@@ -538,6 +538,27 @@ class PacBioRunWellMetrics(Base):
         "PacBioProductMetrics", back_populates="pac_bio_run_well_metrics"
     )
 
+    def get_experiment_info(self):
+        """Returns a list of PacBioRun mlwh database rows.
+
+        Returns LIMS information about the PacBio experiment
+        for this well, one pac_bio_run table row per sample
+        (product) in the well.
+
+        If any or all of the pac_bio_product_metrics rows linked
+        to this well record are not linked to the pac_bio_run
+        table, and empty array is returned, thus preventing incomplete
+        data being supplied to the client.
+        """
+        product_metrics = self.pac_bio_product_metrics
+        experiment_info = [
+            pbr for pbr in [pm.pac_bio_run for pm in product_metrics] if pbr is not None
+        ]
+        if len(experiment_info) != len(product_metrics):
+            experiment_info = []
+
+        return experiment_info
+
 
 class PacBioProductMetrics(Base):
     __tablename__ = "pac_bio_product_metrics"
