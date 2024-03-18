@@ -1,4 +1,10 @@
-This set of mlwh fixtures contains data for runs TRACTION-RUN-{92,1140,1162}
+This set of mlwh fixtures contains data for runs TRACTION-RUN-{92,525,1140,1162}
+
+TRACTION-RUN-92
+Wells {A,B,C,D}1, plate_number undefined
+
+TRACTION-RUN-525
+Well A1 only, demultiplexed, pac_bio_run_well_metrics data only
 
 TRACTION-RUN-1140
 

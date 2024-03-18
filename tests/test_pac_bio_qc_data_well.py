@@ -11,7 +11,7 @@ def test_creating_qc_data_well(mlwhdb_test_session):
     """
 
     insert_from_yaml(
-        mlwhdb_test_session, "tests/data/mlwh_pb_demux_525", "lang_qc.db.mlwh_schema"
+        mlwhdb_test_session, "tests/data/mlwh_pb_runs", "lang_qc.db.mlwh_schema"
     )
 
     helper = WellWh(session=mlwhdb_test_session)

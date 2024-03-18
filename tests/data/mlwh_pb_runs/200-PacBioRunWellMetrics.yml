@@ -942,3 +942,70 @@
   well_start: 2024-03-06 12:14:56
   well_status: Complete
 
+- id_pac_bio_rw_metrics_tmp: 3725
+  id_pac_bio_product: 7454d3e822388a257437d1736361fb00c7493ab8b24ecd8ce3506ff45deb6716
+  pac_bio_run_name: TRACTION-RUN-525
+  well_label: A1
+  qc_seq_state: Passed
+  qc_seq_state_is_final: 1
+  qc_seq_date: 2023-04-12 16:49:52
+  qc_seq: 1
+  instrument_type: Revio
+  instrument_name: 84047
+  chip_type: 25mChip
+  sl_hostname: pacbio02.dnapipelines.sanger.ac.uk
+  sl_run_uuid: f1490bb9-7a99-45b2-9d79-24582881742d
+  sl_ccs_uuid: a9ad9f86-04c2-4194-ba69-48240cb745f9
+  ts_run_name: r84047_20230404_164149
+  movie_name: m84047_230404_164952_s1
+  movie_minutes: 1440
+  created_by: chc
+  binding_kit: Revio polymerase kit
+  sequencing_kit: Revio sequencing plate
+  sequencing_kit_lot_number: 030157
+  cell_lot_number: 1000000291
+  ccs_execution_mode: OnInstrument
+  demultiplex_mode: OnInstrument
+  include_kinetics: 1
+  hifi_only_reads: 1
+  heteroduplex_analysis: 0
+  loading_conc: 227
+  run_start: 2023-04-04 16:42:51
+  run_complete: 2023-04-05 23:16:26
+  run_transfer_complete: 2023-04-06 16:28:42
+  run_status: Complete
+  well_start: 2023-04-04 16:49:53
+  well_complete: 2023-04-06 10:15:28
+  well_status: Complete
+  chemistry_sw_version: 12.0.0.172289
+  instrument_sw_version: 12.0.0.178953
+  primary_analysis_sw_version: 12.0.0.1
+  control_num_reads: 2724
+  control_concordance_mean: 0.899633
+  control_concordance_mode: 0.91
+  control_read_length_mean: 59917
+  local_base_rate: 2.182480
+  polymerase_read_bases: 1324865295449
+  polymerase_num_reads: 18759739
+  polymerase_read_length_mean: 70623
+  polymerase_read_length_n50: 132750
+  insert_length_mean: 14885
+  insert_length_n50: 20250
+  unique_molecular_bases: 250195427328
+  productive_zmws_num: 16777216
+  p0_num: 5846918
+  p1_num: 18762463
+  p2_num: 556443
+  adapter_dimer_percent: 0.00
+  short_insert_percent: 0.00
+  hifi_read_bases: 92922481974
+  hifi_num_reads: 8297069
+  hifi_read_length_mean: 11199
+  hifi_read_quality_median: 34
+  hifi_number_passes_mean: 14
+  hifi_low_quality_read_bases: NULL
+  hifi_low_quality_num_reads: NULL
+  hifi_low_quality_read_length_mean: NULL
+  hifi_low_quality_read_quality_median: NULL
+  hifi_barcoded_reads: 8255091
+  hifi_bases_in_barcoded_reads: 92439476821
