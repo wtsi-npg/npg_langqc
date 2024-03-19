@@ -26,7 +26,7 @@ def test_existing_run(test_client: TestClient, load_data4well_retrieval):
     label_list = [well["label"] for well in resp["wells"]]
     assert label_list == ["A1", "B1", "C1", "D1"]
     qc_states = [well["qc_state"]["qc_state"] for well in resp["wells"]]
-    assert qc_states == ["Claimed", "On hold", "Claimed", "On hold"]
+    assert qc_states == ["Claimed", "On hold", "Claimed", "On hold external"]
 
     assert (
         resp["wells"][0]["instrument_name"] == "64016"

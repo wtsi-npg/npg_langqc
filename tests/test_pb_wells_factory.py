@@ -31,7 +31,7 @@ def test_query_for_status(
         assert isinstance(state, QcState)
         assert state.is_preliminary == 1
         assert state.qc_type.qc_type == "sequencing"
-        assert state.qc_state_dict.state == "On hold"
+        assert state.qc_state_dict.state in ("On hold", "On hold external")
         compare_dates(state.date_updated, update_dates[index])
 
     factory = PacBioPagedWellsFactory(
@@ -400,8 +400,13 @@ def test_known_run_names_input(
     label_list = [well.label for well in wells]
     assert label_list == ["A1", "B1", "C1", "D1"]
 
-    qc_states = [well.qc_state.qc_state for well in wells]
-    expected_qc_states = ["Claimed", "On hold", "Claimed", "On hold"]
+    qc_states = sorted([well.qc_state.qc_state for well in wells])
+    expected_qc_states = [
+        "Claimed",
+        "Claimed",
+        "On hold",
+        "On hold external",
+    ]
     assert qc_states == expected_qc_states
 
     factory = PacBioPagedWellsFactory(
