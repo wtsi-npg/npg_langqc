@@ -10,6 +10,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * To simplify object instantiation and fields' assignment for some
   of the response models, converted `PacBioWell` and `PacBioWellFull`
   models to pydantic dataclasses.
+* Changed the response model for filtered by either QC status or run wells from
+  `PacBioWell` to `PacBioWellSummary`, the latter initially being identical
+  the former. In order to propagate information about a study to the tabbed
+  well summary view, added a new field, study_names, to the `PacBioWellSummary`
+  model.
+* Added a new event to the tabbed well summary view, to the button with the well
+  name. Mouse hover over this button displays study names associated with the
+  well.
+* Changed the colour scheme of the above mentioned button from grey to orange
+  if one of the studies associated with the well is the BIOSCAN study, which
+  the QC team needs to deal with slightly differently.
+* Added a new QC state 'On hold external'. Semantically the new state is similar
+  to the existing 'On hold' state. The intended purpose of the new QC state - to
+  highlight the wells, which are waiting for a completion of some off-site
+  process (example - deplexing at http://mbrave.net/).
 
 ### Added
 
