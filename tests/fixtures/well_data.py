@@ -30,6 +30,7 @@ QC_STATES = [
     {"state": "Passed", "outcome": 1},
     {"state": "Claimed", "outcome": None},
     {"state": "On hold", "outcome": None},
+    {"state": "On hold external", "outcome": None},
 ]
 
 PLATFORMS = [
@@ -66,7 +67,7 @@ QC_DATA = [
     ["TRACTION_RUN_1", "A1", "Claimed", True, "2022-12-07 07:15:19", None],
     ["TRACTION_RUN_1", "B1", "On hold", True, "2022-12-08 07:15:19", None],
     ["TRACTION_RUN_1", "C1", "Claimed", True, "2022-12-08 08:15:19", None],
-    ["TRACTION_RUN_1", "D1", "On hold", True, "2022-12-08 09:15:19", None],
+    ["TRACTION_RUN_1", "D1", "On hold external", True, "2022-12-08 09:15:19", None],
     ["TRACTION_RUN_1", "E1", "Claimed", True, "2022-12-07 09:15:19", None],
     ["TRACTION_RUN_2", "A1", "Failed, Instrument", True, "2022-12-07 15:13:56", 1],
     ["TRACTION_RUN_2", "B1", "Failed, Instrument", False, "2022-12-08 15:18:56", 1],

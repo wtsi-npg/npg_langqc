@@ -169,10 +169,10 @@ class PacBioPagedWellsFactory(WellWh, PagedResponse):
     # For MySQL it's OK to use case-sensitive comparison operators since
     # its string comparisons for the collation we use are case-insensitive.
     FILTERS: ClassVar = {
-        QcFlowStatusEnum.ON_HOLD.name: (QcStateDict.state == "On hold"),
+        QcFlowStatusEnum.ON_HOLD.name: (QcStateDict.state.ilike("On hold%")),
         QcFlowStatusEnum.QC_COMPLETE.name: (QcState.is_preliminary == 0),
         QcFlowStatusEnum.IN_PROGRESS.name: and_(
-            QcState.is_preliminary == 1, QcStateDict.state != "On hold"
+            QcState.is_preliminary == 1, QcStateDict.state.notilike("On hold%")
         ),
         QcFlowStatusEnum.ABORTED.name: or_(
             PacBioRunWellMetrics.well_status.like("Abort%"),
