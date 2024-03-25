@@ -9,9 +9,9 @@
     "npm": ">=8.11.0"
   },
   "scripts": {
-    "dev": "vite --port 3000",
+    "dev": "vite --port 80 --mode development",
     "build": "vite build",
-    "preview": "vite preview --port 3000",
+    "preview": "vite preview --port 80",
     "test": "vitest run",
     "coverage": "vitest run --coverage",
     "test:e2e:ci": "start-server-and-test preview http://localhost:3000/ 'cypress run --e2e'",

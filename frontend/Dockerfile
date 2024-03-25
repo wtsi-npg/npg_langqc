@@ -27,4 +27,4 @@ COPY ./vite.config.js /code/longue_vue/vite.config.js
 COPY ./index.html /code/longue_vue/index.html
 COPY ./.env /code/longue_vue/.env
 
-CMD ["npm", "exec", "vite", "--", "--host", "--port", "80", "--base", "/ui/"]
+CMD ["npm", "run", "dev", "--", "--host", "--port", "80", "--base", "/ui/"]
