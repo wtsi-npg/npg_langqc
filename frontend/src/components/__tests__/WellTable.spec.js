@@ -7,9 +7,33 @@ describe('Rows of data give rows in the table', () => {
   const table = mount(WellTable, {
     props: {
       wellCollection: [
-        {run_name: 'TEST1', label: 'A1', plate_number: null, instrument_name: '1234', instrument_type: 'Revio', id_product: 'ABCDEF'},
-        {run_name: 'TEST1', label: 'B1', plate_number: null, instrument_name: '1234', instrument_type: 'Revio', id_product: '123456'},
-        {run_name: 'TEST2', label: 'A1', plate_number: 1, instrument_name: '1234', instrument_type: 'Revio', id_product: '123457'},
+        {
+          run_name: 'TEST1',
+          label: 'A1',
+          plate_number: null,
+          instrument_name: '1234',
+          instrument_type: 'Revio',
+          id_product: 'ABCDEF',
+          study_names: []
+        },
+        {
+          run_name: 'TEST1',
+          label: 'B1',
+          plate_number: null,
+          instrument_name: '1234',
+          instrument_type: 'Revio',
+          id_product: '123456',
+          study_names: ['Study name 1', 'Study name 2']
+        },
+        {
+          run_name: 'TEST2',
+          label: 'A1',
+          plate_number: 1,
+          instrument_name: '1234',
+          instrument_type: 'Revio',
+          id_product: '123457',
+          study_names: ['BIOSCAN UK for flying insects']
+        },
       ]
     }
   })
@@ -40,7 +64,14 @@ describe('Rows of data give rows in the table', () => {
     expect(table.emitted().wellSelected[0][0]).toHaveProperty('idProduct')
     expect(table.emitted().wellSelected[0][0].idProduct).toEqual('ABCDEF')
 
-    await rows[2].find('button').trigger('click')
+    let wellButton = rows[2].find('button')
+    await wellButton.trigger('click')
     expect(table.emitted().wellSelected[1][0].idProduct).toEqual('123456')
+    expect(wellButton.classes('el-tooltip__trigger')).toBeTruthy()
+    expect(wellButton.classes('el-button--info')).toBeTruthy()
+
+    wellButton = rows[3].find('button')
+    expect(wellButton.classes('el-tooltip__trigger')).toBeTruthy()
+    expect(wellButton.classes('el-button--warning')).toBeTruthy()
   })
 })

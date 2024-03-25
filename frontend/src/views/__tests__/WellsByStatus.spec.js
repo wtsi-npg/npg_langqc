@@ -31,7 +31,8 @@ for (let index = 0; index < 10; index++) {
     well_status: "Complete",
     qc_state: null,
     instrument_name: 1234,
-    instrument_type: 'Revio'
+    instrument_type: 'Revio',
+    study_names: ['Some study'],
   })
 }
 
@@ -140,6 +141,7 @@ describe('View loads configuration on mount', async () => {
           qc_state: null,
           instrument_name: '1234',
           instrument_type: 'Revio',
+          study_names: [],
         }]
       })
     )
