@@ -1,4 +1,4 @@
-FROM node:18-alpine as base-stage
+FROM node:20-alpine as base-stage
 
 COPY  package.json /code/longue_vue/
 
