@@ -41,7 +41,7 @@ def test_get_qc_by_product_id(test_client: TestClient, load_data4well_retrieval)
     assert SECOND_GOOD_CHECKSUM in response_data
     list_1 = response_data[FIRST_GOOD_CHECKSUM]
     list_2 = response_data[SECOND_GOOD_CHECKSUM]
-    qc_states = ["On hold", "Failed, Instrument"]
+    qc_states = ["On hold external", "Failed, Instrument"]
     for index, l in enumerate([list_1, list_2]):
         assert len(l) == 2
         # The list of QC state objects contains QC states

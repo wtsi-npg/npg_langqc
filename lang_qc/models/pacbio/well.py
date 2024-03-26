@@ -60,7 +60,7 @@ class PacBioWell:
     `run_name`, `label`, `plate_number`, and `id_product` fields uniquely
     identify the well. The model also has fields that reflect the time line
     of the run and information about a PacBio instrument. The optional
-    `qc_state  field might contain the current QC state of the well.
+    `qc_state`  field might contain the current QC state of the well.
 
     The best way to instantiate the model is via the constructor, supplying
     the an ORM object representing a database row with information about
@@ -133,6 +133,7 @@ class PacBioWell:
 
         # https://github.com/pydantic/pydantic-core/blob/main/python/pydantic_core/_pydantic_core.pyi
         mlwh_db_row: PacBioRunWellMetrics = values.kwargs["db_well"]
+        assert mlwh_db_row
 
         column_names = [column.key for column in PacBioRunWellMetrics.__table__.columns]
 
@@ -147,14 +148,41 @@ class PacBioWell:
         return assigned
 
 
+@dataclass(kw_only=True, frozen=True)
+class PacBioWellSummary(PacBioWell):
+    """A response model for a summary about a single PacBio well.
+
+    Adds `study_names` to a list of attributes of the parent class `PacBioWell`.
+    Instance creation is described in the documentation of the parent class.
+
+    `get_experiment_info` method in this package is used to retrieve study
+    information, see its documentation for details.
+    """
+
+    study_names: list = Field(
+        title="An alphabetically sorted list of distinct study names",
+    )
+
+    @model_validator(mode="before")
+    def pre_root(cls, values: dict[str, Any]) -> dict[str, Any]:
+
+        assigned = super().pre_root(values)
+        mlwh_db_row: PacBioRunWellMetrics = values.kwargs["db_well"]
+        assigned["study_names"] = sorted(
+            set([row.study.name for row in mlwh_db_row.get_experiment_info()])
+        )
+
+        return assigned
+
+
 class PacBioPagedWells(PagedResponse, extra="forbid"):
     """A response model for paged data about PacBio wells."""
 
-    wells: list[PacBioWell] = Field(
+    wells: list[PacBioWellSummary] = Field(
         default=[],
-        title="A list of PacBioWell objects",
+        title="A list of PacBioWellSummary objects",
         description="""
-        A list of `PacBioWell` objects that corresponds to the page number
+        A list of `PacBioWellSummary` objects that corresponds to the page number
         and size specified by the `page_size` and `page_number` attributes.
         """,
     )
@@ -164,13 +192,16 @@ class PacBioPagedWells(PagedResponse, extra="forbid"):
 class PacBioWellFull(PacBioWell):
     """A full response model for a single PacBio well.
 
-    The model has teh fields that uniquely define the well (`run_name`, `label`,
+    The model has the fields that uniquely define the well (`run_name`, `label`,
     `plate_number`, `id_product`), along with the laboratory experiment and
     sequence run tracking information, current QC state of this well and
     QC data for this well.
 
     Instance creation is described in the documentation of this class's parent
     `PacBioWell`.
+
+    `get_experiment_info` method in this package is used to retrieve information
+    about the experiment, see its documentation for details.
     """
 
     metrics: QCDataWell = Field(
@@ -189,16 +220,9 @@ class PacBioWellFull(PacBioWell):
 
         assigned = super().pre_root(values)
         mlwh_db_row: PacBioRunWellMetrics = values.kwargs["db_well"]
-
         assigned["metrics"] = QCDataWell.from_orm(mlwh_db_row)
-
-        product_metrics = mlwh_db_row.pac_bio_product_metrics
-        experiment_info = [
-            pbr for pbr in [pm.pac_bio_run for pm in product_metrics] if pbr is not None
-        ]
-        # Occasionally product rows are not linked to LIMS rows.
-        # Go for all or nothing, do not supply incomplete data.
-        if len(experiment_info) and (len(experiment_info) == len(product_metrics)):
+        experiment_info = mlwh_db_row.get_experiment_info()
+        if len(experiment_info):
             assigned["experiment_tracking"] = PacBioExperiment.from_orm(experiment_info)
 
         return assigned

@@ -5,7 +5,7 @@
 
     import { computed } from "vue";
     import groupMetrics from "../utils/metrics.js";
-    import combineLabelWithPlate from "../utils/text.js"
+    import { combineLabelWithPlate } from "../utils/text.js"
 
     const props = defineProps({
         // Well object representing one prepared input for the instrument

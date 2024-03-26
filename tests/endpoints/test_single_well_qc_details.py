@@ -1,16 +1,14 @@
 from fastapi.testclient import TestClient
 
-from tests.conftest import insert_from_yaml
 from tests.fixtures.well_data import load_data4well_retrieval, load_dicts_and_users
 
 
 def test_get_well_info(
-    test_client: TestClient, mlwhdb_test_session, load_data4well_retrieval
+    test_client: TestClient,
+    mlwhdb_test_session,
+    load_data4well_retrieval,
+    mlwhdb_load_runs,
 ):
-
-    insert_from_yaml(
-        mlwhdb_test_session, "tests/data/mlwh_pb_run_92", "lang_qc.db.mlwh_schema"
-    )
 
     id_product = "cf18bd66e0f0895ea728c1d08103c62d3de8a57a5f879cee45f7b0acc028aa67"
     response = test_client.get(f"/pacbio/products/{id_product}/seq_level")

@@ -23,6 +23,7 @@ def test_get_config(test_client: TestClient, load_dicts_and_users):
             {"description": "Failed, Instrument", "only_prelim": False},
             {"description": "Failed, SMRT cell", "only_prelim": False},
             {"description": "On hold", "only_prelim": True},
+            {"description": "On hold external", "only_prelim": True},
             {"description": "Undecided", "only_prelim": False},
         ],
     }

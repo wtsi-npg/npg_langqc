@@ -2,7 +2,11 @@
 /*
 * Renders a table for a list of wells and generates buttons for selecting wells
 */
-import combineLabelWithPlate from "../utils/text.js"
+import { combineLabelWithPlate, listStudiesForTooltip } from "../utils/text.js"
+import { ElTooltip, ElButton } from "element-plus";
+
+const tooltipDelay = 500
+const studyNameHighlight = 'BIOSCAN UK for flying insects'
 
 defineProps({
   wellCollection: Object
@@ -28,9 +32,17 @@ defineEmits(['wellSelected'])
     <tr :key="wellObj.id_product" v-for="wellObj in wellCollection">
       <td>{{ wellObj.run_name }}</td>
       <td class="well_selector">
-        <button v-on:click="$emit('wellSelected', { idProduct: wellObj.id_product })">
-          {{ combineLabelWithPlate(wellObj.label, wellObj.plate_number) }}
-        </button>
+        <el-tooltip placement="top" effect="light" :show-after="tooltipDelay"
+          :content="'<span>'.concat(listStudiesForTooltip(wellObj.study_names)).concat('</span>')"
+          raw-content
+        >
+          <el-button
+            :type="wellObj.study_names.includes(studyNameHighlight) ? 'warning' : 'info'"
+            v-on:click="$emit('wellSelected', { idProduct: wellObj.id_product })"
+          >
+            {{ combineLabelWithPlate(wellObj.label, wellObj.plate_number) }}
+          </el-button>
+        </el-tooltip>
       </td>
       <td>{{ wellObj.instrument_type }} {{ wellObj.instrument_name }}</td>
       <td>{{ wellObj.qc_state ? wellObj.qc_state.qc_state : '&nbsp;' }}</td>
