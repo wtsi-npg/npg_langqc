@@ -11,13 +11,13 @@ jobs:
       DB_URL: "mysql+pymysql://q:q@q/q"
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install Poetry
         run: |
           pipx install poetry
 
-      - uses: actions/setup-python@v3
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.10'
           architecture: 'x64'
@@ -27,14 +27,13 @@ jobs:
         run: |
           poetry env use '3.10'
           poetry install
-        
+
       - name: Build openapi.json
         run: |
           mkdir gh_pages
           poetry run python -c "from lang_qc.main import app; import json; output = open('gh-pages/openapi.json', 'w'); json.dump(app.openapi(), output); output.close()"
 
       - name: Deploy github pages
-        uses: JamesIves/github-pages-deploy-action@v4.3.3
+        uses: JamesIves/github-pages-deploy-action@v4.5.0
         with:
-          branch: gh-pages
           folder: gh-pages
