@@ -36,7 +36,7 @@ defineEmits(['wellSelected'])
           :content="'<span>'.concat(listStudiesForTooltip(wellObj.study_names)).concat('</span>')"
           raw-content
         >
-          <el-button
+          <el-button plain
             :type="wellObj.study_names.includes(studyNameHighlight) ? 'warning' : 'info'"
             v-on:click="$emit('wellSelected', { idProduct: wellObj.id_product })"
           >
