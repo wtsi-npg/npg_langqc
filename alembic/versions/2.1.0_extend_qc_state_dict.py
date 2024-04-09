@@ -15,7 +15,9 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.execute("INSERT INTO qc_state_dict VALUES ('On hold external', NULL)")
+    op.execute(
+        "INSERT INTO qc_state_dict (state, outcome) VALUES ('On hold external', NULL)"
+    )
 
 
 def downgrade() -> None:
