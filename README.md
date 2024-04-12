@@ -7,6 +7,17 @@ subjects other than development, testing and deployment.
 - [The QC process](docs/qc_process.md)
 - [The QC database schema](docs/qc_schema_explained.md)
 
+## Prepare for release
+
+Prior to merging to the master branch:
+
+- Update CHANGELOG.md
+- Update the hardcoded version in
+    - frontend/package.json
+    - lang_qc/__init__.py
+    - pyproject.toml
+- If needed, update the Copyright year in frontend/src/App.vue
+
 ## Install and run locally
 
 You can install the package with `pip install .` from the repository's root.

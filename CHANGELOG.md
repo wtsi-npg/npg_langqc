@@ -5,6 +5,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [2.1.0] - 2024-04-15
+
 ### Changed
 
 * To simplify object instantiation and fields' assignment for some
