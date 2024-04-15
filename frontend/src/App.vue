@@ -122,7 +122,7 @@ function notInWellsByRun() {
 
   </el-main>
 
-  <el-footer>Copyright Genome Research Ltd 2023 - client version: {{ VERSION.replace(/['"]+/g) + (DEVMODE ? "+DEV" : "")
+  <el-footer>Copyright Genome Research Ltd 2023, 2024 - client version: {{ VERSION.replace(/['"]+/g) + (DEVMODE ? "+DEV" : "")
   }}</el-footer>
 </template>
 
