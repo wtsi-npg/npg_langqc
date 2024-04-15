@@ -21,12 +21,11 @@
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
 from datetime import datetime
-from typing import Optional
+from typing import Any, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
-from sqlalchemy.orm import Session
+from pydantic import Field, model_validator
+from pydantic.dataclasses import dataclass
 
-from lang_qc.db.helper.qc import get_qc_states_by_id_product_list
 from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
 from lang_qc.models.pacbio.experiment import PacBioExperiment
 from lang_qc.models.pacbio.qc_data import QCDataWell
@@ -34,39 +33,88 @@ from lang_qc.models.pager import PagedResponse
 from lang_qc.models.qc_state import QcState
 
 
-class PacBioWell(BaseModel, extra="forbid"):
-    """
-    A response model for a single PacBio well on a particular PacBio run.
-    The class contains the attributes that uniquely define this well (`run_name`
-    and `label`), along with the time line and the current QC state of this well,
-    if any.
+def get_field_names(cls):
+    """Returns a list of field names for a class given as an argument.
 
-    This model does not contain any information about data that was
-    sequenced or QC metrics or assessment for such data.
+    The fields that can only be used at the object initialisation step
+    are excluded. For fields, which have a validation_alias defined,
+    this alias is returned rather than the field name.
     """
+
+    field_names = []
+    for field_name in cls.__dataclass_fields__:
+        field = cls.__dataclass_fields__[field_name]
+        if field.default.init_var is True:
+            continue
+        name = field.default.validation_alias
+        if name is None:
+            name = field.name
+        field_names.append(name)
+    return field_names
+
+
+@dataclass(kw_only=True, frozen=True)
+class PacBioWell:
+    """A basic response model for a single PacBio well.
+
+    `run_name`, `label`, `plate_number`, and `id_product` fields uniquely
+    identify the well. The model also has fields that reflect the time line
+    of the run and information about a PacBio instrument. The optional
+    `qc_state`  field might contain the current QC state of the well.
+
+    The best way to instantiate the model is via the constructor, supplying
+    the an ORM object representing a database row with information about
+    the well and, optionally, the model representing the current QC state.
+
+    Examples:
+        well_model = PacBioWell(db_well=well_row)
+        well_model = PacBioWell(db_well=well_row, qc_state=current_qc_state)
+
+    Mapping of the database values to this model's fields is performed by
+    a pre `__init__` hook. To enable automatic mapping, some fields of this
+    model have `validation_alias` set.
+    """
+
+    db_well: PacBioRunWellMetrics = Field(init_var=True)
 
     # Well identifies.
-    id_product: str = Field(title="Product identifier")
-    label: str = Field(title="Well label", description="The label of the PacBio well")
+    id_product: str = Field(
+        title="Product identifier", validation_alias="id_pac_bio_product"
+    )
+    label: str = Field(
+        title="Well label",
+        description="The label of the PacBio well",
+        validation_alias="well_label",
+    )
     plate_number: Optional[int] = Field(
         default=None,
         title="Plate number",
         description="Plate number, relevant for Revio instruments only",
     )
     run_name: str = Field(
-        title="Run name", description="PacBio run name as registered in LIMS"
+        title="Run name",
+        description="PacBio run name as registered in LIMS",
+        validation_alias="pac_bio_run_name",
     )
     # Run and well tracking information from SMRT Link
-    run_start_time: datetime = Field(default=None, title="Run start time")
-    run_complete_time: datetime = Field(default=None, title="Run complete time")
-    well_start_time: datetime = Field(default=None, title="Well start time")
-    well_complete_time: datetime = Field(default=None, title="Well complete time")
-    run_status: str = Field(default=None, title="Current PacBio run status")
-    well_status: str = Field(default=None, title="Current PacBio well status")
-    instrument_name: str = Field(default=None, title="Instrument name")
-    instrument_type: str = Field(default=None, title="Instrument type")
+    run_start_time: Optional[datetime] = Field(
+        default=None, title="Run start time", validation_alias="run_start"
+    )
+    run_complete_time: Optional[datetime] = Field(
+        default=None, title="Run complete time", validation_alias="run_complete"
+    )
+    well_start_time: Optional[datetime] = Field(
+        default=None, title="Well start time", validation_alias="well_start"
+    )
+    well_complete_time: Optional[datetime] = Field(
+        default=None, title="Well complete time", validation_alias="well_complete"
+    )
+    run_status: Optional[str] = Field(default=None, title="Current PacBio run status")
+    well_status: Optional[str] = Field(default=None, title="Current PacBio well status")
+    instrument_name: Optional[str] = Field(default=None, title="Instrument name")
+    instrument_type: Optional[str] = Field(default=None, title="Instrument type")
 
-    qc_state: QcState = Field(
+    qc_state: Optional[QcState] = Field(
         default=None,
         title="Current QC state of this well",
         description="""
@@ -76,85 +124,105 @@ class PacBioWell(BaseModel, extra="forbid"):
         """,
     )
 
-    def copy_run_tracking_info(self, db_well: PacBioRunWellMetrics):
+    @model_validator(mode="before")
+    def pre_root(cls, values: dict[str, Any]) -> dict[str, Any]:
         """
         Populates this object with the run and well tracking information
         from a database row that is passed as an argument.
         """
-        self.run_start_time = db_well.run_start
-        self.run_complete_time = db_well.run_complete
-        self.well_start_time = db_well.well_start
-        self.well_complete_time = db_well.well_complete
-        self.run_status = db_well.run_status
-        self.well_status = db_well.well_status
-        self.instrument_name = db_well.instrument_name
-        self.instrument_type = db_well.instrument_type
+
+        # https://github.com/pydantic/pydantic-core/blob/main/python/pydantic_core/_pydantic_core.pyi
+        mlwh_db_row: PacBioRunWellMetrics = values.kwargs["db_well"]
+        assert mlwh_db_row
+
+        column_names = [column.key for column in PacBioRunWellMetrics.__table__.columns]
+
+        assigned = dict()
+        for field_name in get_field_names(cls):
+            if field_name in column_names:
+                assigned[field_name] = getattr(mlwh_db_row, field_name)
+
+        if "qc_state" in values.kwargs:
+            assigned["qc_state"] = values.kwargs["qc_state"]
+
+        return assigned
+
+
+@dataclass(kw_only=True, frozen=True)
+class PacBioWellSummary(PacBioWell):
+    """A response model for a summary about a single PacBio well.
+
+    Adds `study_names` to a list of attributes of the parent class `PacBioWell`.
+    Instance creation is described in the documentation of the parent class.
+
+    `get_experiment_info` method in this package is used to retrieve study
+    information, see its documentation for details.
+    """
+
+    study_names: list = Field(
+        title="An alphabetically sorted list of distinct study names",
+    )
+
+    @model_validator(mode="before")
+    def pre_root(cls, values: dict[str, Any]) -> dict[str, Any]:
+
+        assigned = super().pre_root(values)
+        mlwh_db_row: PacBioRunWellMetrics = values.kwargs["db_well"]
+        assigned["study_names"] = sorted(
+            set([row.study.name for row in mlwh_db_row.get_experiment_info()])
+        )
+
+        return assigned
 
 
 class PacBioPagedWells(PagedResponse, extra="forbid"):
-    """
-    A response model for paged data about PacBio wells.
-    """
+    """A response model for paged data about PacBio wells."""
 
-    wells: list[PacBioWell] = Field(
+    wells: list[PacBioWellSummary] = Field(
         default=[],
-        title="A list of PacBioWell objects",
+        title="A list of PacBioWellSummary objects",
         description="""
-        A list of `PacBioWell` objects that corresponds to the page number
+        A list of `PacBioWellSummary` objects that corresponds to the page number
         and size specified by the `page_size` and `page_number` attributes.
         """,
     )
 
 
+@dataclass(kw_only=True, frozen=True)
 class PacBioWellFull(PacBioWell):
-    """
-    A response model for a single PacBio well on a particular PacBio run.
-    The class contains the attributes that uniquely define this well (`run_name`
-    and `label`), along with the laboratory experiment and sequence run tracking
-    information, current QC state of this well and QC data for this well.
+    """A full response model for a single PacBio well.
+
+    The model has the fields that uniquely define the well (`run_name`, `label`,
+    `plate_number`, `id_product`), along with the laboratory experiment and
+    sequence run tracking information, current QC state of this well and
+    QC data for this well.
+
+    Instance creation is described in the documentation of this class's parent
+    `PacBioWell`.
+
+    `get_experiment_info` method in this package is used to retrieve information
+    about the experiment, see its documentation for details.
     """
 
     metrics: QCDataWell = Field(
         title="Currently available QC data for well",
     )
-    experiment_tracking: PacBioExperiment = Field(
+    experiment_tracking: Optional[PacBioExperiment] = Field(
         default=None,
         title="Experiment tracking information",
         description="""
         Laboratory experiment tracking information for this well, if available.
         """,
     )
-    model_config = ConfigDict(from_attributes=True, extra="forbid")
 
-    @classmethod
-    def from_orm(cls, mlwh_db_row: PacBioRunWellMetrics, qc_session: Session):
+    @model_validator(mode="before")
+    def pre_root(cls, values: dict[str, Any]) -> dict[str, Any]:
 
-        id_product = mlwh_db_row.id_pac_bio_product
-        obj = cls(
-            id_product=id_product,
-            run_name=mlwh_db_row.pac_bio_run_name,
-            plate_number=mlwh_db_row.plate_number,
-            label=mlwh_db_row.well_label,
-            metrics=QCDataWell.from_orm(mlwh_db_row),
-        )
-        obj.copy_run_tracking_info(mlwh_db_row)
-
-        experiment_info = []
-        for row in mlwh_db_row.pac_bio_product_metrics:
-            exp_row = row.pac_bio_run
-            if exp_row:
-                experiment_info.append(exp_row)
-            else:
-                # Do not supply incomplete data.
-                experiment_info = []
-                break
+        assigned = super().pre_root(values)
+        mlwh_db_row: PacBioRunWellMetrics = values.kwargs["db_well"]
+        assigned["metrics"] = QCDataWell.from_orm(mlwh_db_row)
+        experiment_info = mlwh_db_row.get_experiment_info()
         if len(experiment_info):
-            obj.experiment_tracking = PacBioExperiment.from_orm(experiment_info)
+            assigned["experiment_tracking"] = PacBioExperiment.from_orm(experiment_info)
 
-        qced_products = get_qc_states_by_id_product_list(
-            session=qc_session, ids=[id_product], sequencing_outcomes_only=True
-        ).get(id_product)
-        if qced_products is not None:
-            obj.qc_state = qced_products[0]
-
-        return obj
+        return assigned

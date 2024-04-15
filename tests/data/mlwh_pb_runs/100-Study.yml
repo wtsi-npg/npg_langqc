@@ -1,0 +1,122 @@
+- accession_number: ERP129860
+  aligned: 1
+  contains_human_dna: 0
+  contaminated_human_dna: 0
+  id_lims: SQSCP
+  id_study_lims: 6457
+  id_study_tmp: 6287
+  name: Tree of Life - ASG
+  reference_genome: ' '
+  remove_x_and_autosomes: 0
+  separate_y_chromosome_data: 0
+  study_title: Tree of Life - ASG
+  study_visibility: Public
+  uuid_study_lims: 8d58238e-a2b5-11eb-84d2-fa163eac3af7
+- accession_number: ERP116890
+  aligned: 1
+  contains_human_dna: 0
+  contaminated_human_dna: 0
+  id_lims: SQSCP
+  id_study_lims: 5901
+  id_study_tmp: 5735
+  name: DTOL_Darwin Tree of Life
+  reference_genome: ' '
+  remove_x_and_autosomes: 0
+  separate_y_chromosome_data: 0
+  study_title: Darwin Tree of Life
+  study_visibility: Public
+  uuid_study_lims: cf04ea86-ac82-11e9-8998-68b599768938
+- accession_number: ERP141224
+  aligned: 1
+  contains_human_dna: 0
+  contaminated_human_dna: 0
+  description: Study for release prior to publication of selected datasets
+  id_lims: SQSCP
+  id_study_lims: 7069
+  id_study_tmp: 6942
+  name: Alternative Enzymes 2022 microbial genomes
+  reference_genome: Clostridium_difficile (Strain_630)
+  remove_x_and_autosomes: 0
+  separate_y_chromosome_data: 0
+  study_title: Alternative Enzymes 2022 microbial genomes
+  study_visibility: Public
+  uuid_study_lims: 39ba6ae6-3500-11ed-b3f3-fa163eac3af7
+- abbreviation: DTOL_RD
+  abstract: Sequencing and assembly of  genomes from British species for the Darwin Tree of Life Project
+  accession_number: ERP115230
+  aligned: 1
+  contains_human_dna: 0
+  contaminated_human_dna: 0
+  created: 2019-05-10 08:36:03
+  data_release_sort_of_study: genotyping or cytogenetics
+  data_release_strategy: not applicable
+  data_release_timing: never
+  description: "Sequencing and assembly of  genomes from British species for the Darwin Tree of Life Project"
+  faculty_sponsor: MB
+  id_lims: SQSCP
+  id_study_lims: 5822
+  id_study_tmp: 5656
+  last_updated: 2023-07-24 15:18:11
+  name: DTOL_Darwin R&D
+  recorded_at: 2023-07-24 15:18:11
+  reference_genome: ' '
+  remove_x_and_autosomes: 0
+  separate_y_chromosome_data: 0
+  state: active
+  study_title: Darwin R&D
+  study_type: Whole Genome Sequencing
+  study_visibility: Hold
+  uuid_study_lims: a54462b6-72fe-11e9-9cbc-68b599768938
+- abbreviation: BlaxGeNe
+  abstract: 'High quality reference genome sequences and formal species descriptions'
+  accession_number: ERP120055
+  aligned: 1
+  contains_human_dna: 0
+  contaminated_human_dna: 0
+  created: 2020-02-17 14:34:51
+  data_release_sort_of_study: genomic sequencing
+  data_release_strategy: open
+  data_release_timing: standard
+  description: 'other description'
+  faculty_sponsor: MB
+  id_lims: SQSCP
+  id_study_lims: 6137
+  id_study_tmp: 5967
+  last_updated: 2023-07-24 15:18:11
+  name: 959 Nematode Genomes
+  recorded_at: 2023-07-24 15:18:12
+  reference_genome: ' '
+  remove_x_and_autosomes: 0
+  separate_y_chromosome_data: 0
+  state: active
+  study_title: 959 Nematode Genomes
+  study_type: Whole Genome Sequencing
+  study_visibility: Public
+  uuid_study_lims: a845b2e4-5192-11ea-91ec-fa163e9d6485
+- abbreviation: 6771STDY
+  abstract: 'some abstract'
+  accession_number: ERP135012
+  aligned: 1
+  contains_human_dna: 0
+  contaminated_human_dna: 0
+  created: 2022-01-19 16:07:11
+  data_release_sort_of_study: genomic sequencing
+  data_release_strategy: open
+  data_release_timing: standard
+  description: 'some description'
+  faculty_sponsor: MB
+  id_lims: SQSCP
+  id_study_lims: 6771
+  id_study_tmp: 6615
+  last_updated: 2024-01-05 10:36:10
+  name: ToL_Blaxter_ Reference Genomes_ DNA
+  recorded_at: 2024-01-05 10:36:10
+  reference_genome: ' '
+  remove_x_and_autosomes: 0
+  separate_y_chromosome_data: 0
+  state: active
+  study_title: Reference Genome
+  study_type: Whole Genome Sequencing
+  study_visibility: Hold
+  uuid_study_lims: dbfc7680-7941-11ec-bf7f-fa163eea3084
+

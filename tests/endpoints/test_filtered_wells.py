@@ -81,7 +81,10 @@ def test_on_hold_filter(test_client: TestClient, load_data4well_retrieval):
     """Test passing `on_hold` filter."""
 
     status = "on_hold"
-    expected_data = [{"TRACTION_RUN_1:D1": "On hold"}, {"TRACTION_RUN_1:B1": "On hold"}]
+    expected_data = [
+        {"TRACTION_RUN_1:D1": "On hold external"},
+        {"TRACTION_RUN_1:B1": "On hold"},
+    ]
     num_total = len(expected_data)
 
     response = test_client.get(

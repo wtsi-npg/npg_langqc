@@ -538,6 +538,27 @@ class PacBioRunWellMetrics(Base):
         "PacBioProductMetrics", back_populates="pac_bio_run_well_metrics"
     )
 
+    def get_experiment_info(self):
+        """Returns a list of PacBioRun mlwh database rows.
+
+        Returns LIMS information about the PacBio experiment
+        for this well, one pac_bio_run table row per sample
+        (product) in the well.
+
+        If any or all of the pac_bio_product_metrics rows linked
+        to this well record are not linked to the pac_bio_run
+        table, and empty array is returned, thus preventing incomplete
+        data being supplied to the client.
+        """
+        product_metrics = self.pac_bio_product_metrics
+        experiment_info = [
+            pbr for pbr in [pm.pac_bio_run for pm in product_metrics] if pbr is not None
+        ]
+        if len(experiment_info) != len(product_metrics):
+            experiment_info = []
+
+        return experiment_info
+
 
 class PacBioProductMetrics(Base):
     __tablename__ = "pac_bio_product_metrics"
@@ -578,6 +599,30 @@ class PacBioProductMetrics(Base):
         mysqlTINYINT(1),
         index=True,
         comment="The final QC outcome of the product as 0(failed), 1(passed) or NULL",
+    )
+    hifi_read_bases = Column(
+        mysqlBIGINT(unsigned=True), nullable=True, comment="The number of HiFi bases"
+    )
+    hifi_num_reads = Column(
+        mysqlINTEGER(unsigned=True), nullable=True, comment="The number of HiFi reads"
+    )
+    hifi_read_length_mean = Column(
+        mysqlINTEGER(unsigned=True), nullable=True, comment="The mean HiFi read length"
+    )
+    barcode_quality_score_mean = Column(
+        mysqlSMALLINT(unsigned=True),
+        nullable=True,
+        comment="The mean barcode HiFi quality score",
+    )
+    hifi_read_quality_mean = Column(
+        mysqlINTEGER(unsigned=True),
+        nullable=True,
+        comment="The mean HiFi base quality",
+    )
+    hifi_bases_percent = Column(
+        mysqlFLOAT(),
+        nullable=True,
+        comment="The HiFi bases expressed as a percentage of the total HiFi bases",
     )
 
     pac_bio_run_well_metrics = relationship(

@@ -38,6 +38,7 @@ for (let index = 0; index < 2; index++) {
     instrument_name: "1234",
     instrument_type: "Revio",
     id_product: `${index}23456`,
+    study_names: [`Study ${index}`, 'Another study'],
     ...someLinkGeneration
   })
 }
@@ -48,6 +49,7 @@ const secondaryRun = {
   instrument_name: '1234',
   instrument_type: 'Revio',
   id_product: 'ABCDEF',
+  study_names: [],
   ...someLinkGeneration
 }
 
@@ -141,7 +143,6 @@ describe('Does it work?', async () => {
     let buttons = wrapper.findAll('button')
     buttons[1].trigger('click')
     await flushPromises()
-
     expect(wrapper.get('#well_summary').exists()).toBe(true)
   })
 

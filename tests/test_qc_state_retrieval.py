@@ -30,7 +30,7 @@ def test_bulk_retrieval(qcdb_test_session, load_data4well_retrieval):
     # product IDs is performed.
     assert get_qc_states_by_id_product_list(qcdb_test_session, ["dodo"]) == {}
 
-    qc_state_descriptions = ["On hold", "Failed, Instrument"]
+    qc_state_descriptions = ["On hold external", "Failed, Instrument"]
 
     qc_states = get_qc_states_by_id_product_list(qcdb_test_session, two_good_ids_list)
     assert len(qc_states) == 2
@@ -140,7 +140,7 @@ def test_product_qc_state_retrieval(qcdb_test_session, load_data4well_retrieval)
     assert qc_state is not None
     assert qc_state.seq_product.id_product == FIRST_GOOD_CHECKSUM
     assert qc_state.qc_type.qc_type == "sequencing"
-    assert qc_state.qc_state_dict.state == "On hold"
+    assert qc_state.qc_state_dict.state == "On hold external"
 
     qc_state = get_qc_state_for_product(
         session=qcdb_test_session, id_product=FIRST_GOOD_CHECKSUM, qc_type="sequencing"
@@ -148,7 +148,7 @@ def test_product_qc_state_retrieval(qcdb_test_session, load_data4well_retrieval)
     assert qc_state is not None
     assert qc_state.seq_product.id_product == FIRST_GOOD_CHECKSUM
     assert qc_state.qc_type.qc_type == "sequencing"
-    assert qc_state.qc_state_dict.state == "On hold"
+    assert qc_state.qc_state_dict.state == "On hold external"
 
     qc_state = get_qc_state_for_product(
         session=qcdb_test_session, id_product=FIRST_GOOD_CHECKSUM, qc_type="library"
@@ -156,7 +156,7 @@ def test_product_qc_state_retrieval(qcdb_test_session, load_data4well_retrieval)
     assert qc_state is not None
     assert qc_state.seq_product.id_product == FIRST_GOOD_CHECKSUM
     assert qc_state.qc_type.qc_type == "library"
-    assert qc_state.qc_state_dict.state == "On hold"
+    assert qc_state.qc_state_dict.state == "On hold external"
 
     qc_state = get_qc_state_for_product(qcdb_test_session, SECOND_GOOD_CHECKSUM)
     assert qc_state is not None
@@ -183,6 +183,7 @@ def test_dict_helper(qcdb_test_session, load_dicts_and_users):
         "Failed, SMRT cell",
         "Claimed",
         "On hold",
+        "On hold external",
         "Undecided",
     ]
     assert list(qc_state_dict(qcdb_test_session).keys()) == expected_sorted_states
