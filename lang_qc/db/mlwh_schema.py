@@ -614,11 +614,6 @@ class PacBioProductMetrics(Base):
         nullable=True,
         comment="The mean barcode HiFi quality score",
     )
-    hifi_read_quality_mean = Column(
-        mysqlINTEGER(unsigned=True),
-        nullable=True,
-        comment="The mean HiFi base quality",
-    )
     hifi_bases_percent = Column(
         mysqlFLOAT(),
         nullable=True,
