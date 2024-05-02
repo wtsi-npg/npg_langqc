@@ -1,4 +1,4 @@
-# Copyright (c) 2022, 2023 Genome Research Ltd.
+# Copyright (c) 2022, 2023, 2024 Genome Research Ltd.
 #
 # Authors:
 #   Adam Blanchet
@@ -40,13 +40,14 @@ from lang_qc.db.qc_schema import User
 from lang_qc.models.pacbio.well import PacBioPagedWells, PacBioWellFull
 from lang_qc.models.qc_flow_status import QcFlowStatusEnum
 from lang_qc.models.qc_state import QcState, QcStateBasic
+from lang_qc.models.pacbio.qc_data import QCPoolMetrics
 from lang_qc.util.auth import check_user
 from lang_qc.util.errors import (
     InconsistentInputError,
     InvalidDictValueError,
     RunNotFoundError,
 )
-from lang_qc.util.type_checksum import ChecksumSHA256
+from lang_qc.util.type_checksum import ChecksumSHA256, PacBioWellSHA256, PacBioProductSHA256
 
 """
 A collection of API endpoints that are specific to the PacBio sequencing
@@ -173,7 +174,7 @@ def get_wells_in_run(
     response_model=PacBioWellFull,
 )
 def get_seq_metrics(
-    id_product: ChecksumSHA256,
+    id_product: PacBioWellSHA256,
     mlwhdb_session: Session = Depends(get_mlwh_db),
     qcdb_session: Session = Depends(get_qc_db),
 ) -> PacBioWellFull:
@@ -210,7 +211,7 @@ def get_seq_metrics(
     status_code=status.HTTP_201_CREATED,
 )
 def claim_qc(
-    id_product: ChecksumSHA256,
+    id_product: PacBioWellSHA256,
     user: User = Depends(check_user),
     qcdb_session: Session = Depends(get_qc_db),
     mlwhdb_session: Session = Depends(get_mlwh_db),

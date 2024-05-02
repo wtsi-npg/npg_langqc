@@ -7,7 +7,7 @@ from lang_qc.util.type_checksum import ChecksumSHA256
 
 
 class ChecksumSHA256User(BaseModel):
-    product_chcksm: ChecksumSHA256
+    product_chcksm: ChecksumSHA256 | None = None
 
 
 def test_valid_checksum():
