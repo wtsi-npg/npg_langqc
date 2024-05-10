@@ -1,4 +1,4 @@
-# Copyright (c) 2022, 2023 Genome Research Ltd.
+# Copyright (c) 2022, 2023, 2024 Genome Research Ltd.
 #
 # Authors:
 #   Marina Gourtovaia <mg8@sanger.ac.uk>
@@ -23,6 +23,7 @@
 from pydantic import BaseModel, ConfigDict, Field
 
 from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
+from lang_qc.util.type_checksum import PacBioProductSHA256
 
 
 # Pydantic prohibits us from defining these as @classmethod or @staticmethod
@@ -153,3 +154,31 @@ class QCDataWell(BaseModel):
                     qc_data[name]["value"] = getattr(obj, name, None)
 
         return cls.model_validate(qc_data)
+
+
+class SampleDeplexingStats(BaseModel):
+    """
+    A representation of metrics for one product, some direct from the DB and others inferred
+
+    For a long time tag2_name was null and tag1_name was silently used at both ends of the sequence.
+    As a result tag2_name will be None for most data in or before 2024.
+    """
+
+    id_product: PacBioProductSHA256
+    tag1_name: str | None
+    tag2_name: str | None
+    hifi_read_bases: int | None
+    hifi_num_reads: int | None
+    hifi_read_length_mean: float | None
+    hifi_bases_percent: float | None
+    percentage_total_reads: float | None
+
+
+class QCPoolMetrics(BaseModel):
+    pool_coeff_of_variance: float | None = Field(
+        title="Coefficient of variance for reads in the pool",
+        description="Percentage of the standard deviation w.r.t. mean, reported when the pool is larger than one",
+    )
+    products: list[SampleDeplexingStats] = Field(
+        title="List of products and their metrics"
+    )
