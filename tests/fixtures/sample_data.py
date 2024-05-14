@@ -13,7 +13,7 @@ from lang_qc.db.mlwh_schema import (
 
 
 @pytest.fixture(scope="function", params=["AAAAAAAA", None])
-def simplex_run(mlwhdb_test_session):
+def simplex_run(request, mlwhdb_test_session):
     """
     A single sample, well, run mlwh fixture that provides both an explicit tag1
     for the sample, and an implicit default tag (when the PacBio instrument is
@@ -22,7 +22,7 @@ def simplex_run(mlwhdb_test_session):
     run_name = "RUN"
     well_label = "A1"
     plate_number = 1
-    tag1 = mlwhdb_test_session.param
+    tag1 = request.param
 
     common_run_attribs = {
         "recorded_at": datetime.now(),
