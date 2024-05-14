@@ -1,4 +1,4 @@
-# Copyright (c) 2022, 2023 Genome Research Ltd.
+# Copyright (c) 2022, 2023, 2024 Genome Research Ltd.
 #
 # Authors:
 #   Marina Gourtovaia <mg8@sanger.ac.uk>
@@ -21,6 +21,7 @@
 
 import logging
 from datetime import date, datetime, timedelta
+from statistics import mean, stdev
 from typing import ClassVar, List
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -33,11 +34,13 @@ from lang_qc.db.helper.qc import (
 )
 from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
 from lang_qc.db.qc_schema import QcState, QcStateDict, QcType
+from lang_qc.models.pacbio.qc_data import QCPoolMetrics, SampleDeplexingStats
 from lang_qc.models.pacbio.well import PacBioPagedWells, PacBioWellSummary
 from lang_qc.models.pager import PagedResponse
 from lang_qc.models.qc_flow_status import QcFlowStatusEnum
 from lang_qc.models.qc_state import QcState as QcStateModel
 from lang_qc.util.errors import EmptyListOfRunNamesError, RunNotFoundError
+from lang_qc.util.type_checksum import PacBioWellSHA256
 
 """
 This package is using an undocumented feature of Pydantic, type
@@ -64,7 +67,7 @@ class WellWh(BaseModel):
     # The TestClient seems to be keeping these instances alive and changing them.
 
     def get_mlwh_well_by_product_id(
-        self, id_product: str
+        self, id_product: PacBioWellSHA256
     ) -> PacBioRunWellMetrics | None:
         """
         Returns a well row record from the well metrics table or
@@ -76,6 +79,44 @@ class WellWh(BaseModel):
                 PacBioRunWellMetrics.id_pac_bio_product == id_product,
             )
         ).scalar_one_or_none()
+
+    def get_metrics_by_well_product_id(
+        self, id_product: PacBioWellSHA256
+    ) -> QCPoolMetrics | None:
+        well = self.get_mlwh_well_by_product_id(id_product)
+        if well:
+            product_metrics = well.pac_bio_product_metrics
+            if len(product_metrics) == 1:
+                return None
+
+            cov: float | None
+            if any(p.hifi_num_reads is None for p in product_metrics):
+                cov = None
+            else:
+                hifi_reads = [prod.hifi_num_reads for prod in product_metrics]
+                cov = stdev(hifi_reads) / mean(hifi_reads) * 100
+
+            return QCPoolMetrics(
+                pool_coeff_of_variance=cov,
+                products=[
+                    SampleDeplexingStats(
+                        id_product=prod.id_pac_bio_product,
+                        tag1_name=prod.pac_bio_run.tag_identifier,
+                        tag2_name=prod.pac_bio_run.tag2_identifier,
+                        hifi_read_bases=prod.hifi_read_bases,
+                        hifi_num_reads=prod.hifi_num_reads,
+                        hifi_read_length_mean=prod.hifi_read_length_mean,
+                        hifi_bases_percent=prod.hifi_bases_percent,
+                        percentage_total_reads=(
+                            prod.hifi_num_reads / well.hifi_num_reads * 100
+                            if well.hifi_num_reads
+                            else None
+                        ),
+                    )
+                    for prod in product_metrics
+                ],
+            )
+        return None
 
     def recent_completed_wells(self) -> List[PacBioRunWellMetrics]:
         """
