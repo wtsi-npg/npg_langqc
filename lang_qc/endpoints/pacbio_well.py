@@ -47,7 +47,10 @@ from lang_qc.util.errors import (
     InvalidDictValueError,
     RunNotFoundError,
 )
-from lang_qc.util.type_checksum import ChecksumSHA256, PacBioWellSHA256, PacBioProductSHA256
+from lang_qc.util.type_checksum import (
+    ChecksumSHA256,
+    PacBioWellSHA256,
+)
 
 """
 A collection of API endpoints that are specific to the PacBio sequencing
@@ -184,6 +187,28 @@ def get_seq_metrics(
     qc_state_db = get_qc_state_for_product(session=qcdb_session, id_product=id_product)
     qc_state = None if qc_state_db is None else QcState.from_orm(qc_state_db)
     return PacBioWellFull(db_well=mlwh_well, qc_state=qc_state)
+
+
+@router.get(
+    "/products/{id_product}/seq_level/pool",
+    summary="Get sample (deplexing) metrics for a multiplexed well product by the well ID",
+    responses={
+        status.HTTP_404_NOT_FOUND: {"description": "Product not found"},
+        status.HTTP_422_UNPROCESSABLE_ENTITY: {"description": "Invalid product ID"},
+    },
+    response_model=QCPoolMetrics,
+)
+def get_product_metrics(
+    id_product: PacBioWellSHA256, mlwhdb_session: Session = Depends(get_mlwh_db)
+) -> QCPoolMetrics:
+    metrics = WellWh(mlwh_session=mlwhdb_session).get_metrics_by_well_product_id(
+        id_product
+    )
+    if metrics is None:
+        raise HTTPException(
+            status_code=404, detail="Well does not have any pool metrics"
+        )
+    return metrics
 
 
 @router.post(
