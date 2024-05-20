@@ -255,11 +255,11 @@
   id_pac_bio_tmp: 120632
   last_changed: 2024-02-28 11:10:15
   qc: 1
-- barcode_quality_score_mean: ~
-  hifi_bases_percent: ~
-  hifi_num_reads: ~
-  hifi_read_bases: ~
-  hifi_read_length_mean: ~
+- barcode_quality_score_mean: 97
+  hifi_bases_percent: 27.49
+  hifi_num_reads: 1952224
+  hifi_read_bases: 21504288522
+  hifi_read_length_mean: 11015
   hifi_read_quality_mean: ~
   id_pac_bio_pr_metrics_tmp: 30023
   id_pac_bio_product: 74af5a311e15af654336aea65826a2c4974842d752e25875b0303ad5a3556167
@@ -267,11 +267,11 @@
   id_pac_bio_tmp: 120633
   last_changed: 2024-02-28 11:10:15
   qc: 1
-- barcode_quality_score_mean: ~
-  hifi_bases_percent: ~
-  hifi_num_reads: ~
-  hifi_read_bases: ~
-  hifi_read_length_mean: ~
+- barcode_quality_score_mean: 96
+  hifi_bases_percent: 19.62
+  hifi_num_reads: 1139885
+  hifi_read_bases: 15344650012
+  hifi_read_length_mean: 13461
   hifi_read_quality_mean: ~
   id_pac_bio_pr_metrics_tmp: 30024
   id_pac_bio_product: 11022006a649937c570d100ccb382dddadf9a7174ee303903c8d2b7cd7efb328
@@ -279,11 +279,11 @@
   id_pac_bio_tmp: 120634
   last_changed: 2024-02-28 11:10:15
   qc: 1
-- barcode_quality_score_mean: ~
-  hifi_bases_percent: ~
-  hifi_num_reads: ~
-  hifi_read_bases: ~
-  hifi_read_length_mean: ~
+- barcode_quality_score_mean: 96
+  hifi_bases_percent: 23.7
+  hifi_num_reads: 1751410
+  hifi_read_bases: 18538781061
+  hifi_read_length_mean: 10585
   hifi_read_quality_mean: ~
   id_pac_bio_pr_metrics_tmp: 30025
   id_pac_bio_product: e6a2157d0fda8faae1288025e99ce5f8133f1466b752a67809668e5b9b16d5b1
@@ -291,11 +291,11 @@
   id_pac_bio_tmp: 120635
   last_changed: 2024-02-28 11:10:15
   qc: 1
-- barcode_quality_score_mean: ~
-  hifi_bases_percent: ~
-  hifi_num_reads: ~
-  hifi_read_bases: ~
-  hifi_read_length_mean: ~
+- barcode_quality_score_mean: 97
+  hifi_bases_percent: 28.72
+  hifi_num_reads: 1991282
+  hifi_read_bases: 22462478066
+  hifi_read_length_mean: 11280
   hifi_read_quality_mean: ~
   id_pac_bio_pr_metrics_tmp: 30026
   id_pac_bio_product: 9840280d97c98ff3ddda36ac95cf3b87f5810cc3be73a64c27d6ab92cfaab0ac

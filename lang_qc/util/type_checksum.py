@@ -46,6 +46,7 @@ class PacBioWellSHA256(ChecksumSHA256):
     """
     A checksum generated from the coordinates of a single well on a plate in a PacBio run
     """
+
     pass
 
 
@@ -55,4 +56,5 @@ class PacBioProductSHA256(ChecksumSHA256):
     See `npg_id_generation.pac_bio.PacBioEntity`.
     Tags only contribute to the checksum when samples are multiplexed.
     """
+
     pass

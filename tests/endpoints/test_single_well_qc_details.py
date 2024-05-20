@@ -1,4 +1,5 @@
 from fastapi.testclient import TestClient
+from npg_id_generation.pac_bio import PacBioEntity
 
 from tests.fixtures.well_data import load_data4well_retrieval, load_dicts_and_users
 
@@ -165,3 +166,20 @@ def test_get_well_info(
     assert result["plate_number"] == 2
     assert result["id_product"] == id_product
     assert result["qc_state"] is None
+
+
+def test_get_pool_info(test_client: TestClient, mlwhdb_load_runs):
+    id_product = PacBioEntity(
+        run_name="TRACTION-RUN-1140", well_label="D1", plate_number=1
+    ).hash_product_id()
+    response = test_client.get(f"/pacbio/products/{id_product}/seq_level/pool")
+    assert response.status_code == 200
+
+    data = response.json()
+    assert int(data["pool_coeff_of_variance"]) == 23, "variance is calculated"
+    assert {prod["tag1_name"] for prod in data["products"]} == {
+        "bc2036",
+        "bc2040",
+        "bc2054",
+        "bc2063",
+    }, "Correct products present"
