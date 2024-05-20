@@ -12,7 +12,7 @@ from lang_qc.db.mlwh_schema import (
 )
 
 
-@pytest.fixture(scope="function", params=["AAAAAAAA", None])
+@pytest.fixture(scope="module", params=["AAAAAAAA", None])
 def simplex_run(request, mlwhdb_test_session):
     """
     A single sample, well, run mlwh fixture that provides both an explicit tag1
@@ -87,6 +87,10 @@ def simplex_run(request, mlwhdb_test_session):
         **common_run_attribs
     )
     mlwhdb_test_session.add(simplex_run)
+    mlwhdb_test_session.commit()
+    yield simplex_run
+    mlwhdb_test_session.delete(simplex_run)
+    mlwhdb_test_session.delete(study)
     mlwhdb_test_session.commit()
 
 
@@ -197,6 +201,11 @@ def multiplexed_run(mlwhdb_test_session):
     )
 
     mlwhdb_test_session.add_all([multiplex_run_1, multiplex_run_2])
+    mlwhdb_test_session.commit()
+    yield (multiplex_run_1, multiplex_run_2)
+    mlwhdb_test_session.delete(multiplex_run_1)
+    mlwhdb_test_session.delete(multiplex_run_2)
+    mlwhdb_test_session.delete(study)
     mlwhdb_test_session.commit()
 
 
