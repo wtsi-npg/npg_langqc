@@ -62,7 +62,6 @@ def simplex_run(request, mlwhdb_test_session):
         hifi_num_reads=10,
         hifi_read_length_mean=90,
         barcode_quality_score_mean=34,
-        hifi_read_quality_mean=35,
         hifi_bases_percent=90.001,
         pac_bio_run_well_metrics=well_metrics_a1,
     )
@@ -150,7 +149,6 @@ def multiplexed_run(mlwhdb_test_session):
         hifi_num_reads=20,
         hifi_read_length_mean=45,
         barcode_quality_score_mean=34,
-        hifi_read_quality_mean=35,
         hifi_bases_percent=90.001,
         pac_bio_run_well_metrics=well_metrics_b1,
     )
@@ -182,7 +180,6 @@ def multiplexed_run(mlwhdb_test_session):
         hifi_num_reads=10,
         hifi_read_length_mean=10,
         barcode_quality_score_mean=34,
-        hifi_read_quality_mean=35,
         hifi_bases_percent=100.00,
         pac_bio_run_well_metrics=well_metrics_b1,
     )
