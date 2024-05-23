@@ -177,7 +177,7 @@ class SampleDeplexingStats(BaseModel):
 class QCPoolMetrics(BaseModel):
     pool_coeff_of_variance: float | None = Field(
         title="Coefficient of variance for reads in the pool",
-        description="Percentage of the standard deviation w.r.t. mean, reported when the pool is larger than one",
+        description="Percentage of the standard deviation w.r.t. mean, when pool is more than one",
     )
     products: list[SampleDeplexingStats] = Field(
         title="List of products and their metrics"

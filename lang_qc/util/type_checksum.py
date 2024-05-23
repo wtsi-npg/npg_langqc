@@ -52,8 +52,8 @@ class PacBioWellSHA256(ChecksumSHA256):
 
 class PacBioProductSHA256(ChecksumSHA256):
     """
-    A checksum generated from the combination of run, well, plate and any tags required for deplexing
-    See `npg_id_generation.pac_bio.PacBioEntity`.
+    A checksum generated from the combination of run, well, plate and any tags required for
+    deplexing, see `npg_id_generation.pac_bio.PacBioEntity`.
     Tags only contribute to the checksum when samples are multiplexed.
     """
 

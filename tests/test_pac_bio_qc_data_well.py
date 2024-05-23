@@ -103,7 +103,11 @@ def test_creating_qc_data_well(mlwhdb_test_session, mlwhdb_load_runs):
 
 def test_pool_metrics_from_single_sample_well(mlwhdb_test_session, simplex_run):
     helper = WellWh(session=mlwhdb_test_session)
-    id = PacBioEntity(run_name="RUN", well_label="A1", plate_number=1).hash_product_id()
+    id = PacBioEntity(
+        run_name=simplex_run.pac_bio_run_name,
+        well_label=simplex_run.well_label,
+        plate_number=simplex_run.plate_number,
+    ).hash_product_id()
 
     metrics = helper.get_metrics_by_well_product_id(id)
     assert metrics is None, "Got no metrics for a one-sample well"

@@ -19,7 +19,8 @@ def simplex_run(request, mlwhdb_test_session):
     for the sample, and an implicit default tag (when the PacBio instrument is
     run with default barcodes)
     """
-    run_name = "RUN"
+    run_name = "RUN-9999"
+    run_name += request.param if request.param else ""
     well_label = "A1"
     plate_number = 1
     tag1 = request.param
@@ -49,6 +50,23 @@ def simplex_run(request, mlwhdb_test_session):
         ).hash_product_id(),
     )
 
+    product = PacBioProductMetrics(
+        id_pac_bio_product=PacBioEntity(
+            run_name=run_name,
+            well_label=well_label,
+            plate_number=plate_number,
+            tags=tag1,
+        ).hash_product_id(),
+        qc=1,
+        hifi_read_bases=900,
+        hifi_num_reads=10,
+        hifi_read_length_mean=90,
+        barcode_quality_score_mean=34,
+        hifi_read_quality_mean=35,
+        hifi_bases_percent=90.001,
+        pac_bio_run_well_metrics=well_metrics_a1,
+    )
+
     study = Study(
         id_lims="id",
         id_study_lims="1",
@@ -62,28 +80,11 @@ def simplex_run(request, mlwhdb_test_session):
         id_pac_bio_run_lims=0,
         sample=Sample(
             id_lims="id",
-            id_sample_lims="1",
+            id_sample_lims=request.param or "1",
         ),
         study=study,
         plate_barcode="ABCD",
-        pac_bio_product_metrics=[
-            PacBioProductMetrics(
-                id_pac_bio_product=PacBioEntity(
-                    run_name=run_name,
-                    well_label=well_label,
-                    plate_number=plate_number,
-                    tags=tag1,
-                ).hash_product_id(),
-                qc=1,
-                hifi_read_bases=900,
-                hifi_num_reads=10,
-                hifi_read_length_mean=90,
-                barcode_quality_score_mean=34,
-                hifi_read_quality_mean=35,
-                hifi_bases_percent=90.001,
-                pac_bio_run_well_metrics=well_metrics_a1,
-            )
-        ],
+        pac_bio_product_metrics=[product],
         **common_run_attribs
     )
     mlwhdb_test_session.add(simplex_run)
@@ -91,6 +92,8 @@ def simplex_run(request, mlwhdb_test_session):
     yield simplex_run
     mlwhdb_test_session.delete(simplex_run)
     mlwhdb_test_session.delete(study)
+    mlwhdb_test_session.delete(product)
+    mlwhdb_test_session.delete(well_metrics_a1)
     mlwhdb_test_session.commit()
 
 
@@ -101,7 +104,6 @@ def multiplexed_run(mlwhdb_test_session):
     run_name = "RUN"
     well_label = "B1"
     plate_number = 1
-    tag1 = "AAAAAAA"
 
     common_run_attribs = {
         "recorded_at": datetime.now(),
@@ -136,6 +138,23 @@ def multiplexed_run(mlwhdb_test_session):
         hifi_num_reads=30,
     )
 
+    product_1 = PacBioProductMetrics(
+        id_pac_bio_product=PacBioEntity(
+            run_name=run_name,
+            well_label=well_label,
+            plate_number=plate_number,
+            tags=tag1,
+        ).hash_product_id(),
+        qc=1,
+        hifi_read_bases=900,
+        hifi_num_reads=20,
+        hifi_read_length_mean=45,
+        barcode_quality_score_mean=34,
+        hifi_read_quality_mean=35,
+        hifi_bases_percent=90.001,
+        pac_bio_run_well_metrics=well_metrics_b1,
+    )
+
     multiplex_run_1 = PacBioRun(
         pac_bio_run_name=run_name,
         well_label=well_label,
@@ -147,25 +166,25 @@ def multiplexed_run(mlwhdb_test_session):
         ),
         study=study,
         plate_barcode="ABCD",
-        pac_bio_product_metrics=[
-            PacBioProductMetrics(
-                id_pac_bio_product=PacBioEntity(
-                    run_name=run_name,
-                    well_label=well_label,
-                    plate_number=plate_number,
-                    tags=tag1,
-                ).hash_product_id(),
-                qc=1,
-                hifi_read_bases=900,
-                hifi_num_reads=20,
-                hifi_read_length_mean=45,
-                barcode_quality_score_mean=34,
-                hifi_read_quality_mean=35,
-                hifi_bases_percent=90.001,
-                pac_bio_run_well_metrics=well_metrics_b1,
-            ),
-        ],
+        pac_bio_product_metrics=[product_1],
         **common_run_attribs
+    )
+
+    product_2 = PacBioProductMetrics(
+        id_pac_bio_product=PacBioEntity(
+            run_name=run_name,
+            well_label=well_label,
+            plate_number=plate_number,
+            tags=tag1_2,
+        ).hash_product_id(),
+        qc=1,
+        hifi_read_bases=100,
+        hifi_num_reads=10,
+        hifi_read_length_mean=10,
+        barcode_quality_score_mean=34,
+        hifi_read_quality_mean=35,
+        hifi_bases_percent=100.00,
+        pac_bio_run_well_metrics=well_metrics_b1,
     )
 
     multiplex_run_2 = PacBioRun(
@@ -179,24 +198,7 @@ def multiplexed_run(mlwhdb_test_session):
         ),
         study=study,
         plate_barcode="ABCD",
-        pac_bio_product_metrics=[
-            PacBioProductMetrics(
-                id_pac_bio_product=PacBioEntity(
-                    run_name=run_name,
-                    well_label=well_label,
-                    plate_number=plate_number,
-                    tags=tag1_2,
-                ).hash_product_id(),
-                qc=1,
-                hifi_read_bases=100,
-                hifi_num_reads=10,
-                hifi_read_length_mean=10,
-                barcode_quality_score_mean=34,
-                hifi_read_quality_mean=35,
-                hifi_bases_percent=100.00,
-                pac_bio_run_well_metrics=well_metrics_b1,
-            )
-        ],
+        pac_bio_product_metrics=[product_2],
         **common_run_attribs
     )
 
@@ -206,6 +208,9 @@ def multiplexed_run(mlwhdb_test_session):
     mlwhdb_test_session.delete(multiplex_run_1)
     mlwhdb_test_session.delete(multiplex_run_2)
     mlwhdb_test_session.delete(study)
+    mlwhdb_test_session.delete(well_metrics_b1)
+    mlwhdb_test_session.delete(product_1)
+    mlwhdb_test_session.delete(product_2)
     mlwhdb_test_session.commit()
 
 
