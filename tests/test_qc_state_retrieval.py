@@ -1,12 +1,18 @@
+from datetime import datetime, timedelta
+
 import pytest
+from sqlalchemy import select
 
 from lang_qc.db.helper.qc import (
     get_qc_state_for_product,
+    get_qc_states,
     get_qc_states_by_id_product_list,
     product_has_qc_state,
     products_have_qc_state,
     qc_state_dict,
 )
+from lang_qc.db.qc_schema import QcState
+from lang_qc.models.qc_state import QcState as QcStateModel
 from tests.fixtures.well_data import load_data4well_retrieval, load_dicts_and_users
 
 MISSING_CHECKSUM = "A" * 64
@@ -24,7 +30,7 @@ NO_SEQ_QC_CHECKSUM = "dc77c4a7f34d84afbb895fcaee72fc8bead9dac20e8d3a9614091d9dd4
 two_good_ids_list = [FIRST_GOOD_CHECKSUM, SECOND_GOOD_CHECKSUM]
 
 
-def test_bulk_retrieval(qcdb_test_session, load_data4well_retrieval):
+def test_bulk_retrieval_by_id(qcdb_test_session, load_data4well_retrieval):
 
     # The test below demonstrates that no run-time type checking of
     # product IDs is performed.
@@ -64,6 +70,111 @@ def test_bulk_retrieval(qcdb_test_session, load_data4well_retrieval):
     assert len(qc_states) == 1
     assert SECOND_GOOD_CHECKSUM in qc_states
     assert MISSING_CHECKSUM not in qc_states
+
+
+def test_bulk_retrieval(qcdb_test_session, load_data4well_retrieval):
+
+    with pytest.raises(ValueError, match=r"num_weeks should be a positive number"):
+        assert get_qc_states(qcdb_test_session, num_weeks=-1)
+
+    qc_states = (
+        qcdb_test_session.execute(select(QcState).order_by(QcState.date_updated.desc()))
+        .scalars()
+        .all()
+    )
+    now = datetime.today()
+    max_interval = now - qc_states[-1].date_updated
+    max_num_weeks = int(max_interval.days / 7 + 1)
+    min_interval = now - qc_states[0].date_updated
+    min_num_weeks = int(min_interval.days / 7 - 1)
+
+    assert min_num_weeks > 2
+    # Set the look-back number of weeks to teh period with no records.
+    qc_states_dict = get_qc_states(qcdb_test_session, num_weeks=(min_num_weeks - 1))
+    assert len(qc_states_dict) == 0
+
+    # Retrieve all available QC states.
+    qc_states_dict = get_qc_states(qcdb_test_session, num_weeks=max_num_weeks)
+    # Test total number of QcState objects.
+    assert sum([len(l) for (id, l) in qc_states_dict.items()]) == len(qc_states)
+    # Test number of items in the dictionary.
+    assert len(qc_states_dict) == len(
+        {qc_state.id_seq_product: 1 for qc_state in qc_states}
+    )
+
+    # Retrieve all available final QC states.
+    qc_states_dict = get_qc_states(
+        qcdb_test_session, num_weeks=max_num_weeks, final_only=True
+    )
+    assert sum([len(l) for (id, l) in qc_states_dict.items()]) == len(
+        [qc_state for qc_state in qc_states if qc_state.is_preliminary == 0]
+    )
+    assert {id: len(l) for (id, l) in qc_states_dict.items()} == {
+        "e47765a207c810c2c281d5847e18c3015f3753b18bd92e8a2bea1219ba3127ea": 2,
+        "977089cd272dffa70c808d74159981c0d1363840875452a868a4c5e15f1b2072": 2,
+        "dc99ab8cb6762df5c935adaeb1f0c49ff34af96b6fa3ebf9a90443079c389579": 2,
+        "5e91b9246b30c2df4e9f2a2313ce097e93493b0a822e9d9338e32df5d58db585": 2,
+    }
+
+    # Retrieve all available sequencing type QC states.
+    qc_states_dict = get_qc_states(
+        qcdb_test_session, num_weeks=max_num_weeks, sequencing_outcomes_only=True
+    )
+    assert len(qc_states_dict) == len(
+        [qc_state for qc_state in qc_states if qc_state.qc_type.qc_type == "sequencing"]
+    )
+
+    # Retrieve all available sequencing type final QC states.
+    qc_states_dict = get_qc_states(
+        qcdb_test_session,
+        num_weeks=max_num_weeks,
+        final_only=True,
+        sequencing_outcomes_only=True,
+    )
+    assert len(qc_states_dict) == len(
+        [
+            qc_state
+            for qc_state in qc_states
+            if (
+                qc_state.is_preliminary == 0
+                and qc_state.qc_type.qc_type == "sequencing"
+            )
+        ]
+    )
+    assert {id: len(l) for (id, l) in qc_states_dict.items()} == {
+        "e47765a207c810c2c281d5847e18c3015f3753b18bd92e8a2bea1219ba3127ea": 1,
+        "977089cd272dffa70c808d74159981c0d1363840875452a868a4c5e15f1b2072": 1,
+        "dc99ab8cb6762df5c935adaeb1f0c49ff34af96b6fa3ebf9a90443079c389579": 1,
+        "5e91b9246b30c2df4e9f2a2313ce097e93493b0a822e9d9338e32df5d58db585": 1,
+    }
+
+    # Retrieve recent sequencing type final QC states.
+    num_weeks = max_num_weeks - 44
+    qc_states_dict = get_qc_states(
+        qcdb_test_session,
+        num_weeks=num_weeks,
+        final_only=True,
+        sequencing_outcomes_only=True,
+    )
+    earliest_time = now - timedelta(weeks=num_weeks)
+    assert len(qc_states_dict) == len(
+        [
+            qc_state
+            for qc_state in qc_states
+            if (
+                qc_state.date_updated > earliest_time
+                and qc_state.is_preliminary == 0
+                and qc_state.qc_type.qc_type == "sequencing"
+            )
+        ]
+    )
+    product_id = "5e91b9246b30c2df4e9f2a2313ce097e93493b0a822e9d9338e32df5d58db585"
+    assert {id: len(l) for (id, l) in qc_states_dict.items()} == {product_id: 1}
+    qc_state = qc_states_dict[product_id][0]
+    assert isinstance(qc_state, QcStateModel)
+    assert qc_state.id_product == product_id
+    assert qc_state.is_preliminary is False
+    assert qc_state.qc_type == "sequencing"
 
 
 def test_product_existence(qcdb_test_session, load_data4well_retrieval):
