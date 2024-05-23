@@ -37,20 +37,17 @@ from lang_qc.db.helper.wells import PacBioPagedWellsFactory, WellWh
 from lang_qc.db.mlwh_connection import get_mlwh_db
 from lang_qc.db.qc_connection import get_qc_db
 from lang_qc.db.qc_schema import User
+from lang_qc.models.pacbio.qc_data import QCPoolMetrics
 from lang_qc.models.pacbio.well import PacBioPagedWells, PacBioWellFull
 from lang_qc.models.qc_flow_status import QcFlowStatusEnum
 from lang_qc.models.qc_state import QcState, QcStateBasic
-from lang_qc.models.pacbio.qc_data import QCPoolMetrics
 from lang_qc.util.auth import check_user
 from lang_qc.util.errors import (
     InconsistentInputError,
     InvalidDictValueError,
     RunNotFoundError,
 )
-from lang_qc.util.type_checksum import (
-    ChecksumSHA256,
-    PacBioWellSHA256,
-)
+from lang_qc.util.type_checksum import ChecksumSHA256, PacBioWellSHA256
 
 """
 A collection of API endpoints that are specific to the PacBio sequencing

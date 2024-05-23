@@ -12,7 +12,7 @@ from lang_qc.db.mlwh_schema import (
 )
 
 
-@pytest.fixture(scope="module", params=["AAAAAAAA", None])
+@pytest.fixture(scope="function", params=["AAAAAAAA", None])
 def simplex_run(request, mlwhdb_test_session):
     """
     A single sample, well, run mlwh fixture that provides both an explicit tag1
