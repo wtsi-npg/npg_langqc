@@ -27,7 +27,7 @@ from pydantic import Field, model_validator
 from pydantic.dataclasses import dataclass
 
 from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
-from lang_qc.models.pacbio.experiment import PacBioExperiment
+from lang_qc.models.pacbio.experiment import PacBioExperiment, PacBioLibrary
 from lang_qc.models.pacbio.qc_data import QCDataWell
 from lang_qc.models.pager import PagedResponse
 from lang_qc.models.qc_state import QcState
@@ -224,5 +224,24 @@ class PacBioWellFull(PacBioWell):
         experiment_info = mlwh_db_row.get_experiment_info()
         if len(experiment_info):
             assigned["experiment_tracking"] = PacBioExperiment.from_orm(experiment_info)
+
+        return assigned
+    
+@dataclass(kw_only=True, frozen=True)
+class PacBioWellLibraries(PacBioWell):
+    """A full response model for a single PacBio well."""
+
+    libraries: list[PacBioLibrary] = Field(
+        title="Experiment tracking information",
+    )
+
+    @model_validator(mode="before")
+    def pre_root(cls, values: dict[str, Any]) -> dict[str, Any]:
+
+        assigned = super().pre_root(values)
+        mlwh_db_row: PacBioRunWellMetrics = values.kwargs["db_well"]
+        assigned["libraries"] = [
+            PacBioLibrary(db_library=row) for row in mlwh_db_row.get_experiment_info()
+        ]
 
         return assigned

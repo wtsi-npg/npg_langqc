@@ -37,7 +37,7 @@ from lang_qc.db.helper.wells import PacBioPagedWellsFactory, WellWh
 from lang_qc.db.mlwh_connection import get_mlwh_db
 from lang_qc.db.qc_connection import get_qc_db
 from lang_qc.db.qc_schema import User
-from lang_qc.models.pacbio.well import PacBioPagedWells, PacBioWellFull
+from lang_qc.models.pacbio.well import PacBioPagedWells, PacBioWellFull, PacBioWellLibraries
 from lang_qc.models.qc_flow_status import QcFlowStatusEnum
 from lang_qc.models.qc_state import QcState, QcStateBasic
 from lang_qc.util.auth import check_user
@@ -183,6 +183,25 @@ def get_seq_metrics(
     qc_state_db = get_qc_state_for_product(session=qcdb_session, id_product=id_product)
     qc_state = None if qc_state_db is None else QcState.from_orm(qc_state_db)
     return PacBioWellFull(db_well=mlwh_well, qc_state=qc_state)
+
+
+@router.get(
+    "/products/{id_product}/seq_level/libs",
+    summary="Get full sequencing QC metrics and state for a product",
+    responses={
+        status.HTTP_404_NOT_FOUND: {"description": "Well product does not exist"},
+        status.HTTP_422_UNPROCESSABLE_ENTITY: {"description": "Invalid product ID"},
+    },
+    response_model=PacBioWellFull,
+)
+def get_well_lims_info(
+    id_product: ChecksumSHA256,
+    mlwhdb_session: Session = Depends(get_mlwh_db),
+) -> PacBioWellLibraries:
+    
+    mlwh_well = _find_well_product_or_error(id_product, mlwhdb_session)
+    return PacBioWellLibraries(db_well=mlwh_well)
+    
 
 
 @router.post(
