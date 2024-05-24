@@ -21,9 +21,72 @@
 
 from typing import List
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator, ValidationError
+from pydantic.dataclasses import dataclass
 
 from lang_qc.db.mlwh_schema import PacBioRun
+
+@dataclass(kw_only=True, frozen=True)
+class PacBioLibrary:
+
+    db_library: PacBioRun = Field(init_var=True)
+
+    study_id: str = Field(
+        title="LIMS-specific study identifier",
+    )
+    study_name: str = Field(
+        title="Study name",
+    )
+    sample_id: str = Field(
+        title="LIMS-specific Sample identifier",
+    )
+    sample_name: str = Field(
+        title="Sample name",
+    )
+    tag_sequences: list = Field(
+        title="Tag sequence",
+        description="""
+        Tag sequences as a list. An empty list for a non-indexed library.
+        """,
+    )
+    library_type: str | None = Field(
+        title="Library type",
+        default=None,
+    )
+    pool_name: str | None = Field(
+        default=None,
+        title="Pool name",
+        description="""
+        The pac_bio_library_tube_barcode from TRACTION, AKA pool name
+        """,
+    )
+
+    @model_validator(mode="before")
+    def pre_root(cls, values: dict[str, Any]) -> dict[str, Any]:
+        """
+        Populates this object with information available in the LIMS system.
+        """
+
+        # https://github.com/pydantic/pydantic-core/blob/main/python/pydantic_core/_pydantic_core.pyi
+        db_row: PacBioRun = values.kwargs["db_library"]
+        # any need to test for NULL?
+
+        assigned = dict()
+        study = db_row.study
+        assigned["study_name"] = study.name
+        assigned["study_id"] = study.id
+        sample = db_row.sample
+        assigned["sample_name"] = sample.name
+        assigned["sample_id"] = sample.id
+        assigned["pool_name"] = db_row.pac_bio_library_tube_barcode
+        assigned["library_type"] = db_row.pipeline_id_lims
+        assigned["tag_sequence"] = []
+        if tag := db_row.tag_sequence:
+            assigned["tag_sequence"].append(tag)
+            if tag := db_row.tag2_sequence:
+                assigned["tag_sequence"].append(tag)
+
+        return assigned
 
 
 class PacBioExperiment(BaseModel):
@@ -119,30 +182,29 @@ class PacBioExperiment(BaseModel):
 
         # Using sets for some data instead of lists because we do not
         # want repetitions.
+
         lims_data = {
             "num_samples": num_samples,
-            "study_id": set(),
-            "library_type": set(),
             "tag_sequence": [],
         }
-        study_name = None
-        for row in lims_db_rows:
-            lims_data["study_id"].add(row.study.id_study_lims)
-            lims_data["library_type"].add(row.pipeline_id_lims)
-            study_name = row.study.name
-            if pool_name := row.pac_bio_library_tube_barcode:
-                lims_data["pool_name"] = pool_name
-            if num_samples == 1:
-                if tag := row.tag_sequence:
-                    lims_data["tag_sequence"].append(tag)
-                    if tag := row.tag2_sequence:
-                        lims_data["tag_sequence"].append(tag)
-                lims_data["sample_id"] = row.sample.id_sample_lims
-                lims_data["sample_name"] = row.sample.name
-                lims_data["study_name"] = row.study.name
 
+        lib_objects = [PacBioLibrary(db_library=row) for row in lims_db_rows]
+
+        lims_data["study_id"] = {o.study_id for o in lib_objects} # returns a set
+        lims_data["library_type"] = {o.library_type if o.library_type is not None else 'UNKNOWN' for o in lib_objects}
+        pool_names = {o.pool_name for o in lib_objects if o.pool_name is not None}
+        if len(pool_names) > 1:
+            raise ValidationError("Multiple pool names in a well")
+        if len(pool_names) == 1:
+            lims_data["pool_name"] = pool_names.pop()
+        if num_samples == 1:
+            o = lib_objects[0]
+            lims_data["tag_sequence"] = o.tag_sequence
+            lims_data["sample_id"] = o.sample_id
+            lims_data["sample_name"] = o.sample_name
+            lims_data["study_name"] = o.study_name
         if len(lims_data["study_id"]) == 1:
-            lims_data["study_name"] = study_name
+            lims_data["study_name"] = o.study_name
 
         # Convert sets back to lists and sort so that the list items are
         # in a predictable order.
