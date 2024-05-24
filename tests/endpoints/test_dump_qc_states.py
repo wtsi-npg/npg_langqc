@@ -80,7 +80,7 @@ def test_get_qc(test_client: TestClient, load_data4well_retrieval):
     assert response.status_code == 200
     response_data = response.json()
     assert len(response_data) == 18
-    assert sum([len(l) for (id, l) in response_data.items()]) == 34
+    assert sum([len(l) for l in response_data.values()]) == 34
 
     response = test_client.get(
         f"/products/qc?weeks={num_weeks}&final=false&seq_level=no"
@@ -88,13 +88,13 @@ def test_get_qc(test_client: TestClient, load_data4well_retrieval):
     assert response.status_code == 200
     response_data = response.json()
     assert len(response_data) == 18
-    assert sum([len(l) for (id, l) in response_data.items()]) == 34
+    assert sum([len(l) for l in response_data.values()]) == 34
 
     response = test_client.get(f"/products/qc?weeks={num_weeks}&final=true")
     assert response.status_code == 200
     response_data = response.json()
     assert len(response_data) == 4
-    assert sum([len(l) for (id, l) in response_data.items()]) == 8
+    assert sum([len(l) for l in response_data.values()]) == 8
 
     response = test_client.get(
         f"/products/qc?weeks={num_weeks}&final=True&seq_level=yes"
@@ -102,7 +102,7 @@ def test_get_qc(test_client: TestClient, load_data4well_retrieval):
     assert response.status_code == 200
     response_data = response.json()
     assert len(response_data) == 4
-    assert sum([len(l) for (id, l) in response_data.items()]) == 4
+    assert sum([len(l) for l in response_data.values()]) == 4
     product_id = "5e91b9246b30c2df4e9f2a2313ce097e93493b0a822e9d9338e32df5d58db585"
     assert product_id in response_data
     qc_state = response_data[product_id][0]

@@ -89,14 +89,14 @@ def test_bulk_retrieval(qcdb_test_session, load_data4well_retrieval):
     min_num_weeks = int(min_interval.days / 7 - 1)
 
     assert min_num_weeks > 2
-    # Set the look-back number of weeks to teh period with no records.
+    # Set the look-back number of weeks to the period with no records.
     qc_states_dict = get_qc_states(qcdb_test_session, num_weeks=(min_num_weeks - 1))
     assert len(qc_states_dict) == 0
 
     # Retrieve all available QC states.
     qc_states_dict = get_qc_states(qcdb_test_session, num_weeks=max_num_weeks)
     # Test total number of QcState objects.
-    assert sum([len(l) for (id, l) in qc_states_dict.items()]) == len(qc_states)
+    assert sum([len(l) for l in qc_states_dict.values()]) == len(qc_states)
     # Test number of items in the dictionary.
     assert len(qc_states_dict) == len(
         {qc_state.id_seq_product: 1 for qc_state in qc_states}
@@ -106,7 +106,7 @@ def test_bulk_retrieval(qcdb_test_session, load_data4well_retrieval):
     qc_states_dict = get_qc_states(
         qcdb_test_session, num_weeks=max_num_weeks, final_only=True
     )
-    assert sum([len(l) for (id, l) in qc_states_dict.items()]) == len(
+    assert sum([len(l) for l in qc_states_dict.values()]) == len(
         [qc_state for qc_state in qc_states if qc_state.is_preliminary == 0]
     )
     assert {id: len(l) for (id, l) in qc_states_dict.items()} == {
