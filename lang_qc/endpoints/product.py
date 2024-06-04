@@ -18,14 +18,18 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
-from fastapi import APIRouter, Depends
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from starlette import status
 
-from lang_qc.db.helper.qc import get_qc_states_by_id_product_list
+from lang_qc.db.helper.qc import get_qc_states, get_qc_states_by_id_product_list
 from lang_qc.db.qc_connection import get_qc_db
 from lang_qc.models.qc_state import QcState
 from lang_qc.util.type_checksum import ChecksumSHA256
+
+RECENTLY_QCED_NUM_WEEKS = 4
 
 router = APIRouter(
     prefix="/products",
@@ -62,3 +66,39 @@ def bulk_qc_fetch(
 ):
 
     return get_qc_states_by_id_product_list(session=qcdb_session, ids=request_body)
+
+
+@router.get(
+    "/qc",
+    summary="Returns a dictionary of QC states",
+    description="""
+    The response is a dictionary of lists of QcState models hashed on product IDs.
+    Multiple QC states for the same product might be returned if the query is not
+    constrained to a single QC type.
+
+    Query parameters constrain the semantics of the response.
+        `weeks`  - number of weeks to look back, defaults to four.
+        `seq_level` - a boolean option. If `True`, only `sequencing` type QC states
+            are returned. If `False` (the default), all types of QC states are
+            returned.
+        `final` - a boolean option. If `True`, only final QC states are returned.
+            If `False` (the default), both final and preliminary QC states are
+            returned.
+    """,
+    responses={
+        status.HTTP_422_UNPROCESSABLE_ENTITY: {"description": "Invalid number of weeks"}
+    },
+    response_model=dict[ChecksumSHA256, list[QcState]],
+)
+def qc_fetch(
+    weeks: Annotated[int, Query(gt=0)] = RECENTLY_QCED_NUM_WEEKS,
+    seq_level: bool = False,
+    final: bool = False,
+    qcdb_session: Session = Depends(get_qc_db),
+) -> dict[ChecksumSHA256, list[QcState]]:
+    return get_qc_states(
+        session=qcdb_session,
+        num_weeks=weeks,
+        sequencing_outcomes_only=seq_level,
+        final_only=final,
+    )

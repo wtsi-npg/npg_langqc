@@ -20,7 +20,7 @@
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
 from collections import defaultdict
-from datetime import datetime
+from datetime import date, datetime, timedelta
 
 from sqlalchemy import and_, func, select
 from sqlalchemy.exc import NoResultFound
@@ -103,6 +103,62 @@ def get_qc_states_by_id_product_list(
         response[state.seq_product.id_product].append(QcState.from_orm(state))
 
     return dict(response)
+
+
+def get_qc_states(
+    session: Session,
+    num_weeks: int,
+    sequencing_outcomes_only: bool = False,
+    final_only: bool = False,
+) -> dict[ChecksumSHA256, list[QcState]]:
+    """
+    Returns a dictionary where keys are the product IDs, and the values are
+    lists of QcState records of any type for the same product.
+
+    The num_weeks argument limits the look-back time window.
+
+    If only sequencing type QC states are required, an optional
+    argument, sequencing_outcomes_only, should be set to True.
+    In this case it is guaranteed that the list of QcState objects
+    has only one member.
+
+    If only final QC states are required, an optional argument final_only
+    should be set to True.
+    """
+
+    if num_weeks < 1:
+        raise ValueError("num_weeks should be a positive number")
+
+    query = (
+        select(QcStateDb)
+        .join(QcStateDb.seq_product)
+        .join(QcType)
+        .join(QcStateDict)
+        .join(User)
+        .where(QcStateDb.date_updated > date.today() - timedelta(weeks=num_weeks))
+        .options(
+            selectinload(QcStateDb.seq_product),
+            selectinload(QcStateDb.qc_type),
+            selectinload(QcStateDb.user),
+            selectinload(QcStateDb.qc_state_dict),
+        )
+    )
+    if sequencing_outcomes_only is True:
+        query = query.where(QcType.qc_type == SEQUENCING_QC_TYPE)
+    if final_only is True:
+        query = query.where(QcStateDb.is_preliminary == 0)
+
+    qc_states_dict = dict()
+    for qc_state in [
+        QcState.from_orm(row) for row in session.execute(query).scalars().all()
+    ]:
+        id = qc_state.id_product
+        if id in qc_states_dict:
+            qc_states_dict[id].append(qc_state)
+        else:
+            qc_states_dict[id] = [qc_state]
+
+    return qc_states_dict
 
 
 def product_has_qc_state(
