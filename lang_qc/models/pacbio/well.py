@@ -223,6 +223,8 @@ class PacBioWellFull(PacBioWell):
         assigned["metrics"] = QCDataWell.from_orm(mlwh_db_row)
         experiment_info = mlwh_db_row.get_experiment_info()
         if len(experiment_info):
-            assigned["experiment_tracking"] = PacBioExperiment.from_orm(experiment_info)
+            assigned["experiment_tracking"] = PacBioExperiment(
+                db_libraries=experiment_info
+            )
 
         return assigned
