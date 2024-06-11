@@ -27,7 +27,7 @@ from pydantic import Field, model_validator
 from pydantic.dataclasses import dataclass
 
 from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
-from lang_qc.models.pacbio.experiment import PacBioExperiment
+from lang_qc.models.pacbio.experiment import PacBioExperiment, PacBioLibrary
 from lang_qc.models.pacbio.qc_data import QCDataWell
 from lang_qc.models.pager import PagedResponse
 from lang_qc.models.qc_state import QcState
@@ -132,9 +132,10 @@ class PacBioWell:
         """
 
         # https://github.com/pydantic/pydantic-core/blob/main/python/pydantic_core/_pydantic_core.pyi
-        mlwh_db_row: PacBioRunWellMetrics = values.kwargs["db_well"]
-        assert mlwh_db_row
+        if "db_well" not in values.kwargs:
+            raise ValueError("None db_well value is not allowed.")
 
+        mlwh_db_row: PacBioRunWellMetrics = values.kwargs["db_well"]
         column_names = [column.key for column in PacBioRunWellMetrics.__table__.columns]
 
         assigned = dict()
@@ -171,6 +172,39 @@ class PacBioWellSummary(PacBioWell):
         assigned["study_names"] = sorted(
             set([row.study.name for row in mlwh_db_row.get_experiment_info()])
         )
+
+        return assigned
+
+
+@dataclass(kw_only=True, frozen=True)
+class PacBioWellLibraries(PacBioWell):
+    """A response model binding together basic PacBio well and LIMS data for
+    the libraries, which were sequenced in this well.
+    """
+
+    libraries: list[PacBioLibrary] = Field(
+        title="A list of `PacBioLibrary` objects",
+        description="""
+        A list of `PacBioLibrary` objects. Each member of the list represents
+        a library, which was sequenced in this well. If the object is created
+        by supplying the `db_well` attribute via the constructor, the list
+        is never empty. The list is not sorted.
+        """,
+    )
+
+    @model_validator(mode="before")
+    def pre_root(cls, values: dict[str, Any]) -> dict[str, Any]:
+
+        assigned = super().pre_root(values)
+        mlwh_db_row: PacBioRunWellMetrics = values.kwargs["db_well"]
+        lims_data = mlwh_db_row.get_experiment_info()
+        if len(lims_data) == 0:
+            raise ValueError(
+                f"No LIMS data retrieved for {mlwh_db_row.__repr__()} "
+                "on account of partially linked or unlinked product data."
+            )
+
+        assigned["libraries"] = [PacBioLibrary(db_library=row) for row in lims_data]
 
         return assigned
 

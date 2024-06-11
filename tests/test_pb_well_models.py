@@ -1,10 +1,16 @@
+import pytest
 from npg_id_generation.pac_bio import PacBioEntity
 from sqlalchemy.orm import Session
 
 from lang_qc.db.helper.qc import get_qc_states_by_id_product_list
 from lang_qc.db.helper.wells import WellWh
 from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
-from lang_qc.models.pacbio.well import PacBioWellFull, PacBioWellSummary
+from lang_qc.models.pacbio.experiment import PacBioLibrary
+from lang_qc.models.pacbio.well import (
+    PacBioWellFull,
+    PacBioWellLibraries,
+    PacBioWellSummary,
+)
 from tests.conftest import compare_dates
 from tests.fixtures.well_data import load_data4well_retrieval, load_dicts_and_users
 
@@ -116,15 +122,22 @@ def test_create_full_model(
     assert pb_well.experiment_tracking is None
 
 
-def test_create_summary_model(
+def test_create_summary_and_library_models(
     mlwhdb_test_session, qcdb_test_session, load_data4well_retrieval, mlwhdb_load_runs
 ):
+
+    with pytest.raises(ValueError, match=r"None db_well value is not allowed."):
+        PacBioWellSummary(plate_number=3)
+
     (well_row, qc_state) = _prepare_data(
         mlwhdb_test_session, qcdb_test_session, "TRACTION-RUN-92", "A1"
     )
     pb_well = PacBioWellSummary(db_well=well_row)
     _examine_well_model_a1(pb_well, well_row.id_pac_bio_product)
     assert pb_well.study_names == ["Tree of Life - ASG"]
+
+    pb_well = PacBioWellLibraries(db_well=well_row)
+    _examine_well_model_a1(pb_well, well_row.id_pac_bio_product)
 
     (well_row, qc_state) = _prepare_data(
         mlwhdb_test_session, qcdb_test_session, "TRACTION_RUN_1", "B1"
@@ -140,7 +153,7 @@ def test_create_summary_model(
     _examine_well_model_c1(pb_well, well_row.id_pac_bio_product)
 
 
-def test_create_summary_model_study_info(
+def test_create_summary_and_library_models_lims_info(
     mlwhdb_test_session, qcdb_test_session, load_data4well_retrieval, mlwhdb_load_runs
 ):
     # Well with two samples, none is linked to LIMS
@@ -149,6 +162,9 @@ def test_create_summary_model_study_info(
     )
     pb_well = PacBioWellSummary(db_well=well_row)
     assert pb_well.study_names == []
+
+    with pytest.raises(ValueError, match=r"No LIMS data retrieved"):
+        PacBioWellLibraries(db_well=well_row)
 
     # Fully linked wells with one sample
     (well_row, qc_state) = _prepare_data(
@@ -162,6 +178,19 @@ def test_create_summary_model_study_info(
     )
     pb_well = PacBioWellSummary(db_well=well_row)
     assert pb_well.study_names == ["DTOL_Darwin Tree of Life"]
+
+    pb_well = PacBioWellLibraries(db_well=well_row)
+    assert len(pb_well.libraries) == 1
+    expected_lib = PacBioLibrary(
+        study_id="5901",
+        study_name="DTOL_Darwin Tree of Life",
+        sample_id="9463663",
+        sample_name="DTOL14290946",
+        tag_sequence=["CTCAGCATACGAGTAT"],
+        library_type="Pacbio_HiFi",
+        pool_name="TRAC-2-7128",
+    )
+    assert pb_well.libraries[0] == expected_lib
 
     # A fully linked well with multiple samples, all belonging to the same study
     (well_row, qc_state) = _prepare_data(
@@ -180,6 +209,30 @@ def test_create_summary_model_study_info(
         "ToL_Blaxter_ Reference Genomes_ DNA",
     ]
 
+    pb_well = PacBioWellLibraries(db_well=well_row)
+    assert len(pb_well.libraries) == 4
+    libs = {lib.sample_id: lib for lib in pb_well.libraries}
+    expected_lib = PacBioLibrary(
+        study_id="6771",
+        study_name="ToL_Blaxter_ Reference Genomes_ DNA",
+        sample_id="8657549",
+        sample_name="6771STDY13618009",
+        tag_sequence=["CTGCGATCACGAGTAT"],
+        library_type="Pacbio_HiFi",
+        pool_name="TRAC-2-7676",
+    )
+    assert libs["8657549"] == expected_lib
+    expected_lib = PacBioLibrary(
+        study_id="5901",
+        study_name="DTOL_Darwin Tree of Life",
+        sample_id="9463590",
+        sample_name="DTOL14291044",
+        tag_sequence=["TCTGCATCATGAGTAT"],
+        library_type="Pacbio_HiFi",
+        pool_name="TRAC-2-7676",
+    )
+    assert libs["9463590"] == expected_lib
+
     # A partially linked well with three samples, which belong to two studies.
     # The LIMS link for one of the samples is deleted so that two other samples
     # belong to the same study.
@@ -188,3 +241,6 @@ def test_create_summary_model_study_info(
     )
     pb_well = PacBioWellSummary(db_well=well_row)
     assert pb_well.study_names == []
+
+    with pytest.raises(ValueError, match=r"No LIMS data retrieved"):
+        PacBioWellLibraries(db_well=well_row)
