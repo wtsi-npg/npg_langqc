@@ -5,6 +5,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [2.2.0] - 2024-06-11
+
+### Added
+
+* New endpoint added to support potential email notifications when QC states are finalised. `/products/qc?weeks={n}&seq_level={bool}&final={bool}`. It returns recent QC events
+
+### Fixed
+
+* Warehouse schema updated to match breaking change in pac_bio_product_metrics table
+
 ## [2.1.0] - 2024-04-15
 
 ### Changed
@@ -77,7 +87,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * The client side JavaScript dependency, element-plus, is pinned
   to version 2.4.4. In mid-January 2024 this was the highest version
   that worked with our code. The version expression we had "^2.3.7"
-  allowed for fetching the latest available version of this library. 
+  allowed for fetching the latest available version of this library.
 
 ## [1.5.0]
 

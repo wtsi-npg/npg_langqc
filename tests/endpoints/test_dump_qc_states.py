@@ -1,3 +1,6 @@
+from datetime import datetime
+
+import pytest
 from fastapi.testclient import TestClient
 
 from tests.fixtures.well_data import load_data4well_retrieval, load_dicts_and_users
@@ -57,3 +60,52 @@ def test_get_qc_by_product_id(test_client: TestClient, load_data4well_retrieval)
     assert len(response_data) == 1
     assert MISSING_CHECKSUM not in response_data
     assert FIRST_GOOD_CHECKSUM in response_data
+
+
+def test_get_qc(test_client: TestClient, load_data4well_retrieval):
+
+    response = test_client.get("/products/qc")
+    assert response.status_code == 200
+    response_data = response.json()
+    assert len(response_data) == 0
+
+    response = test_client.get("/products/qc?weeks=-1")
+    assert response.status_code == 422
+
+    # Earliest test QC states are updated on 2022-02-15
+    interval = datetime.today() - datetime(year=2022, month=2, day=15)
+    num_weeks = int(interval.days / 7 + 2)
+
+    response = test_client.get(f"/products/qc?weeks={num_weeks}")
+    assert response.status_code == 200
+    response_data = response.json()
+    assert len(response_data) == 18
+    assert sum([len(l) for l in response_data.values()]) == 34
+
+    response = test_client.get(
+        f"/products/qc?weeks={num_weeks}&final=false&seq_level=no"
+    )
+    assert response.status_code == 200
+    response_data = response.json()
+    assert len(response_data) == 18
+    assert sum([len(l) for l in response_data.values()]) == 34
+
+    response = test_client.get(f"/products/qc?weeks={num_weeks}&final=true")
+    assert response.status_code == 200
+    response_data = response.json()
+    assert len(response_data) == 4
+    assert sum([len(l) for l in response_data.values()]) == 8
+
+    response = test_client.get(
+        f"/products/qc?weeks={num_weeks}&final=True&seq_level=yes"
+    )
+    assert response.status_code == 200
+    response_data = response.json()
+    assert len(response_data) == 4
+    assert sum([len(l) for l in response_data.values()]) == 4
+    product_id = "5e91b9246b30c2df4e9f2a2313ce097e93493b0a822e9d9338e32df5d58db585"
+    assert product_id in response_data
+    qc_state = response_data[product_id][0]
+    assert qc_state["id_product"] == product_id
+    assert qc_state["is_preliminary"] is False
+    assert qc_state["qc_type"] == "sequencing"
