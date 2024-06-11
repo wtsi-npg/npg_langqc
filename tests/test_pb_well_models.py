@@ -11,6 +11,7 @@ from lang_qc.models.pacbio.well import (
     PacBioWellLibraries,
     PacBioWellSummary,
 )
+from lang_qc.util.errors import MissingLimsDataError
 from tests.conftest import compare_dates
 from tests.fixtures.well_data import load_data4well_retrieval, load_dicts_and_users
 
@@ -163,7 +164,7 @@ def test_create_summary_and_library_models_lims_info(
     pb_well = PacBioWellSummary(db_well=well_row)
     assert pb_well.study_names == []
 
-    with pytest.raises(ValueError, match=r"No LIMS data retrieved"):
+    with pytest.raises(MissingLimsDataError, match=r"No LIMS data retrieved"):
         PacBioWellLibraries(db_well=well_row)
 
     # Fully linked wells with one sample
@@ -242,5 +243,5 @@ def test_create_summary_and_library_models_lims_info(
     pb_well = PacBioWellSummary(db_well=well_row)
     assert pb_well.study_names == []
 
-    with pytest.raises(ValueError, match=r"No LIMS data retrieved"):
+    with pytest.raises(MissingLimsDataError, match=r"No LIMS data retrieved"):
         PacBioWellLibraries(db_well=well_row)

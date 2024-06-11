@@ -25,3 +25,10 @@ class EmptyListOfRunNamesError(Exception):
 
 class RunNotFoundError(Exception):
     """Exception to be used when no well metrics data for a run is found."""
+
+
+class MissingLimsDataError(Exception):
+    """
+    Exception to be used when product LIMS data is not available
+    or partially missing.
+    """

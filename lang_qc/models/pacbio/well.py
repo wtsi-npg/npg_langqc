@@ -31,6 +31,7 @@ from lang_qc.models.pacbio.experiment import PacBioExperiment, PacBioLibrary
 from lang_qc.models.pacbio.qc_data import QCDataWell
 from lang_qc.models.pager import PagedResponse
 from lang_qc.models.qc_state import QcState
+from lang_qc.util.errors import MissingLimsDataError
 
 
 def get_field_names(cls):
@@ -199,7 +200,7 @@ class PacBioWellLibraries(PacBioWell):
         mlwh_db_row: PacBioRunWellMetrics = values.kwargs["db_well"]
         lims_data = mlwh_db_row.get_experiment_info()
         if len(lims_data) == 0:
-            raise ValueError(
+            raise MissingLimsDataError(
                 f"No LIMS data retrieved for {mlwh_db_row.__repr__()} "
                 "on account of partially linked or unlinked product data."
             )
