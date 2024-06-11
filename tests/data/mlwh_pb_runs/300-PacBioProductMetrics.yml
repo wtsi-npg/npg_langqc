@@ -172,6 +172,7 @@
   id_pac_bio_rw_metrics_tmp: 1735
   id_pac_bio_tmp: 99008
 - barcode_quality_score_mean: ~
+  barcode4deplexing: bc2020--bc2020
   hifi_bases_percent: ~
   hifi_num_reads: ~
   hifi_read_bases: ~
@@ -183,6 +184,7 @@
   last_changed: 2024-02-28 14:10:14
   qc: 1
 - barcode_quality_score_mean: ~
+  barcode4deplexing: bc2011--bc2011
   hifi_bases_percent: ~
   hifi_num_reads: ~
   hifi_read_bases: ~
@@ -194,6 +196,7 @@
   last_changed: 2024-02-28 14:10:14
   qc: 1
 - barcode_quality_score_mean: ~
+  barcode4deplexing: bc1011_BAK8A_OA--bc1011_BAK8A_OA
   hifi_bases_percent: ~
   hifi_num_reads: ~
   hifi_read_bases: ~
@@ -205,6 +208,7 @@
   last_changed: 2024-03-05 15:10:36
   qc: 0
 - barcode_quality_score_mean: ~
+  barcode4deplexing: bc1022_BAK8B_OA--bc1022_BAK8B_OA
   hifi_bases_percent: ~
   hifi_num_reads: ~
   hifi_read_bases: ~
@@ -216,6 +220,7 @@
   last_changed: 2024-03-05 15:10:36
   qc: 0
 - barcode_quality_score_mean: ~
+  barcode4deplexing: bc1001_BAK8A_OA--bc1001_BAK8A_OA
   hifi_bases_percent: ~
   hifi_num_reads: ~
   hifi_read_bases: ~
@@ -227,6 +232,7 @@
   last_changed: 2024-03-05 15:10:36
   qc: 0
 - barcode_quality_score_mean: ~
+  barcode4deplexing: bc2035--bc2035
   hifi_bases_percent: ~
   hifi_num_reads: ~
   hifi_read_bases: ~
@@ -238,6 +244,7 @@
   last_changed: 2024-02-28 11:10:15
   qc: 1
 - barcode_quality_score_mean: ~
+  barcode4deplexing: bc2052--bc2052
   hifi_bases_percent: ~
   hifi_num_reads: ~
   hifi_read_bases: ~
@@ -249,6 +256,7 @@
   last_changed: 2024-02-28 11:10:15
   qc: 1
 - barcode_quality_score_mean: 97
+  barcode4deplexing: bc2036--bc2036
   hifi_bases_percent: 27.49
   hifi_num_reads: 1952224
   hifi_read_bases: 21504288522
@@ -260,6 +268,7 @@
   last_changed: 2024-02-28 11:10:15
   qc: 1
 - barcode_quality_score_mean: 96
+  barcode4deplexing: bc2040--bc2040
   hifi_bases_percent: 19.62
   hifi_num_reads: 1139885
   hifi_read_bases: 15344650012
@@ -271,6 +280,7 @@
   last_changed: 2024-02-28 11:10:15
   qc: 1
 - barcode_quality_score_mean: 96
+  barcode4deplexing: bc2054--bc2054
   hifi_bases_percent: 23.7
   hifi_num_reads: 1751410
   hifi_read_bases: 18538781061
@@ -282,6 +292,7 @@
   last_changed: 2024-02-28 11:10:15
   qc: 1
 - barcode_quality_score_mean: 97
+  barcode4deplexing: bc2063--bc2063
   hifi_bases_percent: 28.72
   hifi_num_reads: 1991282
   hifi_read_bases: 22462478066
@@ -293,6 +304,7 @@
   last_changed: 2024-02-28 11:10:15
   qc: 1
 - barcode_quality_score_mean: ~
+  barcode4deplexing: bc2016--bc2016
   hifi_bases_percent: ~
   hifi_num_reads: ~
   hifi_read_bases: ~
@@ -304,6 +316,7 @@
   last_changed: 2024-02-28 11:10:15
   qc: 1
 - barcode_quality_score_mean: ~
+  barcode4deplexing: bc2096--bc2096
   hifi_bases_percent: ~
   hifi_num_reads: ~
   hifi_read_bases: ~
@@ -315,6 +328,7 @@
   last_changed: 2024-02-28 11:10:15
   qc: 1
 - barcode_quality_score_mean: ~
+  barcode4deplexing: bc2056--bc2056
   hifi_bases_percent: ~
   hifi_num_reads: ~
   hifi_read_bases: ~
@@ -326,6 +340,7 @@
   last_changed: 2024-02-28 11:10:15
   qc: 1
 - barcode_quality_score_mean: ~
+  barcode4deplexing: bc2072--bc2072
   hifi_bases_percent: ~
   hifi_num_reads: ~
   hifi_read_bases: ~
@@ -337,6 +352,7 @@
   last_changed: 2024-02-28 11:10:15
   qc: 1
 - barcode_quality_score_mean: ~
+  barcode4deplexing: bc2021--bc2021
   hifi_bases_percent: ~
   hifi_num_reads: ~
   hifi_read_bases: ~
@@ -348,6 +364,7 @@
   last_changed: 2024-02-28 11:10:15
   qc: 1
 - barcode_quality_score_mean: ~
+  barcode4deplexing: bc2011--bc2011
   hifi_bases_percent: ~
   hifi_num_reads: ~
   hifi_read_bases: ~
@@ -359,6 +376,7 @@
   last_changed: 2024-02-28 11:10:15
   qc: 1
 - barcode_quality_score_mean: ~
+  barcode4deplexing: bc2015--bc2015
   hifi_bases_percent: ~
   hifi_num_reads: ~
   hifi_read_bases: ~
@@ -370,6 +388,7 @@
   last_changed: 2024-02-28 11:10:15
   qc: 1
 - barcode_quality_score_mean: ~
+  barcode4deplexing: bc2083--bc2083
   hifi_bases_percent: ~
   hifi_num_reads: ~
   hifi_read_bases: ~
@@ -381,6 +400,7 @@
   last_changed: 2024-02-28 11:10:15
   qc: 1
 - barcode_quality_score_mean: ~
+  barcode4deplexing: bc2084--bc2084
   hifi_bases_percent: ~
   hifi_num_reads: ~
   hifi_read_bases: ~
@@ -392,6 +412,7 @@
   last_changed: 2024-02-28 11:10:15
   qc: 1
 - barcode_quality_score_mean: ~
+  barcode4deplexing: bc2085--bc2085
   hifi_bases_percent: ~
   hifi_num_reads: ~
   hifi_read_bases: ~
@@ -403,6 +424,7 @@
   last_changed: 2024-02-28 11:10:15
   qc: 1
 - barcode_quality_score_mean: ~
+  barcode4deplexing: bc2094--bc2094
   hifi_bases_percent: ~
   hifi_num_reads: ~
   hifi_read_bases: ~
@@ -414,6 +436,7 @@
   last_changed: 2024-02-28 11:10:15
   qc: 1
 - barcode_quality_score_mean: ~
+  barcode4deplexing: bc2070--bc2070
   hifi_bases_percent: ~
   hifi_num_reads: ~
   hifi_read_bases: ~
@@ -425,6 +448,7 @@
   last_changed: 2024-03-08 12:10:14
   qc: 1
 - barcode_quality_score_mean: ~
+  barcode4deplexing: bc2055--bc2055
   hifi_bases_percent: ~
   hifi_num_reads: ~
   hifi_read_bases: ~
