@@ -85,7 +85,15 @@ class WellWh(BaseModel):
     ) -> QCPoolMetrics | None:
         well = self.get_mlwh_well_by_product_id(id_product)
         if well and well.demultiplex_mode and "Instrument" in well.demultiplex_mode:
+
             product_metrics = well.pac_bio_product_metrics
+            lib_lims_data = [
+                row
+                for row in map(lambda product: product.pac_bio_run, product_metrics)
+                if row is not None
+            ]
+            if len(lib_lims_data) != len(product_metrics):
+                raise Exception("Partially linked LIMS data or no linked LIMS data")
 
             cov: float | None
             if any(p.hifi_num_reads is None for p in product_metrics):
@@ -94,13 +102,13 @@ class WellWh(BaseModel):
                 hifi_reads = [prod.hifi_num_reads for prod in product_metrics]
                 cov = stdev(hifi_reads) / mean(hifi_reads) * 100
 
-            return QCPoolMetrics(
-                pool_coeff_of_variance=cov,
-                products=[
+            sample_stats = []
+            for (i, prod) in enumerate(product_metrics):
+                sample_stats.append(
                     SampleDeplexingStats(
                         id_product=prod.id_pac_bio_product,
-                        tag1_name=prod.pac_bio_run.tag_identifier,
-                        tag2_name=prod.pac_bio_run.tag2_identifier,
+                        tag1_name=lib_lims_data[i].tag_identifier,
+                        tag2_name=lib_lims_data[i].tag2_identifier,
                         deplexing_barcode=prod.barcode4deplexing,
                         hifi_read_bases=prod.hifi_read_bases,
                         hifi_num_reads=prod.hifi_num_reads,
@@ -108,13 +116,14 @@ class WellWh(BaseModel):
                         hifi_bases_percent=prod.hifi_bases_percent,
                         percentage_total_reads=(
                             prod.hifi_num_reads / well.hifi_num_reads * 100
-                            if well.hifi_num_reads
+                            if (well.hifi_num_reads and prod.hifi_num_reads)
                             else None
                         ),
                     )
-                    for prod in product_metrics
-                ],
-            )
+                )
+
+            return QCPoolMetrics(pool_coeff_of_variance=cov, products=sample_stats)
+
         return None
 
     def recent_completed_wells(self) -> List[PacBioRunWellMetrics]:
