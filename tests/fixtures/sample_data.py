@@ -48,6 +48,7 @@ def simplex_run(request, mlwhdb_test_session):
             well_label=well_label,
             plate_number=plate_number,
         ).hash_product_id(),
+        demultiplex_mode=None,
     )
 
     product = PacBioProductMetrics(
@@ -64,6 +65,7 @@ def simplex_run(request, mlwhdb_test_session):
         barcode_quality_score_mean=34,
         hifi_bases_percent=90.001,
         pac_bio_run_well_metrics=well_metrics_a1,
+        barcode4deplexing=None,
     )
 
     study = Study(
@@ -135,6 +137,7 @@ def multiplexed_run(mlwhdb_test_session):
             plate_number=plate_number,
         ).hash_product_id(),
         hifi_num_reads=30,
+        demultiplex_mode="OnInstrument",
     )
 
     product_1 = PacBioProductMetrics(
@@ -151,6 +154,7 @@ def multiplexed_run(mlwhdb_test_session):
         barcode_quality_score_mean=34,
         hifi_bases_percent=90.001,
         pac_bio_run_well_metrics=well_metrics_b1,
+        barcode4deplexing="bc10--bc10",
     )
 
     multiplex_run_1 = PacBioRun(
@@ -182,6 +186,7 @@ def multiplexed_run(mlwhdb_test_session):
         barcode_quality_score_mean=34,
         hifi_bases_percent=100.00,
         pac_bio_run_well_metrics=well_metrics_b1,
+        barcode4deplexing="bc11--bc11",
     )
 
     multiplex_run_2 = PacBioRun(

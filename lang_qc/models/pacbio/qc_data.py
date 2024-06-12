@@ -167,6 +167,7 @@ class SampleDeplexingStats(BaseModel):
     id_product: PacBioProductSHA256
     tag1_name: str | None
     tag2_name: str | None
+    deplexing_barcode: str | None
     hifi_read_bases: int | None
     hifi_num_reads: int | None
     hifi_read_length_mean: float | None

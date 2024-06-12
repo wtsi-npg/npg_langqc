@@ -84,10 +84,8 @@ class WellWh(BaseModel):
         self, id_product: PacBioWellSHA256
     ) -> QCPoolMetrics | None:
         well = self.get_mlwh_well_by_product_id(id_product)
-        if well:
+        if well and well.demultiplex_mode and "Instrument" in well.demultiplex_mode:
             product_metrics = well.pac_bio_product_metrics
-            if len(product_metrics) == 1:
-                return None
 
             cov: float | None
             if any(p.hifi_num_reads is None for p in product_metrics):
@@ -103,6 +101,7 @@ class WellWh(BaseModel):
                         id_product=prod.id_pac_bio_product,
                         tag1_name=prod.pac_bio_run.tag_identifier,
                         tag2_name=prod.pac_bio_run.tag2_identifier,
+                        deplexing_barcode=prod.barcode4deplexing,
                         hifi_read_bases=prod.hifi_read_bases,
                         hifi_num_reads=prod.hifi_num_reads,
                         hifi_read_length_mean=prod.hifi_read_length_mean,
