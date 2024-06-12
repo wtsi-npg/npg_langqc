@@ -33,7 +33,7 @@ class Base(DeclarativeBase):
     A base class for declarative class definitions for the ml warehouse database.
     """
 
-    def get_row_description(self, fields: list[str]) -> str:
+    def _get_row_description(self, fields: list[str]) -> str:
         """
         Returns a printable representation of the database table row. Interprets
         a list of strings given as the `fields` argument as a list of column
@@ -564,7 +564,7 @@ class PacBioRunWellMetrics(Base):
     def __repr__(self):
         """Returns a printable representation of the database row"""
 
-        return self.get_row_description(
+        return self._get_row_description(
             ["pac_bio_run_name", "well_label", "plate_number", "id_pac_bio_product"]
         )
 

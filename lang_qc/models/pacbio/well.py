@@ -201,7 +201,7 @@ class PacBioWellLibraries(PacBioWell):
         lims_data = mlwh_db_row.get_experiment_info()
         if len(lims_data) == 0:
             raise MissingLimsDataError(
-                f"No LIMS data retrieved for {mlwh_db_row.__repr__()} "
+                f"No LIMS data retrieved for {str(mlwh_db_row)} "
                 "on account of partially linked or unlinked product data."
             )
 

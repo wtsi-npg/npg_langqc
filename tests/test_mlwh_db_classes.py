@@ -18,7 +18,6 @@ def test_pac_bio_well_metrics_repr(mlwhdb_test_session, mlwhdb_load_runs):
             PacBioRunWellMetrics.id_pac_bio_product == id
         )
         db_row = mlwhdb_test_session.execute(query).scalar_one()
-        assert (
-            db_row.__repr__()
-            == "lang_qc.db.mlwh_schema.PacBioRunWellMetrics: " + data[id]
-        )
+        expected_string = "lang_qc.db.mlwh_schema.PacBioRunWellMetrics: " + data[id]
+        assert db_row.__repr__() == expected_string
+        assert str(db_row) == expected_string
