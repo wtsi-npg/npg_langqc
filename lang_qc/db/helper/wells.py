@@ -88,9 +88,9 @@ class WellWh(BaseModel):
 
             product_metrics = well.pac_bio_product_metrics
             lib_lims_data = [
-                row
-                for row in map(lambda product: product.pac_bio_run, product_metrics)
-                if row is not None
+                product.pac_bio_run
+                for product in product_metrics
+                if product.pac_bio_run is not None
             ]
             if len(lib_lims_data) != len(product_metrics):
                 raise Exception("Partially linked LIMS data or no linked LIMS data")
