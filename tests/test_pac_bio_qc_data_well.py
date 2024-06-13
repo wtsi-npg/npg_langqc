@@ -1,3 +1,4 @@
+import pytest
 from npg_id_generation.pac_bio import PacBioEntity
 
 from lang_qc.db.helper.wells import WellWh
@@ -134,3 +135,15 @@ def test_pool_metrics_from_well(mlwhdb_test_session, multiplexed_run):
     assert (
         int(metrics.products[1].percentage_total_reads) == 66
     ), "20 of 30 reads is 66.6%"
+
+
+def test_pool_metrics_from_well(mlwhdb_test_session):
+
+    id = PacBioEntity(
+        run_name="TRACTION-RUN-1140", well_label="C1", plate_number=2
+    ).hash_product_id()
+    helper = WellWh(session=mlwhdb_test_session)
+    with pytest.raises(
+        Exception, match=r"Partially linked LIMS data or no linked LIMS data"
+    ):
+        helper.get_metrics_by_well_product_id(id)
