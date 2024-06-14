@@ -25,9 +25,30 @@ from sqlalchemy.dialects.mysql import INTEGER as mysqlINTEGER
 from sqlalchemy.dialects.mysql import SMALLINT as mysqlSMALLINT
 from sqlalchemy.dialects.mysql import TINYINT as mysqlTINYINT
 from sqlalchemy.dialects.mysql import VARCHAR as mysqlVARCHAR
-from sqlalchemy.orm import declarative_base, relationship
+from sqlalchemy.orm import DeclarativeBase, relationship
 
-Base = declarative_base()
+
+class Base(DeclarativeBase):
+    """
+    A base class for declarative class definitions for the ml warehouse database.
+    """
+
+    def _get_row_description(self, fields: list[str]) -> str:
+        """
+        Returns a printable representation of the database table row. Interprets
+        a list of strings given as the `fields` argument as a list of column
+        names. Combines the name of the class, names of the given columns
+        and respective values into a row description. The columns for which
+        the row has a NULL value are omitted from the description.
+        """
+
+        pairs = []
+        for name in fields:
+            value = self.__getattribute__(name)
+            if value is not None:
+                pairs.append(f"{name}={value}")
+        description = ", ".join(pairs)
+        return f"{self.__module__}.{self.__class__.__name__}: {description}"
 
 
 class Sample(Base):
@@ -538,7 +559,16 @@ class PacBioRunWellMetrics(Base):
         "PacBioProductMetrics", back_populates="pac_bio_run_well_metrics"
     )
 
-    def get_experiment_info(self):
+    """Custom or customised methods are added below"""
+
+    def __repr__(self):
+        """Returns a printable representation of the database row"""
+
+        return self._get_row_description(
+            ["pac_bio_run_name", "well_label", "plate_number", "id_pac_bio_product"]
+        )
+
+    def get_experiment_info(self) -> list[PacBioRun]:
         """Returns a list of PacBioRun mlwh database rows.
 
         Returns LIMS information about the PacBio experiment
