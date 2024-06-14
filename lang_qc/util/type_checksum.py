@@ -40,3 +40,21 @@ class ChecksumSHA256(str):
 
     def __repr__(self):
         return f"ChecksumSHA256({super().__repr__()})"
+
+
+class PacBioWellSHA256(ChecksumSHA256):
+    """
+    A checksum generated from the coordinates of a single well on a plate in a PacBio run
+    """
+
+    pass
+
+
+class PacBioProductSHA256(ChecksumSHA256):
+    """
+    A checksum generated from the combination of run, well, plate and any tags required for
+    deplexing, see `npg_id_generation.pac_bio.PacBioEntity`.
+    Tags only contribute to the checksum when samples are multiplexed.
+    """
+
+    pass

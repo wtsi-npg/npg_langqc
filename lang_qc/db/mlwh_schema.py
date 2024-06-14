@@ -639,6 +639,11 @@ class PacBioProductMetrics(Base):
     hifi_read_length_mean = Column(
         mysqlINTEGER(unsigned=True), nullable=True, comment="The mean HiFi read length"
     )
+    barcode4deplexing = Column(
+        mysqlVARCHAR(62),
+        nullable=True,
+        comment="The barcode recorded in producing deplexed metrics for this product",
+    )
     barcode_quality_score_mean = Column(
         mysqlSMALLINT(unsigned=True),
         nullable=True,

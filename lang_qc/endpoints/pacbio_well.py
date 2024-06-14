@@ -1,4 +1,4 @@
-# Copyright (c) 2022, 2023 Genome Research Ltd.
+# Copyright (c) 2022, 2023, 2024 Genome Research Ltd.
 #
 # Authors:
 #   Adam Blanchet
@@ -37,6 +37,7 @@ from lang_qc.db.helper.wells import PacBioPagedWellsFactory, WellWh
 from lang_qc.db.mlwh_connection import get_mlwh_db
 from lang_qc.db.qc_connection import get_qc_db
 from lang_qc.db.qc_schema import User
+from lang_qc.models.pacbio.qc_data import QCPoolMetrics
 from lang_qc.models.pacbio.well import (
     PacBioPagedWells,
     PacBioWellFull,
@@ -51,7 +52,7 @@ from lang_qc.util.errors import (
     MissingLimsDataError,
     RunNotFoundError,
 )
-from lang_qc.util.type_checksum import ChecksumSHA256
+from lang_qc.util.type_checksum import ChecksumSHA256, PacBioWellSHA256
 
 """
 A collection of API endpoints that are specific to the PacBio sequencing
@@ -204,7 +205,7 @@ def get_well_lims_info(
     response_model=PacBioWellFull,
 )
 def get_seq_metrics(
-    id_product: ChecksumSHA256,
+    id_product: PacBioWellSHA256,
     mlwhdb_session: Session = Depends(get_mlwh_db),
     qcdb_session: Session = Depends(get_qc_db),
 ) -> PacBioWellFull:
@@ -214,6 +215,28 @@ def get_seq_metrics(
     qc_state_db = get_qc_state_for_product(session=qcdb_session, id_product=id_product)
     qc_state = None if qc_state_db is None else QcState.from_orm(qc_state_db)
     return PacBioWellFull(db_well=mlwh_well, qc_state=qc_state)
+
+
+@router.get(
+    "/products/{id_product}/seq_level/pool",
+    summary="Get sample (deplexing) metrics for a multiplexed well product by the well ID",
+    responses={
+        status.HTTP_404_NOT_FOUND: {"description": "Product not found"},
+        status.HTTP_422_UNPROCESSABLE_ENTITY: {"description": "Invalid product ID"},
+    },
+    response_model=QCPoolMetrics,
+)
+def get_product_metrics(
+    id_product: PacBioWellSHA256, mlwhdb_session: Session = Depends(get_mlwh_db)
+) -> QCPoolMetrics:
+    metrics = WellWh(mlwh_session=mlwhdb_session).get_metrics_by_well_product_id(
+        id_product
+    )
+    if metrics is None:
+        raise HTTPException(
+            status_code=404, detail="Well does not have any pool metrics"
+        )
+    return metrics
 
 
 @router.post(
@@ -241,7 +264,7 @@ def get_seq_metrics(
     status_code=status.HTTP_201_CREATED,
 )
 def claim_qc(
-    id_product: ChecksumSHA256,
+    id_product: PacBioWellSHA256,
     user: User = Depends(check_user),
     qcdb_session: Session = Depends(get_qc_db),
     mlwhdb_session: Session = Depends(get_mlwh_db),
