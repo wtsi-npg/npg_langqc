@@ -21,7 +21,6 @@
 
 import logging
 from datetime import date, datetime, timedelta
-from statistics import mean, stdev
 from typing import ClassVar, List
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -34,7 +33,6 @@ from lang_qc.db.helper.qc import (
 )
 from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
 from lang_qc.db.qc_schema import QcState, QcStateDict, QcType
-from lang_qc.models.pacbio.qc_data import QCPoolMetrics, SampleDeplexingStats
 from lang_qc.models.pacbio.well import PacBioPagedWells, PacBioWellSummary
 from lang_qc.models.pager import PagedResponse
 from lang_qc.models.qc_flow_status import QcFlowStatusEnum
@@ -79,52 +77,6 @@ class WellWh(BaseModel):
                 PacBioRunWellMetrics.id_pac_bio_product == id_product,
             )
         ).scalar_one_or_none()
-
-    def get_metrics_by_well_product_id(
-        self, id_product: PacBioWellSHA256
-    ) -> QCPoolMetrics | None:
-        well = self.get_mlwh_well_by_product_id(id_product)
-        if well and well.demultiplex_mode and "Instrument" in well.demultiplex_mode:
-
-            product_metrics = well.pac_bio_product_metrics
-            lib_lims_data = [
-                product.pac_bio_run
-                for product in product_metrics
-                if product.pac_bio_run is not None
-            ]
-            if len(lib_lims_data) != len(product_metrics):
-                raise Exception("Partially linked LIMS data or no linked LIMS data")
-
-            cov: float | None
-            if any(p.hifi_num_reads is None for p in product_metrics):
-                cov = None
-            else:
-                hifi_reads = [prod.hifi_num_reads for prod in product_metrics]
-                cov = stdev(hifi_reads) / mean(hifi_reads) * 100
-
-            sample_stats = []
-            for (i, prod) in enumerate(product_metrics):
-                sample_stats.append(
-                    SampleDeplexingStats(
-                        id_product=prod.id_pac_bio_product,
-                        tag1_name=lib_lims_data[i].tag_identifier,
-                        tag2_name=lib_lims_data[i].tag2_identifier,
-                        deplexing_barcode=prod.barcode4deplexing,
-                        hifi_read_bases=prod.hifi_read_bases,
-                        hifi_num_reads=prod.hifi_num_reads,
-                        hifi_read_length_mean=prod.hifi_read_length_mean,
-                        hifi_bases_percent=prod.hifi_bases_percent,
-                        percentage_total_reads=(
-                            prod.hifi_num_reads / well.hifi_num_reads * 100
-                            if (well.hifi_num_reads and prod.hifi_num_reads)
-                            else None
-                        ),
-                    )
-                )
-
-            return QCPoolMetrics(pool_coeff_of_variance=cov, products=sample_stats)
-
-        return None
 
     def recent_completed_wells(self) -> List[PacBioRunWellMetrics]:
         """

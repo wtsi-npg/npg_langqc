@@ -222,6 +222,7 @@ def get_seq_metrics(
     summary="Get sample (deplexing) metrics for a multiplexed well product by the well ID",
     responses={
         status.HTTP_404_NOT_FOUND: {"description": "Product not found"},
+        status.HTTP_409_CONFLICT: {"description": "Missing or incomplete LIMS data"},
         status.HTTP_422_UNPROCESSABLE_ENTITY: {"description": "Invalid product ID"},
     },
     response_model=QCPoolMetrics,
@@ -229,13 +230,13 @@ def get_seq_metrics(
 def get_product_metrics(
     id_product: PacBioWellSHA256, mlwhdb_session: Session = Depends(get_mlwh_db)
 ) -> QCPoolMetrics:
-    metrics = WellWh(mlwh_session=mlwhdb_session).get_metrics_by_well_product_id(
-        id_product
-    )
-    if metrics is None:
-        raise HTTPException(
-            status_code=404, detail="Well does not have any pool metrics"
-        )
+
+    mlwh_well = _find_well_product_or_error(id_product, mlwhdb_session)
+    try:
+        metrics = QCPoolMetrics(db_well=mlwh_well)
+    except MissingLimsDataError as err:
+        raise HTTPException(409, detail=str(err))
+
     return metrics
 
 
