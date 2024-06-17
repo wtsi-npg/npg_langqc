@@ -20,9 +20,14 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>
 
-from pydantic import BaseModel, ConfigDict, Field
+from statistics import mean, stdev
+from typing import Any
+
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic.dataclasses import dataclass
 
 from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
+from lang_qc.util.errors import MissingLimsDataError
 from lang_qc.util.type_checksum import PacBioProductSHA256
 
 
@@ -175,7 +180,10 @@ class SampleDeplexingStats(BaseModel):
     percentage_total_reads: float | None
 
 
-class QCPoolMetrics(BaseModel):
+@dataclass(kw_only=True, frozen=True)
+class QCPoolMetrics:
+
+    db_well: PacBioRunWellMetrics = Field(init_var=True)
     pool_coeff_of_variance: float | None = Field(
         title="Coefficient of variance for reads in the pool",
         description="Percentage of the standard deviation w.r.t. mean, when pool is more than one",
@@ -183,3 +191,61 @@ class QCPoolMetrics(BaseModel):
     products: list[SampleDeplexingStats] = Field(
         title="List of products and their metrics"
     )
+
+    @model_validator(mode="before")
+    def pre_root(cls, values: dict[str, Any]) -> dict[str, Any]:
+        """
+        Populates this object with the run and well tracking information
+        from a database row that is passed as an argument.
+        """
+
+        db_well_key_name = "db_well"
+        # https://github.com/pydantic/pydantic-core/blob/main/python/pydantic_core/_pydantic_core.pyi
+        if db_well_key_name not in values.kwargs:
+            return values.kwargs
+
+        well: PacBioRunWellMetrics = values.kwargs[db_well_key_name]
+        if well is None:
+            raise ValueError(f"None {db_well_key_name} value is not allowed.")
+
+        cov: float = None
+        sample_stats = []
+
+        if well.demultiplex_mode and "Instrument" in well.demultiplex_mode:
+            product_metrics = well.pac_bio_product_metrics
+            lib_lims_data = [
+                product.pac_bio_run
+                for product in product_metrics
+                if product.pac_bio_run is not None
+            ]
+            if len(lib_lims_data) != len(product_metrics):
+                raise MissingLimsDataError(
+                    "Partially linked LIMS data or no linked LIMS data"
+                )
+
+            if any(p.hifi_num_reads is None for p in product_metrics):
+                cov = None
+            else:
+                hifi_reads = [prod.hifi_num_reads for prod in product_metrics]
+                cov = stdev(hifi_reads) / mean(hifi_reads) * 100
+
+            for (i, prod) in enumerate(product_metrics):
+                sample_stats.append(
+                    SampleDeplexingStats(
+                        id_product=prod.id_pac_bio_product,
+                        tag1_name=lib_lims_data[i].tag_identifier,
+                        tag2_name=lib_lims_data[i].tag2_identifier,
+                        deplexing_barcode=prod.barcode4deplexing,
+                        hifi_read_bases=prod.hifi_read_bases,
+                        hifi_num_reads=prod.hifi_num_reads,
+                        hifi_read_length_mean=prod.hifi_read_length_mean,
+                        hifi_bases_percent=prod.hifi_bases_percent,
+                        percentage_total_reads=(
+                            prod.hifi_num_reads / well.hifi_num_reads * 100
+                            if (well.hifi_num_reads and prod.hifi_num_reads)
+                            else None
+                        ),
+                    )
+                )
+
+        return {"pool_coeff_of_variance": cov, "products": sample_stats}
