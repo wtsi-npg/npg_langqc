@@ -168,16 +168,16 @@ describe('Does it work?', async () => {
       ]
     )
     await wrapper.setProps({runName: ['TRACTION-RUN-211', 'TRACTION-RUN-210']})
+    await flushPromises()
 
-    test('Table now contains wells from both runs', () => {
-      const table = wrapper.get('table')
-      expect(table.exists()).toBe(true)
+    const table = wrapper.get('table')
+    expect(table.exists()).toBe(true)
 
-      expect(table.find('TRACTION-RUN-211').exists()).toBe(true)
-      expect(table.find('TRACTION-RUN-210').exists()).toBe(true)
+    console.log(table.html())
+    expect(table.find("td#TRACTION-RUN-211").exists()).toBe(true)
+    expect(table.find("td#TRACTION-RUN-210").exists()).toBe(true)
 
-      const rows = table.findAll('tr')
-      expect(rows.length).toEqual(4)
-    })
+    const rows = table.findAll('tr')
+    expect(rows.length).toEqual(4)
   })
 })
