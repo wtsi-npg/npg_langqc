@@ -118,4 +118,10 @@ export default class LangQc {
       }
     )
   }
+
+  getPoolMetrics(id_product) {
+    // Use the product metrics endpoint to get additional metrics
+    // for a well.
+    return this.fetchWrapper(this.buildUrl(['products', id_product, 'seq_level', 'pool']));
+  }
 }
