@@ -1,7 +1,7 @@
 <script setup>
 import { RouterView, useRoute } from 'vue-router';
 import { onMounted, provide, ref } from "vue";
-import { ElMessage } from "element-plus";
+import { ElMessage, ElTooltip } from "element-plus";
 import { Search } from '@element-plus/icons-vue';
 
 import router from "@/router/index.js";
