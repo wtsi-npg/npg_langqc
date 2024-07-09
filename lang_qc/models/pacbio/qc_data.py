@@ -173,7 +173,7 @@ class SampleDeplexingStats(BaseModel):
     tag1_name: str | None
     tag2_name: str | None
     deplexing_barcode: str | None
-    hifi_read_bases: int | None
+    hifi_read_bases: float | None = Field(title="HiFi read bases (Gb)")
     hifi_num_reads: int | None
     hifi_read_length_mean: float | None
     hifi_bases_percent: float | None
@@ -208,7 +208,7 @@ class QCPoolMetrics:
         if well is None:
             raise ValueError(f"None {db_well_key_name} value is not allowed.")
 
-        cov: float = None
+        cov: float | None = None
         sample_stats = []
 
         if well.demultiplex_mode and "Instrument" in well.demultiplex_mode:
@@ -227,21 +227,21 @@ class QCPoolMetrics:
                 cov = None
             else:
                 hifi_reads = [prod.hifi_num_reads for prod in product_metrics]
-                cov = stdev(hifi_reads) / mean(hifi_reads) * 100
+                cov = round(stdev(hifi_reads) / mean(hifi_reads) * 100, 2)
 
-            for (i, prod) in enumerate(product_metrics):
+            for i, prod in enumerate(product_metrics):
                 sample_stats.append(
                     SampleDeplexingStats(
                         id_product=prod.id_pac_bio_product,
                         tag1_name=lib_lims_data[i].tag_identifier,
                         tag2_name=lib_lims_data[i].tag2_identifier,
                         deplexing_barcode=prod.barcode4deplexing,
-                        hifi_read_bases=prod.hifi_read_bases,
+                        hifi_read_bases=convert_to_gigabase(prod, "hifi_read_bases"),
                         hifi_num_reads=prod.hifi_num_reads,
                         hifi_read_length_mean=prod.hifi_read_length_mean,
                         hifi_bases_percent=prod.hifi_bases_percent,
                         percentage_total_reads=(
-                            prod.hifi_num_reads / well.hifi_num_reads * 100
+                            round(prod.hifi_num_reads / well.hifi_num_reads * 100, 2)
                             if (well.hifi_num_reads and prod.hifi_num_reads)
                             else None
                         ),
