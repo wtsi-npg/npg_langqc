@@ -234,7 +234,7 @@ def get_product_metrics(
     mlwh_well = _find_well_product_or_error(id_product, mlwhdb_session)
     try:
         metrics = QCPoolMetrics(db_well=mlwh_well)
-    except MissingLimsDataError as err:
+    except MissingLimsDataError:
         return
 
     return metrics
