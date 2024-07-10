@@ -225,17 +225,17 @@ def get_seq_metrics(
         status.HTTP_409_CONFLICT: {"description": "Missing or incomplete LIMS data"},
         status.HTTP_422_UNPROCESSABLE_ENTITY: {"description": "Invalid product ID"},
     },
-    response_model=QCPoolMetrics,
+    response_model=QCPoolMetrics | None,
 )
 def get_product_metrics(
     id_product: PacBioWellSHA256, mlwhdb_session: Session = Depends(get_mlwh_db)
-) -> QCPoolMetrics:
+) -> QCPoolMetrics | None:
 
     mlwh_well = _find_well_product_or_error(id_product, mlwhdb_session)
     try:
         metrics = QCPoolMetrics(db_well=mlwh_well)
     except MissingLimsDataError as err:
-        raise HTTPException(409, detail=str(err))
+        return
 
     return metrics
 
