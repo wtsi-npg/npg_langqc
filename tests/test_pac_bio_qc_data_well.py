@@ -132,19 +132,19 @@ def test_pool_metrics_from_well(mlwhdb_test_session, multiplexed_run):
     for metrics in [metrics_via_db, metrics_direct]:
         assert (
             int(metrics.pool_coeff_of_variance) == 47
-        ), "Variance between 20 and 10 is ~47%"
+        ), "Variance between 20 reads and 10 reads is ~47%"
 
-        assert metrics.products[0].hifi_read_bases == 100
+        assert metrics.products[0].hifi_read_bases == 0.01
         assert (
-            metrics.products[1].hifi_read_bases == 900
-        ), "hifi read base counts are faithfully copied"
+            metrics.products[1].hifi_read_bases == 0.09
+        ), "hifi read base counts are scaled to Gigabases"
 
         assert (
-            int(metrics.products[0].percentage_total_reads) == 33
-        ), "10 of 30 reads is 33.3%"
+            metrics.products[0].percentage_total_reads == 33.33
+        ), "10Mb of 30Mb reads is 33.33% (2 d.p.)"
         assert (
-            int(metrics.products[1].percentage_total_reads) == 66
-        ), "20 of 30 reads is 66.6%"
+            metrics.products[1].percentage_total_reads == 66.67
+        ), "20Mb of 30Mb reads is 66.67% (2 d.p.)"
 
 
 def test_errors_instantiating_pool_metrics(mlwhdb_test_session):

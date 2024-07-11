@@ -136,8 +136,9 @@ describe('Does it work?', async () => {
 
   test('Click a well selection, QC View appears (because URL alters)', async () => {
     // Not providing precisely the right data, but serves for the component
-    fetch.mockResponseOnce(
-      JSON.stringify(secondaryRun)
+    fetch.mockResponses(
+      [JSON.stringify(secondaryRun)], // well QC data loading
+      [JSON.stringify({})] // Pool stats loading
     )
 
     let buttons = wrapper.findAll('button')
@@ -168,16 +169,15 @@ describe('Does it work?', async () => {
       ]
     )
     await wrapper.setProps({runName: ['TRACTION-RUN-211', 'TRACTION-RUN-210']})
+    await flushPromises()
 
-    test('Table now contains wells from both runs', () => {
-      const table = wrapper.get('table')
-      expect(table.exists()).toBe(true)
+    const table = wrapper.get('table')
+    expect(table.exists()).toBe(true)
 
-      expect(table.find('TRACTION-RUN-211').exists()).toBe(true)
-      expect(table.find('TRACTION-RUN-210').exists()).toBe(true)
+    expect(table.find("td#TRACTION-RUN-211").exists()).toBe(true)
+    expect(table.find("td#TRACTION-RUN-210").exists()).toBe(true)
 
-      const rows = table.findAll('tr')
-      expect(rows.length).toEqual(4)
-    })
+    const rows = table.findAll('tr')
+    expect(rows.length).toEqual(4)
   })
 })

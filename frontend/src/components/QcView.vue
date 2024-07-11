@@ -3,15 +3,36 @@
     * An information view containing run data and metrics useful for QC assessment
     */
 
-    import { computed } from "vue";
+    import { computed, ref, watch } from "vue";
     import groupMetrics from "../utils/metrics.js";
     import { combineLabelWithPlate } from "../utils/text.js"
+    import PoolStats from "./PoolStats.vue";
+    import LangQc from "../utils/langqc";
+
+
+    const dataClient = new LangQc()
 
     const props = defineProps({
         // Well object representing one prepared input for the instrument
         // Expects content in the form of lang_qc/models/pacbio/well.py:PacBioWellFull
         well: Object,
-    });
+    })
+
+    const poolStats = ref(null)
+    watch(() => props.well, () => {
+        poolStats.value = null // empty in case next well doesn't have a pool
+        dataClient.getPoolMetrics(props.well.id_product).then(
+            (response) => { poolStats.value = response }
+        ).catch((error) => {
+            if (error.message.match("Conflict")) {
+                // Nothing to do
+            } else {
+                console.log(error)
+                // make a banner show this error?
+            }
+        })
+    }, { immediate: true}
+    )
 
     const slURL = computed(() => {
         let hostname = props.well.metrics.smrt_link.hostname
@@ -97,7 +118,6 @@
         }
         return ''
     })
-
 </script>
 
 <template>
@@ -165,6 +185,8 @@
         </table>
     </div>
 
+    <PoolStats v-if="poolStats" :pool="poolStats">Pool composition</PoolStats>
+
     <div id="Metrics">
         <table>
             <tr>
@@ -197,6 +219,11 @@
     td {
         padding-left: 5px;
         padding-right: 5px;
+        align-self: flex-start;
+    }
+    tr>td:first-child {
+        vertical-align: top;
+        /* Pin first text element to the top of the td */
     }
     table.summary {
         border: 0px;
