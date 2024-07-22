@@ -236,7 +236,8 @@ def get_product_metrics(
         metrics = QCPoolMetrics(db_well=mlwh_well)
     except MissingLimsDataError:
         return
-
+    if len(metrics.products) == 0:
+        return
     return metrics
 
 
