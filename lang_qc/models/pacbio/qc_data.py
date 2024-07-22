@@ -227,7 +227,9 @@ class QCPoolMetrics:
                 cov = None
             else:
                 hifi_reads = [prod.hifi_num_reads for prod in product_metrics]
-                cov = round(stdev(hifi_reads) / mean(hifi_reads) * 100, 2)
+                if len(hifi_reads) > 1:
+                    # stdev throws on n=1
+                    cov = round(stdev(hifi_reads) / mean(hifi_reads) * 100, 2)
 
             for i, prod in enumerate(product_metrics):
                 sample_stats.append(
