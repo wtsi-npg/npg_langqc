@@ -238,7 +238,11 @@ class QCPoolMetrics:
                         tag1_name=lib_lims_data[i].tag_identifier,
                         tag2_name=lib_lims_data[i].tag2_identifier,
                         deplexing_barcode=prod.barcode4deplexing,
-                        hifi_read_bases=convert_to_gigabase(prod, "hifi_read_bases"),
+                        hifi_read_bases=(
+                            convert_to_gigabase(prod, "hifi_read_bases")
+                            if (prod.hifi_read_bases)
+                            else None
+                        ),
                         hifi_num_reads=prod.hifi_num_reads,
                         hifi_read_length_mean=prod.hifi_read_length_mean,
                         hifi_bases_percent=prod.hifi_bases_percent,
