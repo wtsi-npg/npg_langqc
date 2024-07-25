@@ -138,7 +138,6 @@ describe('Does it work?', async () => {
     // Not providing precisely the right data, but serves for the component
     fetch.mockResponses(
       [JSON.stringify(secondaryRun)], // well QC data loading
-      [JSON.stringify({})] // Pool stats loading
     )
 
     let buttons = wrapper.findAll('button')
@@ -165,8 +164,9 @@ describe('Does it work?', async () => {
           page_number: 1,
           total_number_of_items: 1,
           wells: [secondaryRun]
-        })
-      ]
+        }),
+        { status: 200 }
+      ],
     )
     await wrapper.setProps({runName: ['TRACTION-RUN-211', 'TRACTION-RUN-210']})
     await flushPromises()

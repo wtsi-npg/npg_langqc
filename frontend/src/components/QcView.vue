@@ -18,22 +18,6 @@
         well: Object,
     })
 
-    const poolStats = ref(null)
-    watch(() => props.well, () => {
-        poolStats.value = null // empty in case next well doesn't have a pool
-        dataClient.getPoolMetrics(props.well.id_product).then(
-            (response) => { poolStats.value = response }
-        ).catch((error) => {
-            if (error.message.match("Conflict")) {
-                // Nothing to do
-            } else {
-                console.log(error)
-                // make a banner show this error?
-            }
-        })
-    }, { immediate: true}
-    )
-
     const slURL = computed(() => {
         let hostname = props.well.metrics.smrt_link.hostname
         let url = ''
@@ -118,6 +102,24 @@
         }
         return ''
     })
+
+    const poolStats = ref(null)
+    watch(() => props.well, () => {
+        poolStats.value = null // empty in case next well doesn't have a pool
+        if (ssLimsNumSamples.value > 0) {
+            dataClient.getPoolMetrics(props.well.id_product).then(
+                (response) => { poolStats.value = response }
+            ).catch((error) => {
+                if (error.message.match("Conflict")) {
+                    // Nothing to do
+                } else {
+                    console.log(error)
+                    // make a banner show this error?
+                }
+            })
+        }
+    }, { immediate: true }
+    )
 </script>
 
 <template>
