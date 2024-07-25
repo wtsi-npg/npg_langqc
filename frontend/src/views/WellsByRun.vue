@@ -53,6 +53,7 @@ watch(() => props.runName, () => {
   Promise.all(promises).then(
       (values) => (wellCollection.value = flatten_data(values))
   ).catch(error => {
+      console.log(error.message + " when resolving promises in props.runName watcher")
       ElMessage({
         message: error.message,
         type: "warning",
