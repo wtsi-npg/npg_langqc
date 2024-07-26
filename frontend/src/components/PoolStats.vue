@@ -35,7 +35,7 @@ const active = ref([])
           <td>{{ library.hifi_num_reads }}</td>
           <td>{{ library.hifi_read_length_mean }}</td>
           <td>{{ library.hifi_bases_percent }}</td>
-          <td>{{ library.percentage_total_reads }}</td>
+          <td class="MetricYellow">{{ library.percentage_total_reads }}</td>
         </tr>
       </table>
     </el-collapse-item>
