@@ -131,8 +131,8 @@ def test_pool_metrics_from_well(mlwhdb_test_session, multiplexed_run):
 
     for metrics in [metrics_via_db, metrics_direct]:
         assert (
-            int(metrics.pool_coeff_of_variance) == 47
-        ), "Variance between 20 reads and 10 reads is ~47%"
+            int(metrics.pool_coeff_of_variance) == 33
+        ), "Variance between 20 reads and 10 reads is ~33%"
 
         assert metrics.products[0].hifi_read_bases == 0.01
         assert (

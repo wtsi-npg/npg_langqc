@@ -20,7 +20,7 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>
 
-from statistics import mean, stdev
+from statistics import mean, pstdev
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -228,8 +228,8 @@ class QCPoolMetrics:
             else:
                 hifi_reads = [prod.hifi_num_reads for prod in product_metrics]
                 if len(hifi_reads) > 1:
-                    # stdev throws on n=1
-                    cov = round(stdev(hifi_reads) / mean(hifi_reads) * 100, 2)
+                    # pstdev throws on n=1
+                    cov = round(pstdev(hifi_reads) / mean(hifi_reads) * 100, 2)
 
             for i, prod in enumerate(product_metrics):
                 sample_stats.append(
