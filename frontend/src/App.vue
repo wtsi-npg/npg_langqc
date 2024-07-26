@@ -173,4 +173,20 @@ nav {
   align-items: center;
   text-align: left;
 }
+
+.MetricOrange {
+  background-color: #F8CBAD;
+}
+
+.MetricBlue {
+  background-color: #BDD6EE;
+}
+
+.MetricGreen {
+  background-color: #C6E0B4;
+}
+
+.MetricYellow {
+  background-color: #FFE698;
+}
 </style>
