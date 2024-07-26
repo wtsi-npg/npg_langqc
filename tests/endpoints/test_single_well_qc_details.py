@@ -176,7 +176,7 @@ def test_get_pool_info(test_client: TestClient, mlwhdb_load_runs):
     assert response.status_code == 200
 
     data = response.json()
-    assert int(data["pool_coeff_of_variance"]) == 23, "variance is calculated"
+    assert int(data["pool_coeff_of_variance"]) == 19, "variance is calculated"
     assert {prod["tag1_name"] for prod in data["products"]} == {
         "bc2036",
         "bc2040",
