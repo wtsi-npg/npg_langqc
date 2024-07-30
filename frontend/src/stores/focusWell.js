@@ -75,7 +75,7 @@ export const useWellStore = defineStore('focusWell', {
                 (error) => {
                     ElMessage({
                         message: error.message,
-                        type: error,
+                        type: "error",
                         duration: 5000
                     })
                 }

@@ -1,7 +1,10 @@
+import pytest
 from npg_id_generation.pac_bio import PacBioEntity
 
 from lang_qc.db.helper.wells import WellWh
-from lang_qc.models.pacbio.qc_data import QCDataWell
+from lang_qc.models.pacbio.qc_data import QCDataWell, QCPoolMetrics
+from lang_qc.util.errors import MissingLimsDataError
+from tests.fixtures.sample_data import multiplexed_run, simplex_run
 
 
 def test_creating_qc_data_well(mlwhdb_test_session, mlwhdb_load_runs):
@@ -98,3 +101,74 @@ def test_creating_qc_data_well(mlwhdb_test_session, mlwhdb_load_runs):
     assert (
         qc.percentage_deplexed_reads["value"] == None
     ), "Absent metrics mean this is set to none"
+
+
+def test_pool_metrics_from_single_sample_well(mlwhdb_test_session, simplex_run):
+    """
+    Applies to samples where deplexing was left as an exercise for the user.
+    Other single-sample wells with requested deplexing will have a single entry
+    in the products
+    """
+    id = PacBioEntity(
+        run_name=simplex_run.pac_bio_run_name,
+        well_label=simplex_run.well_label,
+        plate_number=simplex_run.plate_number,
+    ).hash_product_id()
+    helper = WellWh(session=mlwhdb_test_session)
+    row = helper.get_mlwh_well_by_product_id(id)
+
+    metric = QCPoolMetrics(db_well=row)
+    assert metric.pool_coeff_of_variance is None
+    assert metric.products == []
+
+
+def test_pool_metrics_from_well(mlwhdb_test_session, multiplexed_run):
+
+    id = PacBioEntity(run_name="RUN", well_label="B1", plate_number=1).hash_product_id()
+    helper = WellWh(session=mlwhdb_test_session)
+    row = helper.get_mlwh_well_by_product_id(id)
+    metrics_via_db = QCPoolMetrics(db_well=row)
+    metrics_direct = QCPoolMetrics(
+        pool_coeff_of_variance=metrics_via_db.pool_coeff_of_variance,
+        products=metrics_via_db.products,
+    )
+
+    for metrics in [metrics_via_db, metrics_direct]:
+        assert (
+            int(metrics.pool_coeff_of_variance) == 33
+        ), "Variance between 20 reads and 10 reads is ~33%"
+
+        assert metrics.products[0].hifi_read_bases == 0.01
+        assert (
+            metrics.products[1].hifi_read_bases == 0.09
+        ), "hifi read base counts are scaled to Gigabases"
+
+        assert (
+            metrics.products[0].percentage_total_reads == 33.33
+        ), "10Mb of 30Mb reads is 33.33% (2 d.p.)"
+        assert (
+            metrics.products[1].percentage_total_reads == 66.67
+        ), "20Mb of 30Mb reads is 66.67% (2 d.p.)"
+
+    assert (
+        metrics.products[0].sample_name is None
+    ), "Sample without name returned successfully"
+    assert (
+        metrics.products[1].sample_name == "It's a test"
+    ), "Sample name added to products when present"
+
+
+def test_errors_instantiating_pool_metrics(mlwhdb_test_session):
+
+    with pytest.raises(ValueError, match=r"None db_well value is not allowed."):
+        QCPoolMetrics(db_well=None)
+
+    id = PacBioEntity(
+        run_name="TRACTION-RUN-1140", well_label="C1", plate_number=2
+    ).hash_product_id()
+    helper = WellWh(session=mlwhdb_test_session)
+    row = helper.get_mlwh_well_by_product_id(id)
+    with pytest.raises(
+        MissingLimsDataError, match=r"Partially linked LIMS data or no linked LIMS data"
+    ):
+        QCPoolMetrics(db_well=row)

@@ -1,6 +1,6 @@
 {
   "name": "npg-longue-vue",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "UI for LangQC",
   "author": "Kieron Taylor <kt19@sanger.ac.uk>",
   "license": "GPL-3.0-or-later",
@@ -10,9 +10,9 @@
   },
   "type": "module",
   "scripts": {
-    "dev": "vite --port 3000",
+    "dev": "vite --port 80 --mode development",
     "build": "vite build",
-    "preview": "vite preview --port 3000",
+    "preview": "vite preview --port 80",
     "test": "vitest run",
     "coverage": "vitest run --coverage",
     "test:e2e:ci": "start-server-and-test preview http://localhost:3000/ 'cypress run --e2e'",

@@ -5,6 +5,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [2.3.0] - 2024-07-30
+
+### Added
+
+* New endpoint for fetching statistics about a library pool
+* Pool composition table added to the QC View for any well. Folded away by default
+* Barcode names from MLWH are now available to front and back end code
+
+### Fixed
+
+* Well detail fetching errors now produce a visible warning that was previously lost
+
 ## [2.2.0] - 2024-06-11
 
 ### Added

@@ -1,4 +1,4 @@
-# Copyright (c) 2022, 2023 Genome Research Ltd.
+# Copyright (c) 2022, 2023, 2024 Genome Research Ltd.
 #
 # Authors:
 #   Adam Blanchet
@@ -37,16 +37,22 @@ from lang_qc.db.helper.wells import PacBioPagedWellsFactory, WellWh
 from lang_qc.db.mlwh_connection import get_mlwh_db
 from lang_qc.db.qc_connection import get_qc_db
 from lang_qc.db.qc_schema import User
-from lang_qc.models.pacbio.well import PacBioPagedWells, PacBioWellFull
+from lang_qc.models.pacbio.qc_data import QCPoolMetrics
+from lang_qc.models.pacbio.well import (
+    PacBioPagedWells,
+    PacBioWellFull,
+    PacBioWellLibraries,
+)
 from lang_qc.models.qc_flow_status import QcFlowStatusEnum
 from lang_qc.models.qc_state import QcState, QcStateBasic
 from lang_qc.util.auth import check_user
 from lang_qc.util.errors import (
     InconsistentInputError,
     InvalidDictValueError,
+    MissingLimsDataError,
     RunNotFoundError,
 )
-from lang_qc.util.type_checksum import ChecksumSHA256
+from lang_qc.util.type_checksum import ChecksumSHA256, PacBioWellSHA256
 
 """
 A collection of API endpoints that are specific to the PacBio sequencing
@@ -164,6 +170,32 @@ def get_wells_in_run(
 
 
 @router.get(
+    "/wells/{id_product}/libraries",
+    summary="Get well summary and LIMS data for all libraries",
+    responses={
+        status.HTTP_404_NOT_FOUND: {"description": "Well product does not exist"},
+        status.HTTP_422_UNPROCESSABLE_ENTITY: {"description": "Invalid product ID"},
+        status.HTTP_409_CONFLICT: {"description": "Missing or incomplete LIMS data"},
+    },
+    response_model=PacBioWellLibraries,
+)
+def get_well_lims_info(
+    id_product: ChecksumSHA256,
+    mlwhdb_session: Session = Depends(get_mlwh_db),
+) -> PacBioWellLibraries:
+
+    db_well = _find_well_product_or_error(id_product, mlwhdb_session)
+    well_libraries: PacBioWellLibraries
+    try:
+        well_libraries = PacBioWellLibraries(db_well=db_well)
+    except MissingLimsDataError as err:
+        # 409 - Request conflicts with the current state of the server.
+        raise HTTPException(409, detail=str(err))
+
+    return well_libraries
+
+
+@router.get(
     "/products/{id_product}/seq_level",
     summary="Get full sequencing QC metrics and state for a product",
     responses={
@@ -173,7 +205,7 @@ def get_wells_in_run(
     response_model=PacBioWellFull,
 )
 def get_seq_metrics(
-    id_product: ChecksumSHA256,
+    id_product: PacBioWellSHA256,
     mlwhdb_session: Session = Depends(get_mlwh_db),
     qcdb_session: Session = Depends(get_qc_db),
 ) -> PacBioWellFull:
@@ -183,6 +215,30 @@ def get_seq_metrics(
     qc_state_db = get_qc_state_for_product(session=qcdb_session, id_product=id_product)
     qc_state = None if qc_state_db is None else QcState.from_orm(qc_state_db)
     return PacBioWellFull(db_well=mlwh_well, qc_state=qc_state)
+
+
+@router.get(
+    "/products/{id_product}/seq_level/pool",
+    summary="Get sample (deplexing) metrics for a multiplexed well product by the well ID",
+    responses={
+        status.HTTP_404_NOT_FOUND: {"description": "Product not found"},
+        status.HTTP_409_CONFLICT: {"description": "Missing or incomplete LIMS data"},
+        status.HTTP_422_UNPROCESSABLE_ENTITY: {"description": "Invalid product ID"},
+    },
+    response_model=QCPoolMetrics | None,
+)
+def get_product_metrics(
+    id_product: PacBioWellSHA256, mlwhdb_session: Session = Depends(get_mlwh_db)
+) -> QCPoolMetrics | None:
+
+    mlwh_well = _find_well_product_or_error(id_product, mlwhdb_session)
+    try:
+        metrics = QCPoolMetrics(db_well=mlwh_well)
+    except MissingLimsDataError:
+        return
+    if len(metrics.products) == 0:
+        return
+    return metrics
 
 
 @router.post(
@@ -210,7 +266,7 @@ def get_seq_metrics(
     status_code=status.HTTP_201_CREATED,
 )
 def claim_qc(
-    id_product: ChecksumSHA256,
+    id_product: PacBioWellSHA256,
     user: User = Depends(check_user),
     qcdb_session: Session = Depends(get_qc_db),
     mlwhdb_session: Session = Depends(get_mlwh_db),

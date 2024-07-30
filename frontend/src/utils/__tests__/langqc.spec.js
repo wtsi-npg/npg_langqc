@@ -95,6 +95,9 @@ describe('Example fake remote api call', () => {
 
         client.getWellsForRunPromise('blah')
         expect(fetch.mock.calls[6][0]).toEqual('/api/pacbio/run/blah?page_size=100&page=1')
+
+        client.getPoolMetrics('A12345');
+        expect(fetch.mock.calls[7][0]).toEqual('/api/pacbio/products/A12345/seq_level/pool')
     });
 });
 

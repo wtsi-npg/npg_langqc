@@ -1,7 +1,7 @@
 <script setup>
 import { RouterView, useRoute } from 'vue-router';
 import { onMounted, provide, ref } from "vue";
-import { ElMessage } from "element-plus";
+import { ElMessage, ElTooltip } from "element-plus";
 import { Search } from '@element-plus/icons-vue';
 
 import router from "@/router/index.js";
@@ -172,5 +172,21 @@ nav {
   justify-content: normal;
   align-items: center;
   text-align: left;
+}
+
+.MetricOrange {
+  background-color: #F8CBAD;
+}
+
+.MetricBlue {
+  background-color: #BDD6EE;
+}
+
+.MetricGreen {
+  background-color: #C6E0B4;
+}
+
+.MetricYellow {
+  background-color: #FFE698;
 }
 </style>

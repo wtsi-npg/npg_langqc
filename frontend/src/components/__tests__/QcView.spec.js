@@ -6,6 +6,11 @@ import QcView from '../QcView.vue';
 
 describe('Component renders', () => {
 
+  // Supply PoolStats element with some data
+  fetch.mockResponse(
+    JSON.stringify({})
+  )
+
   afterEach(async () => {
     cleanup()
   });

@@ -36,7 +36,9 @@ function flatten_data(values) {
 getUserName((email) => { user.value = email }).then();
 
 watch(() => route.query, (after, before) => {
-    if (qcQueryChanged(before, after)) {
+    if (after.idProduct === undefined) {
+      focusWell.setFocusWell(null)
+    } else if (qcQueryChanged(before, after)) {
       focusWell.loadWellDetail(after.idProduct)
     }
   },
@@ -51,6 +53,7 @@ watch(() => props.runName, () => {
   Promise.all(promises).then(
       (values) => (wellCollection.value = flatten_data(values))
   ).catch(error => {
+      console.log(error.message + " when resolving promises in props.runName watcher")
       ElMessage({
         message: error.message,
         type: "warning",

@@ -1,4 +1,4 @@
-# Copyright (c) 2022, 2023 Genome Research Ltd.
+# Copyright (c) 2022, 2023, 2024 Genome Research Ltd.
 #
 # Authors:
 #   Marina Gourtovaia <mg8@sanger.ac.uk>
@@ -38,6 +38,7 @@ from lang_qc.models.pager import PagedResponse
 from lang_qc.models.qc_flow_status import QcFlowStatusEnum
 from lang_qc.models.qc_state import QcState as QcStateModel
 from lang_qc.util.errors import EmptyListOfRunNamesError, RunNotFoundError
+from lang_qc.util.type_checksum import PacBioWellSHA256
 
 """
 This package is using an undocumented feature of Pydantic, type
@@ -64,7 +65,7 @@ class WellWh(BaseModel):
     # The TestClient seems to be keeping these instances alive and changing them.
 
     def get_mlwh_well_by_product_id(
-        self, id_product: str
+        self, id_product: PacBioWellSHA256
     ) -> PacBioRunWellMetrics | None:
         """
         Returns a well row record from the well metrics table or

@@ -2,7 +2,19 @@ import pytest
 from sqlalchemy import select
 
 from lang_qc.db.mlwh_schema import PacBioRun
-from lang_qc.models.pacbio.experiment import PacBioExperiment
+from lang_qc.models.pacbio.experiment import PacBioExperiment, PacBioLibrary
+
+
+def test_creating_library_object(mlwhdb_test_session, mlwhdb_load_runs):
+
+    l = PacBioLibrary(
+        study_id="1",
+        sample_id="1",
+        study_name="st_name",
+        sample_name="sa_name",
+        tag_sequence=[],
+    )
+    assert l.study_id == "1"
 
 
 def test_creating_experiment_object(mlwhdb_test_session, mlwhdb_load_runs):
@@ -17,7 +29,13 @@ def test_creating_experiment_object(mlwhdb_test_session, mlwhdb_load_runs):
     )
     well_row = mlwhdb_test_session.execute(query).scalars().one()
 
-    lims = PacBioExperiment.from_orm([well_row])
+    with pytest.raises(Exception, match=r"Empty db_libraries list is not allowed."):
+        PacBioExperiment(db_libraries=[])
+
+    with pytest.raises(ValueError, match=r"None db_library value is not allowed."):
+        PacBioExperiment(db_libraries=[well_row, None])
+
+    lims = PacBioExperiment(db_libraries=[well_row])
     assert lims.num_samples == 1
     assert lims.study_id == ["6457"]
     assert lims.study_name == "Tree of Life - ASG"
@@ -34,7 +52,7 @@ def test_creating_experiment_object(mlwhdb_test_session, mlwhdb_load_runs):
     )
     well_row = mlwhdb_test_session.execute(query).scalars().one()
 
-    lims = PacBioExperiment.from_orm([well_row])
+    lims = PacBioExperiment(db_libraries=[well_row])
     assert lims.num_samples == 1
     assert lims.study_id == ["5901"]
     assert lims.study_name == "DTOL_Darwin Tree of Life"
@@ -51,7 +69,7 @@ def test_creating_experiment_object(mlwhdb_test_session, mlwhdb_load_runs):
     )
     well_rows = mlwhdb_test_session.execute(query).scalars().all()
 
-    lims = PacBioExperiment.from_orm(well_rows)
+    lims = PacBioExperiment(db_libraries=well_rows)
     assert lims.num_samples == 40
     assert lims.study_id == ["7069"]
     assert lims.study_name == "Alternative Enzymes 2022 microbial genomes"
@@ -68,7 +86,7 @@ def test_creating_experiment_object(mlwhdb_test_session, mlwhdb_load_runs):
     )
     well_rows = mlwhdb_test_session.execute(query).scalars().all()
 
-    lims = PacBioExperiment.from_orm(well_rows)
+    lims = PacBioExperiment(db_libraries=well_rows)
     assert lims.num_samples == 3
     assert lims.study_id == ["5901", "6457"]
     assert lims.study_name is None
@@ -85,7 +103,14 @@ def test_creating_experiment_object(mlwhdb_test_session, mlwhdb_load_runs):
     )
     well_rows = mlwhdb_test_session.execute(query).scalars().all()
 
-    lims = PacBioExperiment.from_orm(well_rows)
+    with pytest.raises(ValueError, match=r"Multiple pool names."):
+        PacBioExperiment(db_libraries=well_rows)
+
+    for row in well_rows:
+        row.pac_bio_library_tube_barcode = "AXCTYW"
+    mlwhdb_test_session.commit()
+
+    lims = PacBioExperiment(db_libraries=well_rows)
     assert lims.num_samples == 42
     assert lims.study_id == ["6457", "7069"]
     assert lims.study_name is None
@@ -93,13 +118,3 @@ def test_creating_experiment_object(mlwhdb_test_session, mlwhdb_load_runs):
     assert lims.sample_name is None
     assert lims.library_type == ["PacBio_Ultra_Low_Input", "Pacbio_HiFi_mplx"]
     assert lims.tag_sequence == []
-
-    with pytest.raises(
-        Exception, match=r"Cannot create PacBioLimsData object, no data"
-    ):
-        PacBioExperiment.from_orm([])
-
-    with pytest.raises(
-        Exception, match=r"Cannot create PacBioLimsData object, None row"
-    ):
-        PacBioExperiment.from_orm([well_row, None])

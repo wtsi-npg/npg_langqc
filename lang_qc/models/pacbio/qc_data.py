@@ -1,4 +1,4 @@
-# Copyright (c) 2022, 2023 Genome Research Ltd.
+# Copyright (c) 2022, 2023, 2024 Genome Research Ltd.
 #
 # Authors:
 #   Marina Gourtovaia <mg8@sanger.ac.uk>
@@ -20,9 +20,15 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>
 
-from pydantic import BaseModel, ConfigDict, Field
+from statistics import mean, pstdev
+from typing import Any
+
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic.dataclasses import dataclass
 
 from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
+from lang_qc.util.errors import MissingLimsDataError
+from lang_qc.util.type_checksum import PacBioProductSHA256
 
 
 # Pydantic prohibits us from defining these as @classmethod or @staticmethod
@@ -153,3 +159,101 @@ class QCDataWell(BaseModel):
                     qc_data[name]["value"] = getattr(obj, name, None)
 
         return cls.model_validate(qc_data)
+
+
+class SampleDeplexingStats(BaseModel):
+    """
+    A representation of metrics for one product, some direct from the DB and others inferred
+
+    For a long time tag2_name was null and tag1_name was silently used at both ends of the sequence.
+    As a result tag2_name will be None for most data in or before 2024.
+    """
+
+    id_product: PacBioProductSHA256
+    sample_name: str | None
+    tag1_name: str | None
+    tag2_name: str | None
+    deplexing_barcode: str | None
+    hifi_read_bases: float | None = Field(title="HiFi read bases (Gb)")
+    hifi_num_reads: int | None
+    hifi_read_length_mean: float | None
+    hifi_bases_percent: float | None
+    percentage_total_reads: float | None
+
+
+@dataclass(kw_only=True, frozen=True)
+class QCPoolMetrics:
+
+    db_well: PacBioRunWellMetrics = Field(init_var=True)
+    pool_coeff_of_variance: float | None = Field(
+        title="Coefficient of variance for reads in the pool",
+        description="Percentage of the standard deviation w.r.t. mean, when pool is more than one",
+    )
+    products: list[SampleDeplexingStats] = Field(
+        title="List of products and their metrics"
+    )
+
+    @model_validator(mode="before")
+    def pre_root(cls, values: dict[str, Any]) -> dict[str, Any]:
+        """
+        Populates this object with the run and well tracking information
+        from a database row that is passed as an argument.
+        """
+
+        db_well_key_name = "db_well"
+        # https://github.com/pydantic/pydantic-core/blob/main/python/pydantic_core/_pydantic_core.pyi
+        if db_well_key_name not in values.kwargs:
+            return values.kwargs
+
+        well: PacBioRunWellMetrics = values.kwargs[db_well_key_name]
+        if well is None:
+            raise ValueError(f"None {db_well_key_name} value is not allowed.")
+
+        cov: float | None = None
+        sample_stats = []
+
+        if well.demultiplex_mode and "Instrument" in well.demultiplex_mode:
+            product_metrics = well.pac_bio_product_metrics
+            lib_lims_data = [
+                product.pac_bio_run
+                for product in product_metrics
+                if product.pac_bio_run is not None
+            ]
+            if len(lib_lims_data) != len(product_metrics):
+                raise MissingLimsDataError(
+                    "Partially linked LIMS data or no linked LIMS data"
+                )
+
+            if any(p.hifi_num_reads is None for p in product_metrics):
+                cov = None
+            else:
+                hifi_reads = [prod.hifi_num_reads for prod in product_metrics]
+                if len(hifi_reads) > 1:
+                    # pstdev throws on n=1
+                    cov = round(pstdev(hifi_reads) / mean(hifi_reads) * 100, 2)
+
+            for i, prod in enumerate(product_metrics):
+                sample_stats.append(
+                    SampleDeplexingStats(
+                        id_product=prod.id_pac_bio_product,
+                        sample_name=lib_lims_data[i].sample.name,
+                        tag1_name=lib_lims_data[i].tag_identifier,
+                        tag2_name=lib_lims_data[i].tag2_identifier,
+                        deplexing_barcode=prod.barcode4deplexing,
+                        hifi_read_bases=(
+                            convert_to_gigabase(prod, "hifi_read_bases")
+                            if (prod.hifi_read_bases)
+                            else None
+                        ),
+                        hifi_num_reads=prod.hifi_num_reads,
+                        hifi_read_length_mean=prod.hifi_read_length_mean,
+                        hifi_bases_percent=prod.hifi_bases_percent,
+                        percentage_total_reads=(
+                            round(prod.hifi_num_reads / well.hifi_num_reads * 100, 2)
+                            if (well.hifi_num_reads and prod.hifi_num_reads)
+                            else None
+                        ),
+                    )
+                )
+
+        return {"pool_coeff_of_variance": cov, "products": sample_stats}
