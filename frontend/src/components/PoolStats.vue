@@ -18,6 +18,7 @@ const active = ref([])
       </el-tooltip>
       <table>
         <tr>
+          <th>Sample</th>
           <th>Tag 1</th>
           <th>Tag 2</th>
           <th>Deplexing barcode ID</th>
@@ -28,6 +29,7 @@ const active = ref([])
           <th>Percentage of total reads</th>
         </tr>
         <tr :key="library.id_product" v-for="library in props.pool.products">
+          <td>{{ library.sample_name }}</td>
           <td>{{ library.tag1_name }}</td>
           <td>{{ library.tag2_name }}</td>
           <td>{{ library.deplexing_barcode }}</td>

@@ -13,6 +13,7 @@ const wrapper = mount(PoolStats, {
             pool_coeff_of_variance: 47.2,
             products: [{
                 id_product: 'A'.repeat(64),
+                sample_name: 'allthets',
                 tag1_name: 'TTTTTTTT',
                 tag2_name: null,
                 deplexing_barcode: 'bc10--bc10',
@@ -23,6 +24,7 @@ const wrapper = mount(PoolStats, {
                 percentage_total_reads: 66.6
             },{
                 id_product: 'B'.repeat(64),
+                sample_name: null,
                 tag1_name: 'GGGGGGGG',
                 tag2_name: null,
                 deplexing_barcode: 'bc11--bc11',
@@ -54,7 +56,11 @@ describe('Create poolstats table with good data', () => {
         expect(rows.length).toEqual(3)
 
         // Check tag 1 has been set
-        expect(rows[1].find('td').text()).toEqual('TTTTTTTT')
-        expect(rows[2].find('td').text()).toEqual('GGGGGGGG')
+        expect(rows[1].findAll('td')[1].text()).toEqual('TTTTTTTT')
+        expect(rows[2].findAll('td')[1].text()).toEqual('GGGGGGGG')
+
+        // Sample name column set appropriately
+        expect(rows[1].find('td').text()).toEqual('allthets')
+        expect(rows[2].find('td').text()).toEqual('')
     })
 })

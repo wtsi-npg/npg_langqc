@@ -104,7 +104,11 @@ def test_creating_qc_data_well(mlwhdb_test_session, mlwhdb_load_runs):
 
 
 def test_pool_metrics_from_single_sample_well(mlwhdb_test_session, simplex_run):
-
+    """
+    Applies to samples where deplexing was left as an exercise for the user.
+    Other single-sample wells with requested deplexing will have a single entry
+    in the products
+    """
     id = PacBioEntity(
         run_name=simplex_run.pac_bio_run_name,
         well_label=simplex_run.well_label,
@@ -145,6 +149,13 @@ def test_pool_metrics_from_well(mlwhdb_test_session, multiplexed_run):
         assert (
             metrics.products[1].percentage_total_reads == 66.67
         ), "20Mb of 30Mb reads is 66.67% (2 d.p.)"
+
+    assert (
+        metrics.products[0].sample_name is None
+    ), "Sample without name returned successfully"
+    assert (
+        metrics.products[1].sample_name == "It's a test"
+    ), "Sample name added to products when present"
 
 
 def test_errors_instantiating_pool_metrics(mlwhdb_test_session):
