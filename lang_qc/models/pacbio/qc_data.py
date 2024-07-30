@@ -236,9 +236,7 @@ class QCPoolMetrics:
                 sample_stats.append(
                     SampleDeplexingStats(
                         id_product=prod.id_pac_bio_product,
-                        sample_name=(
-                            prod.pac_bio_run.sample.name if prod.pac_bio_run else None
-                        ),
+                        sample_name=lib_lims_data[i].sample.name,
                         tag1_name=lib_lims_data[i].tag_identifier,
                         tag2_name=lib_lims_data[i].tag2_identifier,
                         deplexing_barcode=prod.barcode4deplexing,
