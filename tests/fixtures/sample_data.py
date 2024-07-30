@@ -162,10 +162,7 @@ def multiplexed_run(mlwhdb_test_session):
         well_label=well_label,
         plate_number=plate_number,
         id_pac_bio_run_lims=1,
-        sample=Sample(
-            id_lims="pooled_id_1",
-            id_sample_lims="2",
-        ),
+        sample=Sample(id_lims="pooled_id_1", id_sample_lims="2", name="It's a test"),
         study=study,
         plate_barcode="ABCD",
         pac_bio_product_metrics=[product_1],

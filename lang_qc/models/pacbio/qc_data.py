@@ -170,6 +170,7 @@ class SampleDeplexingStats(BaseModel):
     """
 
     id_product: PacBioProductSHA256
+    sample_name: str | None
     tag1_name: str | None
     tag2_name: str | None
     deplexing_barcode: str | None
@@ -235,6 +236,7 @@ class QCPoolMetrics:
                 sample_stats.append(
                     SampleDeplexingStats(
                         id_product=prod.id_pac_bio_product,
+                        sample_name=lib_lims_data[i].sample.name,
                         tag1_name=lib_lims_data[i].tag_identifier,
                         tag2_name=lib_lims_data[i].tag2_identifier,
                         deplexing_barcode=prod.barcode4deplexing,
