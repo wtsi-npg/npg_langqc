@@ -128,6 +128,10 @@ function updateUrlQuery(newParams) {
   }
 }
 
+function showRun(runName) {
+  router.push({ name: 'WellsByRun', params: { runName: [runName] } })
+}
+
 onMounted(() => {
   // If there are no query properties in the URL, we can "redirect" to a
   // sensible default
@@ -141,7 +145,7 @@ onMounted(() => {
 <template>
   <el-tabs v-model="activeTab" type="border-card" @tab-change="clickTabChange">
     <el-tab-pane v-for="tab in appConfig.qc_flow_statuses" :key="tab.param" :label="tab.label" :name="tab.param">
-      <WellTable :wellCollection="wellCollection" @wellSelected="updateUrlQuery"/>
+      <WellTable allowNav :wellCollection="wellCollection" @wellSelected="updateUrlQuery" @runSelected="showRun"/>
     </el-tab-pane>
     <el-pagination v-model:currentPage="activePage" layout="prev, pager, next" v-bind:total="totalNumberOfWells"
       background :pager-count="5" :page-size="pageSize" :hide-on-single-page="true"
