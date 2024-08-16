@@ -5,6 +5,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+* Clickable icon next to run names to change to the view of all wells in that run
+
 ## [2.3.0] - 2024-07-30
 
 ### Added
