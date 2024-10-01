@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+* Added .github/dependabot.yml file to auto-update GitHub actions 
 * Clickable icon next to run names to change to the view of all wells in that run
 
 ## [2.3.0] - 2024-07-30
