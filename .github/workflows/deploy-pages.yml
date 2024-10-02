@@ -34,6 +34,6 @@ jobs:
           poetry run python -c "from lang_qc.main import app; import json; output = open('gh-pages/openapi.json', 'w'); json.dump(app.openapi(), output); output.close()"
 
       - name: Deploy github pages
-        uses: JamesIves/github-pages-deploy-action@v4.5.0
+        uses: JamesIves/github-pages-deploy-action@v4.6.8
         with:
           folder: gh-pages
