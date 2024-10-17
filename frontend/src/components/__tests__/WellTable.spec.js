@@ -74,4 +74,15 @@ describe('Rows of data give rows in the table', () => {
     expect(wellButton.classes('el-tooltip__trigger')).toBeTruthy()
     expect(wellButton.classes('el-button--warning')).toBeTruthy()
   })
+
+  test('No run selection icons appear by default', () => {
+    expect(() => table.get('el-icon')).toThrowError()
+  })
+
+  test('Setting allowNav property causes buttons to appear', async () => {
+    await table.setProps({'allowNav': true})
+    let icon = table.get('el-icon')
+    await icon.trigger('click')
+    expect(table.emitted().runSelected[0][0]).toEqual('TEST1')
+  })
 })

@@ -3,16 +3,18 @@
 * Renders a table for a list of wells and generates buttons for selecting wells
 */
 import { combineLabelWithPlate, listStudiesForTooltip } from "../utils/text.js"
-import { ElTooltip, ElButton } from "element-plus";
+import { ElTooltip, ElButton } from "element-plus"
+import { Top } from "@element-plus/icons-vue"
 
 const tooltipDelay = 500
 const studyNameHighlight = 'BIOSCAN UK for flying insects'
 
 defineProps({
-  wellCollection: Object
+  wellCollection: Object,
+  allowNav: Boolean,
 })
 
-defineEmits(['wellSelected'])
+defineEmits(['wellSelected', 'runSelected'])
 </script>
 
 <template>
@@ -30,7 +32,7 @@ defineEmits(['wellSelected'])
       <th>Well time complete</th>
     </tr>
     <tr :key="wellObj.id_product" v-for="wellObj in wellCollection">
-      <td :id="wellObj.run_name">{{ wellObj.run_name }}</td>
+      <td :id="wellObj.run_name">{{ wellObj.run_name }}<el-icon v-if="allowNav" :size="10" v-on:click="$emit('runSelected', wellObj.run_name)"><Top /></el-icon></td>
       <td class="well_selector">
         <el-tooltip placement="top" effect="light" :show-after="tooltipDelay"
           :content="'<span>'.concat(listStudiesForTooltip(wellObj.study_names)).concat('</span>')"
