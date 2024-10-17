@@ -5,10 +5,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [2.4.0] - 2024-10-17
+
 ### Added
 
-* Added .github/dependabot.yml file to auto-update GitHub actions 
+* Added .github/dependabot.yml file to auto-update GitHub actions
 * Clickable icon next to run names to change to the view of all wells in that run
+
+### Removed
+
+* Retired publishing of OpenAPI docs to Github page. It has been broken for more than a year.
 
 ## [2.3.0] - 2024-07-30
 
