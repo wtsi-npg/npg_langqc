@@ -32,6 +32,8 @@ run-well-plate combination.
 Activate a Python venv containing an installation of npg_langqc, then
 
 ```bash
+export QCDB_URL=<RW-MySQL-CREDENTIAL>
+export DB_URL=<RO-MLWH-CREDENTIAL>
 python misc/set_qc.py --id_product $SHA_FOR_PRODUCT --state $DESIRED_OUTCOME --no-preliminary --user $EMAIL_FOR_QC_USER
 ```
 
