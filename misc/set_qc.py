@@ -1,12 +1,13 @@
 import argparse
+
 from sqlalchemy import select
 
+from lang_qc.db.helper.qc import assign_qc_state_to_product, claim_qc_for_product
+from lang_qc.db.helper.well import well_seq_product_find_or_create
+from lang_qc.db.helper.wells import WellWh
 from lang_qc.db.mlwh_connection import get_mlwh_db
 from lang_qc.db.qc_connection import get_qc_db
 from lang_qc.db.qc_schema import User
-from lang_qc.db.helper.wells import WellWh
-from lang_qc.db.helper.qc import assign_qc_state_to_product, claim_qc_for_product
-from lang_qc.db.helper.well import well_seq_product_find_or_create
 from lang_qc.models.qc_state import QcStateBasic
 
 cli_parser = argparse.ArgumentParser(
