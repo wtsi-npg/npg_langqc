@@ -21,6 +21,22 @@ in order to enable automation of the QC process.
 Further versions of the application will implement a feature that transfers
 the ownership of the well's QC to a different member of the QC team.
 
+## Making a QC decision via script
+
+Occasionally the process above cannot work, such as experimental runs breaking
+our code assumptions.
+
+The id_product has to be found in the warehouse for the particular
+run-well-plate combination.
+
+Activate a Python venv containing an installation of npg_langqc, then
+
+```bash
+python misc/set_qc.py --id_product $SHA_FOR_PRODUCT --state $DESIRED_OUTCOME --no-preliminary --user $EMAIL_FOR_QC_USER
+```
+
+By default, this script will set a preliminary outcome as if you used `--preliminary`
+
 ## Automation
 
 Periodically a PacBio loader tool will attempt to upload the QC results to
