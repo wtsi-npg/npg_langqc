@@ -30,6 +30,7 @@ cli_parser.add_argument(
     required=True,
     help="The QC outcome we're looking to set, e.g. Passed, 'On-hold'",
 )
+cli_parser.add_argument("--ticket", required=True, help="Supply a ticket ID")
 
 
 def main():
@@ -52,6 +53,7 @@ def main():
     seq_product = well_seq_product_find_or_create(qc_session, mlwh_well)
 
     claim_qc_for_product(qc_session, seq_product, user=user)
+
     new_qc_state = assign_qc_state_to_product(
         qc_session,
         seq_product,
@@ -59,7 +61,7 @@ def main():
             qc_state=args.state, is_preliminary=args.preliminary, qc_type="sequencing"
         ),
         user,
-        application="Script",
+        application=f"Script-{args.ticket}",
     )
     print(f"Change made to: {new_qc_state}")
     exit()
