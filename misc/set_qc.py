@@ -23,7 +23,9 @@ cli_parser.add_argument(
     "--preliminary", type=bool, action=argparse.BooleanOptionalAction
 )
 cli_parser.add_argument(
-    "--user", required=True, help="Email for who we're masquerading as"
+    "--user",
+    required=True,
+    help="Email for who we're masquerading as. Must be registered in the QC DB",
 )
 cli_parser.add_argument(
     "--state",
