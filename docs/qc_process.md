@@ -29,7 +29,10 @@ our code assumptions.
 The id_product has to be found in the warehouse for the particular
 run-well-plate combination.
 
-Activate a Python venv containing an installation of npg_langqc, then
+Activate a Python venv containing an installation of npg_langqc, and decide
+which user you are acting as and set `$EMAIL_FOR_QC_USER`. The email must
+already be listed in the QC database as a valid QC user, or the change will
+fail.
 
 ```bash
 export QCDB_URL=<RW-MySQL-CREDENTIAL>
