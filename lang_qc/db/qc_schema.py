@@ -1,4 +1,4 @@
-# Copyright (c) 2022, 2023 Genome Research Ltd.
+# Copyright (c) 2022, 2023, 2025 Genome Research Ltd.
 #
 # Authors:
 #   Adam Blanchet
@@ -21,7 +21,6 @@
 
 from sqlalchemy import (
     CHAR,
-    JSON,
     Column,
     DateTime,
     ForeignKeyConstraint,
@@ -196,6 +195,16 @@ class SubProduct(Base):
         "SeqProduct", secondary="product_layout", back_populates="sub_products"
     )
 
+    def __str__(self):
+        return "{}:{}, {}:{}, {}:{}".format(
+            self.sub_product_attr.attr_name,
+            self.value_attr_one,
+            self.sub_product_attr_.attr_name,
+            self.value_attr_two,
+            self.sub_product_attr__.attr_name,
+            self.value_attr_three,
+        )
+
 
 class ProductAnnotation(Base):
     __tablename__ = "product_annotation"
@@ -281,6 +290,10 @@ class QcState(Base):
     qc_type = relationship("QcType", back_populates="qc_state")
     seq_product = relationship("SeqProduct", back_populates="qc_state")
     user = relationship("User", back_populates="qc_state", uselist=False)
+
+    def __str__(self):
+        sub_product = self.seq_product.sub_products[0]
+        return f"<{self.user.username}> - {sub_product}, {self.qc_state_dict.state}, {'Preliminary' if self.is_preliminary else 'Final'}"
 
 
 class QcStateHist(Base):
