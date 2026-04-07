@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
+* Updated MySQL version in GitHub CI to 8.4
 * Upgrade poetry version to "poetry>=2.0,<3.0" in Dockerfile
 * Updated ORM for ml warehouse. Brought all classes in line with the production
   database schema. Introduced declarative style column definitions. Most of the
