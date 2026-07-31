@@ -120,7 +120,7 @@ class PacBioWell:
         default=None,
         title="The number of times the PacBio SMRT Cell has been used",
     )
-    ts_run_name: str = Field(default=None,title="The SMRT Link run name")
+    ts_run_name: Optional[str] = Field(default=None,title="The SMRT Link run name")
 
     qc_state: Optional[QcState] = Field(
         default=None,

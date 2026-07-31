@@ -97,10 +97,13 @@ def test_get_well_info(
     assert result["run_name"] == "TRACTION-RUN-92"
     assert result["instrument_name"] == "64222E"
     assert result["instrument_type"] == "Sequel2e"
-    assert result["plate_number"] is None
+    assert result["plate_number"] == 1
     assert result["id_product"] == id_product
     assert result["metrics"]["smrt_link"]["dataset_uuid"] is None
     assert result["qc_state"] is None
+    assert result["ts_run_name"] == "r64222e_20220414_125138"
+    assert result["cell_id"] == "EA311198"
+    assert result["cell_use_count"] == 1
 
     id_product = "b5a7d41453097fe3cc59644a679186e64a2147833ecc76a2870c5fe8068835ae"
     response = test_client.get(f"/pacbio/products/{id_product}/seq_level")
