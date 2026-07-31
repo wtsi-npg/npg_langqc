@@ -62,6 +62,9 @@ def _examine_well_model_a1(pb_well: PacBioRunWellMetrics, id_product: str):
     assert pb_well.well_status == "Complete"
     assert pb_well.instrument_name == "64222E"
     assert pb_well.instrument_type == "Sequel2e"
+    assert pb_well.ts_run_name == "r64222e_20220414_125138"
+    assert pb_well.cell_id is None
+    assert pb_well.cell_use_count is None
 
 
 def _examine_well_model_b1(pb_well: PacBioRunWellMetrics, id_product: str):
@@ -75,6 +78,9 @@ def _examine_well_model_b1(pb_well: PacBioRunWellMetrics, id_product: str):
     assert pb_well.qc_state is not None
     assert pb_well.instrument_name == "64016"
     assert pb_well.instrument_type == "Sequel2"
+    assert pb_well.ts_run_name is None
+    assert pb_well.cell_id is None
+    assert pb_well.cell_use_count is None
 
 
 def _examine_well_model_c1(pb_well: PacBioRunWellMetrics, id_product: str):
@@ -88,13 +94,36 @@ def _examine_well_model_c1(pb_well: PacBioRunWellMetrics, id_product: str):
     assert pb_well.qc_state is None
     assert pb_well.instrument_name == "1234"
     assert pb_well.instrument_type == "Revio"
+    assert pb_well.ts_run_name is None
+    assert pb_well.cell_id is None
+    assert pb_well.cell_use_count is None
+
+
+def _examine_well_model_d1(pb_well: PacBioRunWellMetrics, id_product: str):
+
+    assert pb_well.id_product == id_product
+    assert pb_well.run_name == "TRACTION-RUN-92"
+    assert pb_well.label == "D1"
+    assert pb_well.plate_number == 1
+    assert pb_well.qc_state is None
+    compare_dates(pb_well.run_start_time, "2022-04-14 12:52:34")
+    compare_dates(pb_well.run_complete_time, "2022-04-20 09:16:53")
+    compare_dates(pb_well.well_start_time, "2022-04-18 21:49:38")
+    compare_dates(pb_well.well_complete_time, "2022-04-20 16:03:18")
+    assert pb_well.run_status == "Complete"
+    assert pb_well.well_status == "Complete"
+    assert pb_well.instrument_name == "64222E"
+    assert pb_well.instrument_type == "Sequel2e"
+    assert pb_well.ts_run_name == "r64222e_20220414_125138"
+    assert pb_well.cell_id == "EA311198"
+    assert pb_well.cell_use_count == 1
 
 
 def test_create_full_model(
     mlwhdb_test_session, qcdb_test_session, load_data4well_retrieval, mlwhdb_load_runs
 ):
     # Full mlwh data, no data in the lang_qc database.
-    (well_row, qc_state) = _prepare_data(
+    well_row, qc_state = _prepare_data(
         mlwhdb_test_session, qcdb_test_session, "TRACTION-RUN-92", "A1"
     )
     pb_well = PacBioWellFull(db_well=well_row)
@@ -104,7 +133,7 @@ def test_create_full_model(
 
     # Only run_well mlwh data (no products), and data in the lang_qc database.
     # Very sketchy mlwh qc metrics data.
-    (well_row, qc_state) = _prepare_data(
+    well_row, qc_state = _prepare_data(
         mlwhdb_test_session, qcdb_test_session, "TRACTION_RUN_1", "B1"
     )
     pb_well = PacBioWellFull(db_well=well_row, qc_state=qc_state)
@@ -114,13 +143,23 @@ def test_create_full_model(
 
     # Only run_well mlwh data (no products), no data in the lang_qc database.
     # Very sketchy mlwh qc metrics data.
-    (well_row, qc_state) = _prepare_data(
+    well_row, qc_state = _prepare_data(
         mlwhdb_test_session, qcdb_test_session, "TRACTION_RUN_10", "C1"
     )
     pb_well = PacBioWellFull(db_well=well_row, qc_state=None)
     _examine_well_model_c1(pb_well, well_row.id_pac_bio_product)
     assert pb_well.metrics is not None
     assert pb_well.experiment_tracking is None
+
+    # Full mlwh data, no data in the lang_qc database.
+    # Cell information.
+    well_row, qc_state = _prepare_data(
+        mlwhdb_test_session, qcdb_test_session, "TRACTION-RUN-92", "D1"
+    )
+    pb_well = PacBioWellFull(db_well=well_row)
+    _examine_well_model_d1(pb_well, well_row.id_pac_bio_product)
+    assert pb_well.metrics is not None
+    assert pb_well.experiment_tracking is not None
 
 
 def test_create_summary_and_library_models(
@@ -130,7 +169,7 @@ def test_create_summary_and_library_models(
     with pytest.raises(ValueError, match=r"None db_well value is not allowed."):
         PacBioWellSummary(plate_number=3)
 
-    (well_row, qc_state) = _prepare_data(
+    well_row, qc_state = _prepare_data(
         mlwhdb_test_session, qcdb_test_session, "TRACTION-RUN-92", "A1"
     )
     pb_well = PacBioWellSummary(db_well=well_row)
@@ -140,14 +179,14 @@ def test_create_summary_and_library_models(
     pb_well = PacBioWellLibraries(db_well=well_row)
     _examine_well_model_a1(pb_well, well_row.id_pac_bio_product)
 
-    (well_row, qc_state) = _prepare_data(
+    well_row, qc_state = _prepare_data(
         mlwhdb_test_session, qcdb_test_session, "TRACTION_RUN_1", "B1"
     )
     pb_well = PacBioWellSummary(db_well=well_row, qc_state=qc_state)
     _examine_well_model_b1(pb_well, well_row.id_pac_bio_product)
     assert pb_well.study_names == []
 
-    (well_row, qc_state) = _prepare_data(
+    well_row, qc_state = _prepare_data(
         mlwhdb_test_session, qcdb_test_session, "TRACTION_RUN_10", "C1"
     )
     pb_well = PacBioWellFull(db_well=well_row, qc_state=None)
@@ -158,7 +197,7 @@ def test_create_summary_and_library_models_lims_info(
     mlwhdb_test_session, qcdb_test_session, load_data4well_retrieval, mlwhdb_load_runs
 ):
     # Well with two samples, none is linked to LIMS
-    (well_row, qc_state) = _prepare_data(
+    well_row, qc_state = _prepare_data(
         mlwhdb_test_session, qcdb_test_session, "TRACTION-RUN-1140", "A1", 1
     )
     pb_well = PacBioWellSummary(db_well=well_row)
@@ -168,13 +207,13 @@ def test_create_summary_and_library_models_lims_info(
         PacBioWellLibraries(db_well=well_row)
 
     # Fully linked wells with one sample
-    (well_row, qc_state) = _prepare_data(
+    well_row, qc_state = _prepare_data(
         mlwhdb_test_session, qcdb_test_session, "TRACTION-RUN-1162", "C1"
     )
     pb_well = PacBioWellSummary(db_well=well_row)
     assert pb_well.study_names == ["DTOL_Darwin R&D"]
 
-    (well_row, qc_state) = _prepare_data(
+    well_row, qc_state = _prepare_data(
         mlwhdb_test_session, qcdb_test_session, "TRACTION-RUN-1162", "D1", 1
     )
     pb_well = PacBioWellSummary(db_well=well_row)
@@ -194,14 +233,14 @@ def test_create_summary_and_library_models_lims_info(
     assert pb_well.libraries[0] == expected_lib
 
     # A fully linked well with multiple samples, all belonging to the same study
-    (well_row, qc_state) = _prepare_data(
+    well_row, qc_state = _prepare_data(
         mlwhdb_test_session, qcdb_test_session, "TRACTION-RUN-1140", "B1", 1
     )
     pb_well = PacBioWellSummary(db_well=well_row)
     assert pb_well.study_names == ["DTOL_Darwin Tree of Life"]
 
     # A fully linked well with multiple samples, which belong to two studies
-    (well_row, qc_state) = _prepare_data(
+    well_row, qc_state = _prepare_data(
         mlwhdb_test_session, qcdb_test_session, "TRACTION-RUN-1140", "D1", 1
     )
     pb_well = PacBioWellSummary(db_well=well_row)
@@ -237,7 +276,7 @@ def test_create_summary_and_library_models_lims_info(
     # A partially linked well with three samples, which belong to two studies.
     # The LIMS link for one of the samples is deleted so that two other samples
     # belong to the same study.
-    (well_row, qc_state) = _prepare_data(
+    well_row, qc_state = _prepare_data(
         mlwhdb_test_session, qcdb_test_session, "TRACTION-RUN-1140", "C1", 2
     )
     pb_well = PacBioWellSummary(db_well=well_row)

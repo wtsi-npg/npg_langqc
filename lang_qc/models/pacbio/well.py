@@ -115,12 +115,12 @@ class PacBioWell:
     well_status: Optional[str] = Field(default=None, title="Current PacBio well status")
     instrument_name: Optional[str] = Field(default=None, title="Instrument name")
     instrument_type: Optional[str] = Field(default=None, title="Instrument type")
-    cell_id: Optional[str] = Field(default=None,title="The PacBio SMRT Cell id")
+    cell_id: Optional[str] = Field(default=None, title="The PacBio SMRT Cell id")
     cell_use_count: Optional[int] = Field(
         default=None,
         title="The number of times the PacBio SMRT Cell has been used",
     )
-    ts_run_name: str = Field(default=None,title="The SMRT Link run name")
+    ts_run_name: Optional[str] = Field(default=None, title="The SMRT Link run name")
 
     qc_state: Optional[QcState] = Field(
         default=None,
@@ -131,6 +131,7 @@ class PacBioWell:
         available depends on the lifecycle stage of this well.
         """,
     )
+
     @computed_field(
         title="Padded well label",
         description="The well label, zero-padded to two digits, e.g. A01",
@@ -142,7 +143,6 @@ class PacBioWell:
             return self.label
         row, col = match.groups()
         return f"{row}{int(col):02d}"
-
 
     @model_validator(mode="before")
     def pre_root(cls, values: dict[str, Any]) -> dict[str, Any]:

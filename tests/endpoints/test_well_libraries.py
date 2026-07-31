@@ -32,8 +32,11 @@ def test_well_libraries(test_client: TestClient, mlwhdb_load_runs):
     response = test_client.get(f"/pacbio/wells/{id_product}/libraries")
     assert response.status_code == 200
     expected_response = {
+        "cell_id": None,
+        "cell_use_count": None,
         "id_product": "513c674f489b106c6af716dd0d210826ff03b7648d50888839c3722ca1b10dbf",
         "label": "A1",
+        "padded_label": "A01",
         "plate_number": 2,
         "run_name": "TRACTION-RUN-1140",
         "run_start_time": "2024-02-23T10:28:12",
@@ -41,6 +44,7 @@ def test_well_libraries(test_client: TestClient, mlwhdb_load_runs):
         "well_start_time": "2024-02-24T14:25:12",
         "well_complete_time": "2024-02-26T00:27:52",
         "run_status": "Complete",
+        "ts_run_name": "r84093_20240223_102558",
         "well_status": "Complete",
         "instrument_name": "84093",
         "instrument_type": "Revio",
