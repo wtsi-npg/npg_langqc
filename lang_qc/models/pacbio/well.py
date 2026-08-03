@@ -20,11 +20,11 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
+import re
 from datetime import datetime
 from typing import Any, Optional
 
-import re
-from pydantic import Field, model_validator, computed_field
+from pydantic import Field, computed_field, model_validator
 from pydantic.dataclasses import dataclass
 
 from lang_qc.db.mlwh_schema import PacBioRunWellMetrics
