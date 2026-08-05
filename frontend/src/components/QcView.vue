@@ -82,6 +82,21 @@
         return url
     })
 
+    const urReportLink = computed(() => {
+        let url = ''
+        if (props.well.cell_id &&
+            props.well.ts_run_name &&
+            props.well.run_name &&
+            props.well.label &&
+            props.well.plate_number) {
+            url = [import.meta.env.VITE_REPORT_ROOT_URL,
+                   props.well.ts_run_name,
+                   `${props.well.plate_number}_${props.well.padded_label}`,
+                   `${props.well.run_name}_${props.well.plate_number}_${props.well.label}_report.html`].join("/")
+        }
+        return url
+    })
+      
     const ssLimsNumSamples = computed(() => {
         if (props.well.experiment_tracking) {
             return props.well.experiment_tracking.num_samples
@@ -183,6 +198,15 @@
             <tr>
                 <td>Pool name</td>
                 <td>{{ poolName }}</td>
+            </tr>
+            <tr>
+                <td>Cell use count</td>
+                <td v-if="urReportLink">
+                   <el-link :href="urReportLink" :underline="false" icon="ExtLink" target="_blank">
+                    {{ well.cell_use_count }} ({{ well.cell_id }})
+                   </el-link>
+                </td>
+                <td v-else>No SMRT Cell use information</td>
             </tr>
         </table>
     </div>

@@ -62,6 +62,9 @@ def _examine_well_model_a1(pb_well: PacBioRunWellMetrics, id_product: str):
     assert pb_well.well_status == "Complete"
     assert pb_well.instrument_name == "64222E"
     assert pb_well.instrument_type == "Sequel2e"
+    assert pb_well.ts_run_name == "r64222e_20220414_125138"
+    assert pb_well.cell_id is None
+    assert pb_well.cell_use_count is None
 
 
 def _examine_well_model_b1(pb_well: PacBioRunWellMetrics, id_product: str):
@@ -75,6 +78,9 @@ def _examine_well_model_b1(pb_well: PacBioRunWellMetrics, id_product: str):
     assert pb_well.qc_state is not None
     assert pb_well.instrument_name == "64016"
     assert pb_well.instrument_type == "Sequel2"
+    assert pb_well.ts_run_name is None
+    assert pb_well.cell_id is None
+    assert pb_well.cell_use_count is None
 
 
 def _examine_well_model_c1(pb_well: PacBioRunWellMetrics, id_product: str):
@@ -88,6 +94,29 @@ def _examine_well_model_c1(pb_well: PacBioRunWellMetrics, id_product: str):
     assert pb_well.qc_state is None
     assert pb_well.instrument_name == "1234"
     assert pb_well.instrument_type == "Revio"
+    assert pb_well.ts_run_name is None
+    assert pb_well.cell_id is None
+    assert pb_well.cell_use_count is None
+
+
+def _examine_well_model_d1(pb_well: PacBioRunWellMetrics, id_product: str):
+
+    assert pb_well.id_product == id_product
+    assert pb_well.run_name == "TRACTION-RUN-92"
+    assert pb_well.label == "D1"
+    assert pb_well.plate_number == 1
+    assert pb_well.qc_state is None
+    compare_dates(pb_well.run_start_time, "2022-04-14 12:52:34")
+    compare_dates(pb_well.run_complete_time, "2022-04-20 09:16:53")
+    compare_dates(pb_well.well_start_time, "2022-04-18 21:49:38")
+    compare_dates(pb_well.well_complete_time, "2022-04-20 16:03:18")
+    assert pb_well.run_status == "Complete"
+    assert pb_well.well_status == "Complete"
+    assert pb_well.instrument_name == "64222E"
+    assert pb_well.instrument_type == "Sequel2e"
+    assert pb_well.ts_run_name == "r64222e_20220414_125138"
+    assert pb_well.cell_id == "EA311198"
+    assert pb_well.cell_use_count == 1
 
 
 def test_create_full_model(
@@ -121,6 +150,16 @@ def test_create_full_model(
     _examine_well_model_c1(pb_well, well_row.id_pac_bio_product)
     assert pb_well.metrics is not None
     assert pb_well.experiment_tracking is None
+
+    # Full mlwh data, no data in the lang_qc database.
+    # Cell information.
+    (well_row, qc_state) = _prepare_data(
+        mlwhdb_test_session, qcdb_test_session, "TRACTION-RUN-92", "D1"
+    )
+    pb_well = PacBioWellFull(db_well=well_row)
+    _examine_well_model_d1(pb_well, well_row.id_pac_bio_product)
+    assert pb_well.metrics is not None
+    assert pb_well.experiment_tracking is not None
 
 
 def test_create_summary_and_library_models(

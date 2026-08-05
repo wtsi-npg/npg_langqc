@@ -715,6 +715,14 @@ class PacBioRunWellMetrics(Base):
     loading_conc: Mapped[Optional[float]] = mapped_column(
         Float, comment="SMRT Cell loading concentration (pM)"
     )
+    cell_use_count: Mapped[Optional[int]] = mapped_column(
+        SMALLINT,
+        comment="The number of times a SMRT Cell has been used (available since SMRT Link 25.4).",
+    )
+    cell_id: Mapped[Optional[str]] = mapped_column(
+        VARCHAR(255),
+        comment="The SMRT Cell unique identifier (available since SMRT Link 25.4).",
+    )
     run_start: Mapped[Optional[datetime.datetime]] = mapped_column(
         DateTime, comment="Timestamp of run started"
     )

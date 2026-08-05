@@ -191,7 +191,9 @@
 - adapter_dimer_percent: 0
   binding_kit: Sequel II Binding Kit 2.2
   ccs_execution_mode: OnInstrument
+  cell_id: EA311198
   cell_lot_number: 417079
+  cell_use_count: 1
   chemistry_sw_version: 10.2.0.133424
   chip_type: 8mChip
   control_concordance_mean: 0.863292
@@ -229,6 +231,7 @@
   p1_num: 4078117
   p2_num: 152078
   pac_bio_run_name: TRACTION-RUN-92
+  plate_number: 1
   polymerase_num_reads: 4053275
   polymerase_read_bases: 405355872925
   polymerase_read_length_mean: 100007

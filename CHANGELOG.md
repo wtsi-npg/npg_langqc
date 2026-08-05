@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
+* Cell use information, where available, was added to the Well QC View. This
+  includes a link to the relevant unassigned reads report.
 * Updated MySQL version in GitHub CI to 8.4
 * Upgrade poetry version to "poetry>=2.0,<3.0" in Dockerfile
 * Updated ORM for ml warehouse. Brought all classes in line with the production
