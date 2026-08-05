@@ -24,10 +24,11 @@ def simplex_run(request, mlwhdb_test_session):
     well_label = "A1"
     plate_number = 1
     tag1 = request.param
+    now = datetime.now()
 
     common_run_attribs = {
-        "recorded_at": datetime.now(),
-        "last_updated": datetime.now(),
+        "recorded_at": now,
+        "last_updated": now,
         "pipeline_id_lims": "nobody cares",
         "cost_code": "probably ToL",
         "id_lims": 1,
@@ -71,9 +72,12 @@ def simplex_run(request, mlwhdb_test_session):
     study = Study(
         id_lims="id",
         id_study_lims="1",
+        recorded_at=now,
+        last_updated=now,
     )
 
     # This run-well-plate has one singly tagged sample
+    id_sample_lims = request.param or "1"
     simplex_run = PacBioRun(
         pac_bio_run_name=run_name,
         well_label=well_label,
@@ -81,12 +85,15 @@ def simplex_run(request, mlwhdb_test_session):
         id_pac_bio_run_lims=0,
         sample=Sample(
             id_lims="id",
-            id_sample_lims=request.param or "1",
+            id_sample_lims=id_sample_lims,
+            uuid_sample_lims=f"uuid_{id_sample_lims}",
+            recorded_at=now,
+            last_updated=now,
         ),
         study=study,
         plate_barcode="ABCD",
         pac_bio_product_metrics=[product],
-        **common_run_attribs
+        **common_run_attribs,
     )
     mlwhdb_test_session.add(simplex_run)
     mlwhdb_test_session.commit()
@@ -105,10 +112,11 @@ def multiplexed_run(mlwhdb_test_session):
     run_name = "RUN"
     well_label = "B1"
     plate_number = 1
+    now = datetime.now()
 
     common_run_attribs = {
-        "recorded_at": datetime.now(),
-        "last_updated": datetime.now(),
+        "recorded_at": now,
+        "last_updated": now,
         "pipeline_id_lims": "nobody cares",
         "cost_code": "probably ToL",
         "id_lims": 1,
@@ -122,6 +130,8 @@ def multiplexed_run(mlwhdb_test_session):
     study = Study(
         id_lims="id",
         id_study_lims="1",
+        recorded_at=now,
+        last_updated=now,
     )
 
     tag1 = "TTTTTTTT"
@@ -162,11 +172,18 @@ def multiplexed_run(mlwhdb_test_session):
         well_label=well_label,
         plate_number=plate_number,
         id_pac_bio_run_lims=1,
-        sample=Sample(id_lims="pooled_id_1", id_sample_lims="2", name="It's a test"),
+        sample=Sample(
+            id_lims="pooled_id_1",
+            id_sample_lims="2",
+            uuid_sample_lims="uuid_2",
+            name="It's a test",
+            recorded_at=now,
+            last_updated=now,
+        ),
         study=study,
         plate_barcode="ABCD",
         pac_bio_product_metrics=[product_1],
-        **common_run_attribs
+        **common_run_attribs,
     )
 
     product_2 = PacBioProductMetrics(
@@ -194,11 +211,14 @@ def multiplexed_run(mlwhdb_test_session):
         sample=Sample(
             id_lims="pooled_id_2",
             id_sample_lims="3",
+            uuid_sample_lims="uuid_3",
+            recorded_at=now,
+            last_updated=now,
         ),
         study=study,
         plate_barcode="ABCD",
         pac_bio_product_metrics=[product_2],
-        **common_run_attribs
+        **common_run_attribs,
     )
 
     mlwhdb_test_session.add_all([multiplex_run_1, multiplex_run_2])

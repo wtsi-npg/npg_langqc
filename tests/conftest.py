@@ -62,7 +62,6 @@ def mysql_url(
 
 
 def insert_from_yaml(session, dir_path, module_name):
-
     # Load the schema module where the table ORM classes are defined.
     module = importlib.import_module(module_name)
 

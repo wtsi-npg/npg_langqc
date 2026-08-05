@@ -123,7 +123,6 @@ def test_pool_metrics_from_single_sample_well(mlwhdb_test_session, simplex_run):
 
 
 def test_pool_metrics_from_well(mlwhdb_test_session, multiplexed_run):
-
     id = PacBioEntity(run_name="RUN", well_label="B1", plate_number=1).hash_product_id()
     helper = WellWh(session=mlwhdb_test_session)
     row = helper.get_mlwh_well_by_product_id(id)
@@ -158,8 +157,7 @@ def test_pool_metrics_from_well(mlwhdb_test_session, multiplexed_run):
     ), "Sample name added to products when present"
 
 
-def test_errors_instantiating_pool_metrics(mlwhdb_test_session):
-
+def test_errors_instantiating_pool_metrics(mlwhdb_test_session, mlwhdb_load_runs):
     with pytest.raises(ValueError, match=r"None db_well value is not allowed."):
         QCPoolMetrics(db_well=None)
 

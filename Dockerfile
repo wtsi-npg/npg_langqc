@@ -2,7 +2,9 @@ FROM python:3.10 as requirements-stage
 
 WORKDIR /tmp
 
-RUN pip install --no-cache-dir poetry==1.1.13
+RUN pip install --no-cache-dir --upgrade "poetry>=2.0,<3.0"
+
+RUN poetry self add poetry-plugin-export
 
 COPY ./pyproject.toml ./poetry.lock /tmp/
 

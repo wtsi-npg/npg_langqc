@@ -17,22 +17,36 @@
 #
 # @author mgcam <mg8@sanger.ac.uk>
 
-from sqlalchemy import Column, Computed, DateTime, ForeignKey, Index, String, Text, text
-from sqlalchemy.dialects.mysql import BIGINT as mysqlBIGINT
-from sqlalchemy.dialects.mysql import CHAR as mysqlCHAR
-from sqlalchemy.dialects.mysql import FLOAT as mysqlFLOAT
-from sqlalchemy.dialects.mysql import INTEGER as mysqlINTEGER
-from sqlalchemy.dialects.mysql import SMALLINT as mysqlSMALLINT
-from sqlalchemy.dialects.mysql import TINYINT as mysqlTINYINT
-from sqlalchemy.dialects.mysql import VARCHAR as mysqlVARCHAR
-from sqlalchemy.orm import DeclarativeBase, relationship
+import datetime
+import decimal
+from typing import List, Optional
+
+from sqlalchemy import (
+    DECIMAL,
+    BigInteger,
+    Computed,
+    DateTime,
+    Float,
+    ForeignKeyConstraint,
+    Index,
+    Integer,
+    String,
+    text,
+)
+from sqlalchemy.dialects.mysql import (
+    BIGINT,
+    CHAR,
+    DATETIME,
+    INTEGER,
+    SMALLINT,
+    TEXT,
+    TINYINT,
+    VARCHAR,
+)
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
 class Base(DeclarativeBase):
-    """
-    A base class for declarative class definitions for the ml warehouse database.
-    """
-
     def _get_row_description(self, fields: list[str]) -> str:
         """
         Returns a printable representation of the database table row. Interprets
@@ -54,104 +68,323 @@ class Base(DeclarativeBase):
 class Sample(Base):
     __tablename__ = "sample"
     __table_args__ = (
+        Index("index_sample_on_id_lims", "id_lims"),
+        Index(
+            "index_sample_on_id_lims_and_id_sample_lims",
+            "id_lims",
+            "id_sample_lims",
+            unique=True,
+        ),
+        Index("index_sample_on_id_sample_lims", "id_sample_lims"),
         Index(
             "index_sample_on_id_sample_lims_and_id_lims",
             "id_sample_lims",
             "id_lims",
             unique=True,
         ),
+        Index("index_sample_on_sanger_sample_id", "sanger_sample_id"),
+        Index("index_sample_on_supplier_name", "supplier_name"),
+        Index("sample_accession_number_index", "accession_number"),
+        Index("sample_name_index", "name"),
+        Index("sample_uuid_sample_lims_index", "uuid_sample_lims", unique=True),
+        {"mysql_collate": "utf8_unicode_ci"},
     )
 
-    id_sample_tmp = Column(
-        mysqlINTEGER(10, unsigned=True),
+    id_sample_tmp: Mapped[int] = mapped_column(
+        INTEGER,
         primary_key=True,
+        autoincrement=True,
         comment="Internal to this database id, value can change",
     )
-    id_lims = Column(
-        String(10, "utf8_unicode_ci"),
+    id_lims: Mapped[str] = mapped_column(
+        VARCHAR(10),
         nullable=False,
         comment="LIM system identifier, e.g. CLARITY-GCLP, SEQSCAPE",
     )
-    id_sample_lims = Column(
-        String(20, "utf8_unicode_ci"),
-        nullable=False,
-        comment="LIMS-specific sample identifier",
+    uuid_sample_lims: Mapped[str] = mapped_column(
+        VARCHAR(36), nullable=False, comment="LIMS-specific sample uuid"
     )
-    consent_withdrawn = Column(
-        mysqlTINYINT(1), nullable=False, server_default=text("'0'")
+    id_sample_lims: Mapped[str] = mapped_column(
+        VARCHAR(255), nullable=False, comment="LIMS-specific sample identifier"
     )
-    uuid_sample_lims = Column(
-        String(36, "utf8_unicode_ci"), unique=True, comment="LIMS-specific sample uuid"
+    last_updated: Mapped[datetime.datetime] = mapped_column(
+        DateTime, nullable=False, comment="Timestamp of last update"
     )
-    name = Column(String(255, "utf8_unicode_ci"), index=True)
-    reference_genome = Column(String(255, "utf8_unicode_ci"))
-    organism = Column(String(255, "utf8_unicode_ci"))
-    accession_number = Column(String(50, "utf8_unicode_ci"), index=True)
-    common_name = Column(String(255, "utf8_unicode_ci"))
-    description = Column(Text(collation="utf8_unicode_ci"))
-    taxon_id = Column(mysqlINTEGER(6, unsigned=True))
-    sanger_sample_id = Column(String(255, "utf8_unicode_ci"), index=True)
-    control = Column(mysqlTINYINT(1))
-    supplier_name = Column(String(255, "utf8_unicode_ci"), index=True)
-    public_name = Column(String(255, "utf8_unicode_ci"))
-    strain = Column(String(255, "utf8_unicode_ci"))
-    control_type = Column(String(255, "utf8_unicode_ci"))
-    sample_type = Column(String(255, "utf8_unicode_ci"))
+    recorded_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime, nullable=False, comment="Timestamp of warehouse update"
+    )
+    consent_withdrawn: Mapped[int] = mapped_column(
+        TINYINT(1), server_default=text("'0'")
+    )
+    deleted_at: Mapped[Optional[datetime.datetime]] = mapped_column(
+        DateTime, comment="Timestamp of sample deletion"
+    )
+    created: Mapped[Optional[datetime.datetime]] = mapped_column(
+        DateTime, comment="Timestamp of sample creation"
+    )
+    name: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    reference_genome: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    organism: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    accession_number: Mapped[Optional[str]] = mapped_column(
+        VARCHAR(255), comment="A unique identifier generated by the INSDC"
+    )
+    common_name: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    description: Mapped[Optional[str]] = mapped_column(TEXT)
+    taxon_id: Mapped[Optional[int]] = mapped_column(INTEGER)
+    father: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    mother: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    replicate: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    ethnicity: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    gender: Mapped[Optional[str]] = mapped_column(VARCHAR(20))
+    cohort: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    country_of_origin: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    geographical_region: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    sanger_sample_id: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    control: Mapped[Optional[int]] = mapped_column(TINYINT(1))
+    supplier_name: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    public_name: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    sample_visibility: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    strain: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    donor_id: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    phenotype: Mapped[Optional[str]] = mapped_column(
+        VARCHAR(255),
+        comment="The phenotype of the sample as described in Sequencescape",
+    )
+    developmental_stage: Mapped[Optional[str]] = mapped_column(
+        VARCHAR(255), comment="Developmental Stage"
+    )
+    control_type: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    sibling: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    is_resubmitted: Mapped[Optional[int]] = mapped_column(TINYINT(1))
+    date_of_sample_collection: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    date_of_sample_extraction: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    extraction_method: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    purified: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    purification_method: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    customer_measured_concentration: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    concentration_determined_by: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    sample_type: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    storage_conditions: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    genotype: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    age: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    cell_type: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    disease_state: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    compound: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    dose: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    immunoprecipitate: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    growth_condition: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    organism_part: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    time_point: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    disease: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    subject: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    treatment: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    date_of_consent_withdrawn: Mapped[Optional[datetime.datetime]] = mapped_column(
+        DateTime
+    )
+    marked_as_consent_withdrawn_by: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    customer_measured_volume: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    gc_content: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    dna_source: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    priority_level: Mapped[Optional[str]] = mapped_column(
+        VARCHAR(255), comment="Priority level eg Medium, High etc"
+    )
 
-    pac_bio_run = relationship("PacBioRun", back_populates="sample")
+    pac_bio_run: Mapped[List["PacBioRun"]] = relationship(
+        "PacBioRun", back_populates="sample"
+    )
+
+
+class Aliquot(Base):
+    __tablename__ = "aliquot"
+    __table_args__ = ({"mysql_collate": "utf8_unicode_ci"},)
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    id_lims: Mapped[str] = mapped_column(
+        VARCHAR(255),
+        nullable=False,
+        comment="The LIMS system that the aliquot was created in",
+    )
+    aliquot_uuid: Mapped[str] = mapped_column(
+        VARCHAR(255),
+        nullable=False,
+        comment="The UUID of the aliquot in the LIMS system",
+    )
+    aliquot_type: Mapped[str] = mapped_column(
+        VARCHAR(255), nullable=False, comment="The type of the aliquot"
+    )
+    source_type: Mapped[str] = mapped_column(
+        VARCHAR(255), nullable=False, comment="The type of the source of the aliquot"
+    )
+    source_barcode: Mapped[str] = mapped_column(
+        VARCHAR(255), nullable=False, comment="The barcode of the source of the aliquot"
+    )
+    sample_name: Mapped[str] = mapped_column(
+        VARCHAR(255),
+        nullable=False,
+        comment="The name of the sample that the aliquot was created from",
+    )
+    used_by_type: Mapped[str] = mapped_column(
+        VARCHAR(255),
+        nullable=False,
+        comment="The type of the entity that the aliquot is used by",
+    )
+    used_by_barcode: Mapped[str] = mapped_column(
+        VARCHAR(255),
+        nullable=False,
+        comment="The barcode of the entity that the aliquot is used by",
+    )
+    volume: Mapped[decimal.Decimal] = mapped_column(
+        DECIMAL(10, 2), comment="The volume of the aliquot (uL)"
+    )
+    last_updated: Mapped[datetime.datetime] = mapped_column(
+        DATETIME(fsp=6),
+        nullable=False,
+        comment="The date and time that the aliquot was last updated",
+    )
+    recorded_at: Mapped[datetime.datetime] = mapped_column(
+        DATETIME(fsp=6),
+        nullable=False,
+        comment="The date and time that the aliquot was recorded",
+    )
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DATETIME(fsp=6),
+        nullable=False,
+        comment="The date and time that this record was created",
+    )
+    concentration: Mapped[Optional[decimal.Decimal]] = mapped_column(
+        DECIMAL(10, 2), comment="The concentration of the aliquot (ng/ul)"
+    )
+    insert_size: Mapped[Optional[int]] = mapped_column(
+        Integer, comment="The size of the insert in base pairs"
+    )
 
 
 class Study(Base):
     __tablename__ = "study"
     __table_args__ = (
+        Index("index_study_on_id_study_lims", "id_study_lims"),
+        Index("study_accession_number_index", "accession_number"),
         Index(
             "study_id_lims_id_study_lims_index", "id_lims", "id_study_lims", unique=True
         ),
+        Index("study_name_index", "name"),
+        Index("study_uuid_study_lims_index", "uuid_study_lims", unique=True),
+        {"mysql_collate": "utf8_unicode_ci"},
     )
 
-    id_study_tmp = Column(
-        mysqlINTEGER(10, unsigned=True),
+    id_study_tmp: Mapped[int] = mapped_column(
+        INTEGER,
         primary_key=True,
+        autoincrement=True,
         comment="Internal to this database id, value can change",
     )
-    id_lims = Column(
-        String(10, "utf8_unicode_ci"),
+    id_lims: Mapped[str] = mapped_column(
+        VARCHAR(10),
         nullable=False,
         comment="LIM system identifier, e.g. GCLP-CLARITY, SEQSCAPE",
     )
-    id_study_lims = Column(
-        String(20, "utf8_unicode_ci"),
-        nullable=False,
-        comment="LIMS-specific study identifier",
+    id_study_lims: Mapped[str] = mapped_column(
+        VARCHAR(20), nullable=False, comment="LIMS-specific study identifier"
     )
-    remove_x_and_autosomes = Column(
-        mysqlTINYINT(1), nullable=False, server_default=text("'0'")
+    last_updated: Mapped[datetime.datetime] = mapped_column(
+        DateTime, nullable=False, comment="Timestamp of last update"
     )
-    aligned = Column(mysqlTINYINT(1), nullable=False, server_default=text("'1'"))
-    separate_y_chromosome_data = Column(
-        mysqlTINYINT(1), nullable=False, server_default=text("'0'")
+    recorded_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime, nullable=False, comment="Timestamp of warehouse update"
     )
-    uuid_study_lims = Column(
-        String(36, "utf8_unicode_ci"), unique=True, comment="LIMS-specific study uuid"
+    remove_x_and_autosomes: Mapped[int] = mapped_column(
+        TINYINT(1), nullable=False, server_default=text("'0'")
     )
-    name = Column(String(255, "utf8_unicode_ci"), index=True)
-    reference_genome = Column(String(255, "utf8_unicode_ci"))
-    accession_number = Column(String(50, "utf8_unicode_ci"), index=True)
-    description = Column(Text(collation="utf8_unicode_ci"))
-    contains_human_dna = Column(mysqlTINYINT(1), comment="Lane may contain human DNA")
-    contaminated_human_dna = Column(
-        mysqlTINYINT(1),
+    aligned: Mapped[int] = mapped_column(
+        TINYINT(1), nullable=False, server_default=text("'1'")
+    )
+    separate_y_chromosome_data: Mapped[int] = mapped_column(
+        TINYINT(1), nullable=False, server_default=text("'0'")
+    )
+    uuid_study_lims: Mapped[Optional[str]] = mapped_column(
+        VARCHAR(36), comment="LIMS-specific study uuid"
+    )
+    deleted_at: Mapped[Optional[datetime.datetime]] = mapped_column(
+        DateTime, comment="Timestamp of study deletion"
+    )
+    created: Mapped[Optional[datetime.datetime]] = mapped_column(
+        DateTime, comment="Timestamp of study creation"
+    )
+    name: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    reference_genome: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    ethically_approved: Mapped[Optional[int]] = mapped_column(TINYINT(1))
+    faculty_sponsor: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    state: Mapped[Optional[str]] = mapped_column(VARCHAR(50))
+    study_type: Mapped[Optional[str]] = mapped_column(VARCHAR(50))
+    abstract: Mapped[Optional[str]] = mapped_column(TEXT)
+    abbreviation: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    accession_number: Mapped[Optional[str]] = mapped_column(VARCHAR(50))
+    description: Mapped[Optional[str]] = mapped_column(TEXT)
+    contains_human_dna: Mapped[Optional[int]] = mapped_column(
+        TINYINT(1), comment="Lane may contain human DNA"
+    )
+    contaminated_human_dna: Mapped[Optional[int]] = mapped_column(
+        TINYINT(1),
         comment="Human DNA in the lane is a contaminant and should be removed",
     )
-    study_title = Column(String(255, "utf8_unicode_ci"))
-    study_visibility = Column(String(255, "utf8_unicode_ci"))
+    data_release_strategy: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    data_release_sort_of_study: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    ena_project_id: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    study_title: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    study_visibility: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    ega_dac_accession_number: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    array_express_accession_number: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    ega_policy_accession_number: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    data_release_timing: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    data_release_delay_period: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    data_release_delay_reason: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    data_access_group: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    prelim_id: Mapped[Optional[str]] = mapped_column(
+        VARCHAR(20), comment="The preliminary study id prior to entry into the LIMS"
+    )
+    hmdmc_number: Mapped[Optional[str]] = mapped_column(
+        VARCHAR(255),
+        comment="The Human Materials and Data Management Committee approval "
+        "number(s) for the study.",
+    )
+    data_destination: Mapped[Optional[str]] = mapped_column(
+        VARCHAR(255),
+        comment="The data destination type(s) for the study. "
+        "It could be 'standard', '14mg' or 'gseq'. This may be extended, "
+        "if Sanger gains more external customers. It can contain multiply "
+        "destinations separated by a space.",
+    )
+    s3_email_list: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    data_deletion_period: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    contaminated_human_data_access_group: Mapped[Optional[str]] = mapped_column(
+        VARCHAR(255)
+    )
+    programme: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
 
-    pac_bio_run = relationship("PacBioRun", back_populates="study")
+    pac_bio_run: Mapped[List["PacBioRun"]] = relationship(
+        "PacBioRun", back_populates="study"
+    )
 
 
 class PacBioRun(Base):
     __tablename__ = "pac_bio_run"
     __table_args__ = (
+        ForeignKeyConstraint(
+            ["id_sample_tmp"],
+            ["sample.id_sample_tmp"],
+            ondelete="RESTRICT",
+            onupdate="RESTRICT",
+            name="fk_pac_bio_run_to_sample",
+        ),
+        ForeignKeyConstraint(
+            ["id_study_tmp"],
+            ["study.id_study_tmp"],
+            ondelete="RESTRICT",
+            onupdate="RESTRICT",
+            name="fk_pac_bio_run_to_study",
+        ),
+        Index("fk_pac_bio_run_to_sample", "id_sample_tmp"),
+        Index("fk_pac_bio_run_to_study", "id_study_tmp"),
         Index(
             "unique_pac_bio_entry",
             "id_lims",
@@ -162,120 +395,199 @@ class PacBioRun(Base):
             "plate_number",
             unique=True,
         ),
+        {"mysql_collate": "utf8_unicode_ci"},
     )
 
-    id_pac_bio_tmp = Column(mysqlINTEGER(11), primary_key=True)
-    last_updated = Column(DateTime, nullable=False, comment="Timestamp of last update")
-    recorded_at = Column(
+    id_pac_bio_tmp: Mapped[int] = mapped_column(
+        Integer, primary_key=True, autoincrement=True
+    )
+    last_updated: Mapped[datetime.datetime] = mapped_column(
+        DateTime, nullable=False, comment="Timestamp of last update"
+    )
+    recorded_at: Mapped[datetime.datetime] = mapped_column(
         DateTime, nullable=False, comment="Timestamp of warehouse update"
     )
-    id_sample_tmp = Column(
-        ForeignKey("sample.id_sample_tmp"),
-        nullable=False,
-        index=True,
-        comment='Sample id, see "sample.id_sample_tmp"',
+    id_sample_tmp: Mapped[int] = mapped_column(
+        INTEGER, nullable=False, comment='Sample id, see "sample.id_sample_tmp"'
     )
-    id_study_tmp = Column(
-        ForeignKey("study.id_study_tmp"),
-        nullable=False,
-        index=True,
-        comment='Sample id, see "study.id_study_tmp"',
+    id_study_tmp: Mapped[int] = mapped_column(
+        INTEGER, nullable=False, comment='Sample id, see "study.id_study_tmp"'
     )
-    id_pac_bio_run_lims = Column(
-        String(20, "utf8_unicode_ci"),
+    id_pac_bio_run_lims: Mapped[str] = mapped_column(
+        VARCHAR(20),
         nullable=False,
         comment="Lims specific identifier for the pacbio run",
     )
-    cost_code = Column(
-        String(20, "utf8_unicode_ci"), nullable=False, comment="Valid WTSI cost-code"
+    cost_code: Mapped[str] = mapped_column(
+        VARCHAR(20), nullable=False, comment="Valid WTSI cost-code"
     )
-    id_lims = Column(
-        String(10, "utf8_unicode_ci"), nullable=False, comment="LIM system identifier"
+    id_lims: Mapped[str] = mapped_column(
+        VARCHAR(10), nullable=False, comment="LIM system identifier"
     )
-    plate_barcode = Column(
-        String(255, "utf8_unicode_ci"),
-        nullable=True,
-        comment="The human readable barcode for the plate loaded onto the machine",
+    plate_uuid_lims: Mapped[str] = mapped_column(
+        VARCHAR(36), nullable=False, comment="The plate uuid"
     )
-    plate_number = Column(
-        mysqlINTEGER(),
-        nullable=True,
-        comment="""
-        The number of the plate that goes onto the Revio sequencing machine.
-        Necessary as an identifier for multi-plate support.
-        """,
-    )
-    plate_uuid_lims = Column(
-        String(36, "utf8_unicode_ci"), nullable=False, comment="The plate uuid"
-    )
-    well_label = Column(
-        String(255, "utf8_unicode_ci"),
+    well_label: Mapped[str] = mapped_column(
+        VARCHAR(255),
         nullable=False,
         comment="The well identifier for the plate, A1-H12",
     )
-    well_uuid_lims = Column(
-        String(36, "utf8_unicode_ci"), nullable=False, comment="The well uuid"
+    well_uuid_lims: Mapped[str] = mapped_column(
+        VARCHAR(36), nullable=False, comment="The well uuid"
     )
-    pac_bio_library_tube_id_lims = Column(
-        String(255, "utf8_unicode_ci"),
+    pac_bio_library_tube_id_lims: Mapped[str] = mapped_column(
+        VARCHAR(255),
         nullable=False,
         comment="LIMS specific identifier for originating library tube",
     )
-    pac_bio_library_tube_uuid = Column(
-        String(255, "utf8_unicode_ci"),
+    pac_bio_library_tube_uuid: Mapped[str] = mapped_column(
+        VARCHAR(255),
         nullable=False,
         comment="The uuid for the originating library tube",
     )
-    pac_bio_library_tube_name = Column(
-        String(255, "utf8_unicode_ci"),
-        nullable=False,
-        comment="The name of the originating library tube",
+    pac_bio_library_tube_name: Mapped[str] = mapped_column(
+        VARCHAR(255), nullable=False, comment="The name of the originating library tube"
     )
-    pac_bio_run_uuid = Column(
-        String(36, "utf8_unicode_ci"), comment="Uuid identifier for the pacbio run"
+    pac_bio_run_uuid: Mapped[Optional[str]] = mapped_column(
+        VARCHAR(36), comment="Uuid identifier for the pacbio run"
     )
-    tag_identifier = Column(
-        String(30, "utf8_unicode_ci"),
-        comment="Tag index within tag set, NULL if untagged",
+    tag_identifier: Mapped[Optional[str]] = mapped_column(
+        VARCHAR(30), comment="Tag index within tag set, NULL if untagged"
     )
-    tag_sequence = Column(String(30, "utf8_unicode_ci"), comment="Tag sequence for tag")
-    tag_set_id_lims = Column(
-        String(20, "utf8_unicode_ci"),
-        comment="LIMs-specific identifier of the tag set for tag",
+    tag_sequence: Mapped[Optional[str]] = mapped_column(
+        VARCHAR(30), comment="Tag sequence for tag"
     )
-    tag_set_name = Column(
-        String(100, "utf8_unicode_ci"), comment="WTSI-wide tag set name for tag"
+    tag_set_id_lims: Mapped[Optional[str]] = mapped_column(
+        VARCHAR(20), comment="LIMs-specific identifier of the tag set for tag"
     )
-    tag2_sequence = Column(String(30, "utf8_unicode_ci"))
-    tag2_set_id_lims = Column(String(20, "utf8_unicode_ci"))
-    tag2_set_name = Column(String(100, "utf8_unicode_ci"))
-    tag2_identifier = Column(String(30, "utf8_unicode_ci"))
-    pac_bio_library_tube_legacy_id = Column(
-        mysqlINTEGER(11), comment="Legacy library_id for backwards compatibility."
+    tag_set_name: Mapped[Optional[str]] = mapped_column(
+        VARCHAR(100), comment="WTSI-wide tag set name for tag"
     )
-    library_created_at = Column(DateTime, comment="Timestamp of library creation")
-    pac_bio_run_name = Column(String(255, "utf8_unicode_ci"), comment="Name of the run")
-    pipeline_id_lims = Column(
-        String(60, "utf8_unicode_ci"),
-        comment="""LIMS-specific pipeline identifier that unambiguously defines
-        library type (eg. Sequel-v1, IsoSeq-v1)""",
+    tag2_sequence: Mapped[Optional[str]] = mapped_column(VARCHAR(30))
+    tag2_set_id_lims: Mapped[Optional[str]] = mapped_column(VARCHAR(20))
+    tag2_set_name: Mapped[Optional[str]] = mapped_column(VARCHAR(100))
+    tag2_identifier: Mapped[Optional[str]] = mapped_column(VARCHAR(30))
+    plate_barcode: Mapped[Optional[str]] = mapped_column(
+        VARCHAR(255),
+        comment="The human readable barcode for the plate loaded onto the machine",
     )
-    comparable_tag_identifier = Column(
-        String(255, "utf8_unicode_ci"),
-        Computed("(ifnull(`tag_identifier`,-(1)))", persisted=False),
+    pac_bio_library_tube_legacy_id: Mapped[Optional[int]] = mapped_column(
+        Integer, comment="Legacy library_id for backwards compatibility."
     )
-    comparable_tag2_identifier = Column(
-        String(255, "utf8_unicode_ci"),
-        Computed("(ifnull(`tag2_identifier`,-(1)))", persisted=False),
+    library_created_at: Mapped[Optional[datetime.datetime]] = mapped_column(
+        DateTime, comment="Timestamp of library creation"
     )
-    pac_bio_library_tube_barcode = Column(
-        String(255), comment="The barcode of the originating library tube"
+    pac_bio_run_name: Mapped[Optional[str]] = mapped_column(
+        VARCHAR(255), comment="Name of the run"
+    )
+    pipeline_id_lims: Mapped[Optional[str]] = mapped_column(
+        VARCHAR(60),
+        comment="LIMS-specific pipeline identifier that unambiguously defines "
+        "library type (eg. Sequel-v1, IsoSeq-v1)",
+    )
+    comparable_tag_identifier: Mapped[Optional[str]] = mapped_column(
+        VARCHAR(255), Computed("(ifnull(`tag_identifier`,-(1)))", persisted=False)
+    )
+    comparable_tag2_identifier: Mapped[Optional[str]] = mapped_column(
+        VARCHAR(255), Computed("(ifnull(`tag2_identifier`,-(1)))", persisted=False)
+    )
+    plate_number: Mapped[Optional[int]] = mapped_column(
+        Integer,
+        comment="The number of the plate that goes onto the sequencing machine. "
+        "Necessary as an identifier for multi-plate support.",
+    )
+    pac_bio_library_tube_barcode: Mapped[Optional[str]] = mapped_column(
+        VARCHAR(255), comment="The barcode of the originating library tube"
     )
 
-    sample = relationship("Sample", back_populates="pac_bio_run")
-    study = relationship("Study", back_populates="pac_bio_run")
-    pac_bio_product_metrics = relationship(
+    sample: Mapped["Sample"] = relationship("Sample", back_populates="pac_bio_run")
+    study: Mapped["Study"] = relationship("Study", back_populates="pac_bio_run")
+    pac_bio_product_metrics: Mapped[List["PacBioProductMetrics"]] = relationship(
         "PacBioProductMetrics", back_populates="pac_bio_run"
+    )
+
+
+class PacBioProductMetrics(Base):
+    __tablename__ = "pac_bio_product_metrics"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["id_pac_bio_rw_metrics_tmp"],
+            ["pac_bio_run_well_metrics.id_pac_bio_rw_metrics_tmp"],
+            ondelete="CASCADE",
+            name="pac_bio_product_metrics_to_rwm_fk",
+        ),
+        ForeignKeyConstraint(
+            ["id_pac_bio_tmp"],
+            ["pac_bio_run.id_pac_bio_tmp"],
+            ondelete="SET NULL",
+            name="pac_bio_product_metrics_to_run_fk",
+        ),
+        Index(
+            "pac_bio_metrics_product",
+            "id_pac_bio_tmp",
+            "id_pac_bio_rw_metrics_tmp",
+            unique=True,
+        ),
+        Index("pac_bio_pr_metrics_id_product", "id_pac_bio_product", unique=True),
+        Index("pac_bio_pr_metrics_to_rwm_fk", "id_pac_bio_rw_metrics_tmp"),
+        Index("pb_product_qc_index", "qc"),
+        {
+            "comment": "A linking table for the pac_bio_run and pac_bio_run_well_metrics "
+            "tables with a potential for adding per-product QC data",
+            "mysql_collate": "utf8_unicode_ci",
+        },
+    )
+
+    id_pac_bio_pr_metrics_tmp: Mapped[int] = mapped_column(
+        Integer, primary_key=True, autoincrement=True
+    )
+    id_pac_bio_rw_metrics_tmp: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        comment="PacBio run well metrics id, see "
+        '"pac_bio_run_well_metrics.id_pac_bio_rw_metrics_tmp"',
+    )
+    id_pac_bio_product: Mapped[str] = mapped_column(
+        CHAR(64), nullable=False, comment="Product id"
+    )
+    id_pac_bio_tmp: Mapped[Optional[int]] = mapped_column(
+        Integer, comment='PacBio run id, see "pac_bio_run.id_pac_bio_tmp"'
+    )
+    qc: Mapped[Optional[int]] = mapped_column(
+        TINYINT(1),
+        comment="The final QC outcome of the product as 0(failed), 1(passed) or NULL",
+    )
+    hifi_read_bases: Mapped[Optional[int]] = mapped_column(
+        BIGINT, comment="The number of HiFi bases"
+    )
+    hifi_num_reads: Mapped[Optional[int]] = mapped_column(
+        INTEGER, comment="The number of HiFi reads"
+    )
+    hifi_read_length_mean: Mapped[Optional[int]] = mapped_column(
+        INTEGER, comment="The mean HiFi read length"
+    )
+    barcode4deplexing: Mapped[Optional[str]] = mapped_column(
+        String(62),
+        comment="The barcode recorded in producing deplexed metrics for this product",
+    )
+    barcode_quality_score_mean: Mapped[Optional[int]] = mapped_column(
+        SMALLINT, comment="The mean barcode HiFi quality score"
+    )
+    hifi_bases_percent: Mapped[Optional[float]] = mapped_column(
+        Float,
+        comment="The HiFi bases expressed as a percentage of the total HiFi bases",
+    )
+    last_changed: Mapped[Optional[datetime.datetime]] = mapped_column(
+        DateTime,
+        server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"),
+        comment="Date this record was created or changed",
+    )
+
+    pac_bio_run_well_metrics: Mapped["PacBioRunWellMetrics"] = relationship(
+        "PacBioRunWellMetrics", back_populates="pac_bio_product_metrics"
+    )
+    pac_bio_run: Mapped["PacBioRun"] = relationship(
+        "PacBioRun", back_populates="pac_bio_product_metrics"
     )
 
 
@@ -289,277 +601,276 @@ class PacBioRunWellMetrics(Base):
             "plate_number",
             unique=True,
         ),
+        Index("pac_bio_rw_metrics_id_product", "id_pac_bio_product", unique=True),
+        Index("pb_rw_qc_date_index", "qc_seq_date"),
         Index("pb_rw_qc_state_index", "qc_seq_state", "qc_seq_state_is_final"),
+        Index("pbrw_ccs_execmode_index", "ccs_execution_mode"),
+        Index("pbrw_movie_name_index", "movie_name"),
+        Index("pbrw_run_complete_index", "run_complete"),
+        Index("pbrw_well_complete_index", "well_complete"),
         {
             "comment": "Status and run information by well and some basic QC data from "
-            "SMRT Link"
+            "SMRT Link",
+            "mysql_collate": "utf8_unicode_ci",
         },
     )
 
-    id_pac_bio_rw_metrics_tmp = Column(mysqlINTEGER(11), primary_key=True)
-    pac_bio_run_name = Column(
-        mysqlVARCHAR(255, charset="utf8", collation="utf8_unicode_ci"),
+    id_pac_bio_rw_metrics_tmp: Mapped[int] = mapped_column(
+        Integer, primary_key=True, autoincrement=True
+    )
+    id_pac_bio_product: Mapped[str] = mapped_column(
+        CHAR(64), nullable=False, comment="Product id"
+    )
+    pac_bio_run_name: Mapped[str] = mapped_column(
+        VARCHAR(255),
         nullable=False,
         comment="Lims specific identifier for the pacbio run",
     )
-    well_label = Column(
-        mysqlVARCHAR(255, charset="utf8", collation="utf8_unicode_ci"),
+    well_label: Mapped[str] = mapped_column(
+        VARCHAR(255),
         nullable=False,
         comment="The well identifier for the plate, A1-H12",
     )
-    plate_number = Column(
-        mysqlINTEGER(),
-        nullable=True,
-        comment="""
-        The number of the plate that goes onto the Revio sequencing machine.
-        Necessary as an identifier for multi-plate support.
-        """,
+    instrument_type: Mapped[str] = mapped_column(
+        VARCHAR(32), nullable=False, comment="The instrument type e.g. Sequel"
     )
-    instrument_type = Column(
-        mysqlVARCHAR(32, charset="utf8", collation="utf8_unicode_ci"),
-        nullable=False,
-        comment="The instrument type e.g. Sequel",
+    plate_number: Mapped[Optional[int]] = mapped_column(
+        Integer,
+        comment="The number of the plate that goes onto the Revio sequencing "
+        "machine. Necessary as an identifier for multi-plate support.",
     )
-    id_pac_bio_product = Column(
-        mysqlCHAR(64, charset="utf8", collation="utf8_unicode_ci"),
-        nullable=False,
-        unique=True,
-        comment="Product id",
+    qc_seq_state: Mapped[Optional[str]] = mapped_column(
+        String(255), comment="Current sequencing QC state"
     )
-    qc_seq_state = Column(String(255), comment="Current sequencing QC state")
-    qc_seq_state_is_final = Column(
-        mysqlTINYINT(1),
+    qc_seq_state_is_final: Mapped[Optional[int]] = mapped_column(
+        TINYINT(1),
         comment="A flag marking the sequencing QC state as final (1) or not final (0)",
     )
-    qc_seq_date = Column(
-        DateTime,
-        index=True,
-        comment="The date the current sequencing QC state was assigned",
+    qc_seq_date: Mapped[Optional[datetime.datetime]] = mapped_column(
+        DateTime, comment="The date the current sequencing QC state was assigned"
     )
-    qc_seq = Column(
-        mysqlTINYINT(1),
+    qc_seq: Mapped[Optional[int]] = mapped_column(
+        TINYINT(1),
         comment="The final sequencing QC outcome as 0(failed), 1(passed) or NULL",
     )
-    instrument_name = Column(
-        mysqlVARCHAR(32, charset="utf8", collation="utf8_unicode_ci"),
-        comment="The instrument name e.g. SQ54097",
+    instrument_name: Mapped[Optional[str]] = mapped_column(
+        VARCHAR(32), comment="The instrument name e.g. SQ54097"
     )
-    chip_type = Column(
-        mysqlVARCHAR(32, charset="utf8", collation="utf8_unicode_ci"),
-        comment="The chip type e.g. 8mChip",
+    chip_type: Mapped[Optional[str]] = mapped_column(
+        VARCHAR(32), comment="The chip type e.g. 8mChip"
     )
-    sl_hostname = Column(
-        mysqlVARCHAR(255, charset="utf8", collation="utf8_unicode_ci"),
-        comment="SMRT Link server hostname",
+    sl_hostname: Mapped[Optional[str]] = mapped_column(
+        VARCHAR(255), comment="SMRT Link server hostname"
     )
-    sl_run_uuid = Column(
-        mysqlVARCHAR(36, charset="utf8", collation="utf8_unicode_ci"),
-        comment="SMRT Link specific run uuid",
+    sl_run_uuid: Mapped[Optional[str]] = mapped_column(
+        VARCHAR(36), comment="SMRT Link specific run uuid"
     )
-    sl_ccs_uuid = Column(
-        mysqlVARCHAR(36, charset="utf8", collation="utf8_unicode_ci"),
-        comment="SMRT Link specific ccs dataset uuid",
+    sl_ccs_uuid: Mapped[Optional[str]] = mapped_column(
+        VARCHAR(36), comment="SMRT Link specific ccs dataset uuid"
     )
-    ts_run_name = Column(
-        mysqlVARCHAR(32, charset="utf8", collation="utf8_unicode_ci"),
-        comment="The PacBio run name",
+    ts_run_name: Mapped[Optional[str]] = mapped_column(
+        VARCHAR(32), comment="The PacBio run name"
     )
-    movie_name = Column(
-        mysqlVARCHAR(32, charset="utf8", collation="utf8_unicode_ci"),
-        index=True,
-        comment="The PacBio movie name",
+    movie_name: Mapped[Optional[str]] = mapped_column(
+        VARCHAR(32), comment="The PacBio movie name"
     )
-    movie_minutes = Column(
-        mysqlSMALLINT(5, unsigned=True),
-        comment="Movie time (collection time) in minutes",
+    movie_minutes: Mapped[Optional[int]] = mapped_column(
+        SMALLINT, comment="Movie time (collection time) in minutes"
     )
-    created_by = Column(
-        mysqlVARCHAR(32, charset="utf8", collation="utf8_unicode_ci"),
-        comment="Created by user name recorded in SMRT Link",
+    created_by: Mapped[Optional[str]] = mapped_column(
+        VARCHAR(32), comment="Created by user name recorded in SMRT Link"
     )
-    binding_kit = Column(
-        mysqlVARCHAR(255, charset="utf8", collation="utf8_unicode_ci"),
-        comment="Binding kit version",
+    binding_kit: Mapped[Optional[str]] = mapped_column(
+        VARCHAR(255), comment="Binding kit version"
     )
-    sequencing_kit = Column(
-        mysqlVARCHAR(255, charset="utf8", collation="utf8_unicode_ci"),
-        comment="Sequencing kit version",
+    sequencing_kit: Mapped[Optional[str]] = mapped_column(
+        VARCHAR(255), comment="Sequencing kit version"
     )
-    sequencing_kit_lot_number = Column(
-        mysqlVARCHAR(255, charset="utf8", collation="utf8_unicode_ci"),
-        comment="Sequencing Kit lot number",
+    sequencing_kit_lot_number: Mapped[Optional[str]] = mapped_column(
+        VARCHAR(255), comment="Sequencing Kit lot number"
     )
-    cell_lot_number = Column(String(32), comment="SMRT Cell Lot Number")
-    ccs_execution_mode = Column(
-        mysqlVARCHAR(32, charset="utf8", collation="utf8_unicode_ci"),
-        index=True,
+    cell_lot_number: Mapped[Optional[str]] = mapped_column(
+        String(32), comment="SMRT Cell Lot Number"
+    )
+    ccs_execution_mode: Mapped[Optional[str]] = mapped_column(
+        VARCHAR(32),
         comment="The PacBio ccs exection mode e.g. OnInstument, OffInstument or None",
     )
-    demultiplex_mode = Column(
-        String(32), comment="Demultiplexing mode e.g. OnInstument, OffInstument or None"
+    demultiplex_mode: Mapped[Optional[str]] = mapped_column(
+        VARCHAR(32),
+        comment="Demultiplexing mode e.g. OnInstument, OffInstument or None",
     )
-    include_kinetics = Column(
-        mysqlTINYINT(1, unsigned=True),
-        comment="Include kinetics information where ccs is run",
+    include_kinetics: Mapped[Optional[int]] = mapped_column(
+        TINYINT, comment="Include kinetics information where ccs is run"
     )
-    hifi_only_reads = Column(
-        mysqlTINYINT(1, unsigned=True),
-        comment="""CCS was run on the instrument and only HiFi reads were included
-        in the export from the instrument""",
+    hifi_only_reads: Mapped[Optional[int]] = mapped_column(
+        TINYINT,
+        comment="CCS was run on the instrument and only HiFi reads were "
+        "included in the export from the instrument",
     )
-    heteroduplex_analysis = Column(
-        mysqlTINYINT(1, unsigned=True),
+    heteroduplex_analysis: Mapped[Optional[int]] = mapped_column(
+        TINYINT,
         comment="Analysis has been run on the instrument to detect and resolve heteroduplex reads",
     )
-    loading_conc = Column(
-        mysqlFLOAT(unsigned=True), comment="SMRT Cell loading concentration (pM)"
+    loading_conc: Mapped[Optional[float]] = mapped_column(
+        Float, comment="SMRT Cell loading concentration (pM)"
     )
-    run_start = Column(DateTime, comment="Timestamp of run started")
-    run_complete = Column(DateTime, index=True, comment="Timestamp of run complete")
-    run_transfer_complete = Column(
+    cell_use_count: Mapped[Optional[int]] = mapped_column(
+        SMALLINT,
+        comment="The number of times a SMRT Cell has been used (available since SMRT Link 25.4).",
+    )
+    cell_id: Mapped[Optional[str]] = mapped_column(
+        VARCHAR(255),
+        comment="The SMRT Cell unique identifier (available since SMRT Link 25.4).",
+    )
+    run_start: Mapped[Optional[datetime.datetime]] = mapped_column(
+        DateTime, comment="Timestamp of run started"
+    )
+    run_complete: Mapped[Optional[datetime.datetime]] = mapped_column(
+        DateTime, comment="Timestamp of run complete"
+    )
+    run_transfer_complete: Mapped[Optional[datetime.datetime]] = mapped_column(
         DateTime, comment="Timestamp of run transfer complete"
     )
-    run_status = Column(
+    run_status: Mapped[Optional[str]] = mapped_column(
         String(32),
         comment="Last recorded status, primarily to explain runs not completed.",
     )
-    well_start = Column(DateTime, comment="Timestamp of well started")
-    well_complete = Column(DateTime, index=True, comment="Timestamp of well complete")
-    well_status = Column(
+    well_start: Mapped[Optional[datetime.datetime]] = mapped_column(
+        DateTime, comment="Timestamp of well started"
+    )
+    well_complete: Mapped[Optional[datetime.datetime]] = mapped_column(
+        DateTime, comment="Timestamp of well complete"
+    )
+    well_status: Mapped[Optional[str]] = mapped_column(
         String(32),
         comment="Last recorded status, primarily to explain wells not completed.",
     )
-    chemistry_sw_version = Column(
-        mysqlVARCHAR(32, charset="utf8", collation="utf8_unicode_ci"),
-        comment="The PacBio chemistry software version",
+    chemistry_sw_version: Mapped[Optional[str]] = mapped_column(
+        VARCHAR(32), comment="The PacBio chemistry software version"
     )
-    instrument_sw_version = Column(
-        mysqlVARCHAR(32, charset="utf8", collation="utf8_unicode_ci"),
-        comment="The PacBio instrument software version",
+    instrument_sw_version: Mapped[Optional[str]] = mapped_column(
+        VARCHAR(32), comment="The PacBio instrument software version"
     )
-    primary_analysis_sw_version = Column(
-        mysqlVARCHAR(32, charset="utf8", collation="utf8_unicode_ci"),
-        comment="The PacBio primary analysis software version",
+    primary_analysis_sw_version: Mapped[Optional[str]] = mapped_column(
+        VARCHAR(32), comment="The PacBio primary analysis software version"
     )
-    control_num_reads = Column(
-        mysqlINTEGER(10, unsigned=True), comment="The number of control reads"
+    control_num_reads: Mapped[Optional[int]] = mapped_column(
+        INTEGER, comment="The number of control reads"
     )
-    control_concordance_mean = Column(
-        mysqlFLOAT(8, 6, unsigned=True),
-        comment="""The average concordance between the control raw reads
-        and the control reference sequence""",
+    control_concordance_mean: Mapped[Optional[float]] = mapped_column(
+        Float(8),
+        comment="The average concordance between the control raw reads and the "
+        "control reference sequence",
     )
-    control_concordance_mode = Column(
-        mysqlFLOAT(unsigned=True),
-        comment="""The modal value from the concordance between the control
-        raw reads and the control reference sequence""",
+    control_concordance_mode: Mapped[Optional[float]] = mapped_column(
+        Float,
+        comment="The modal value from the concordance between the control raw "
+        "reads and the control reference sequence",
     )
-    control_read_length_mean = Column(
-        mysqlINTEGER(10, unsigned=True),
-        comment="The mean polymerase read length of the control reads",
+    control_read_length_mean: Mapped[Optional[int]] = mapped_column(
+        INTEGER, comment="The mean polymerase read length of the control reads"
     )
-    local_base_rate = Column(
-        mysqlFLOAT(8, 6, unsigned=True),
+    local_base_rate: Mapped[Optional[float]] = mapped_column(
+        Float(8),
         comment="The average base incorporation rate, excluding polymerase pausing events",
     )
-    polymerase_read_bases = Column(
-        mysqlBIGINT(20, unsigned=True),
-        comment="""Calculated by multiplying the number of productive (P1) ZMWs
-        by the mean polymerase read length""",
+    polymerase_read_bases: Mapped[Optional[int]] = mapped_column(
+        BIGINT,
+        comment="Calculated by multiplying the number of productive (P1) ZMWs "
+        "by the mean polymerase read length",
     )
-    polymerase_num_reads = Column(
-        mysqlINTEGER(10, unsigned=True), comment="The number of polymerase reads"
+    polymerase_num_reads: Mapped[Optional[int]] = mapped_column(
+        INTEGER, comment="The number of polymerase reads"
     )
-    polymerase_read_length_mean = Column(
-        mysqlINTEGER(10, unsigned=True),
-        comment="The mean high-quality read length of all polymerase reads",
+    polymerase_read_length_mean: Mapped[Optional[int]] = mapped_column(
+        INTEGER, comment="The mean high-quality read length of all polymerase reads"
     )
-    polymerase_read_length_n50 = Column(
-        mysqlINTEGER(10, unsigned=True),
-        comment="""Fifty percent of the trimmed read length of all polymerase
-        reads are longer than this value""",
+    polymerase_read_length_n50: Mapped[Optional[int]] = mapped_column(
+        INTEGER,
+        comment="Fifty percent of the trimmed read length of all polymerase "
+        "reads are longer than this value",
     )
-    insert_length_mean = Column(
-        mysqlINTEGER(10, unsigned=True),
-        comment="The average subread length, considering only the longest subread from each ZMW",
+    insert_length_mean: Mapped[Optional[int]] = mapped_column(
+        INTEGER,
+        comment="The average subread length, considering only the longest "
+        "subread from each ZMW",
     )
-    insert_length_n50 = Column(
-        mysqlINTEGER(10, unsigned=True),
-        comment="""Fifty percent of the subreads are longer than this value when considering
-        only the longest subread from each ZMW""",
+    insert_length_n50: Mapped[Optional[int]] = mapped_column(
+        INTEGER,
+        comment="Fifty percent of the subreads are longer than this value when "
+        "considering only the longest subread from each ZMW",
     )
-    unique_molecular_bases = Column(
-        mysqlBIGINT(20, unsigned=True), comment="The unique molecular yield in bp"
+    unique_molecular_bases: Mapped[Optional[int]] = mapped_column(
+        BIGINT, comment="The unique molecular yield in bp"
     )
-    productive_zmws_num = Column(
-        mysqlINTEGER(10, unsigned=True), comment="Number of productive ZMWs"
+    productive_zmws_num: Mapped[Optional[int]] = mapped_column(
+        INTEGER, comment="Number of productive ZMWs"
     )
-    p0_num = Column(
-        mysqlINTEGER(10, unsigned=True),
-        comment="Number of empty ZMWs with no high quality read detected",
+    p0_num: Mapped[Optional[int]] = mapped_column(
+        INTEGER, comment="Number of empty ZMWs with no high quality read detected"
     )
-    p1_num = Column(
-        mysqlINTEGER(10, unsigned=True),
-        comment="Number of ZMWs with a high quality read detected",
+    p1_num: Mapped[Optional[int]] = mapped_column(
+        INTEGER, comment="Number of ZMWs with a high quality read detected"
     )
-    p2_num = Column(
-        mysqlINTEGER(10, unsigned=True),
+    p2_num: Mapped[Optional[int]] = mapped_column(
+        INTEGER,
         comment="Number of other ZMWs, signal detected but no high quality read",
     )
-    adapter_dimer_percent = Column(
-        mysqlFLOAT(5, 2, unsigned=True),
+    adapter_dimer_percent: Mapped[Optional[float]] = mapped_column(
+        Float(5),
         comment="The percentage of pre-filter ZMWs which have observed inserts of 0-10 bp",
     )
-    short_insert_percent = Column(
-        mysqlFLOAT(5, 2, unsigned=True),
+    short_insert_percent: Mapped[Optional[float]] = mapped_column(
+        Float(5),
         comment="The percentage of pre-filter ZMWs which have observed inserts of 11-100 bp",
     )
-    hifi_read_bases = Column(
-        mysqlBIGINT(20, unsigned=True), comment="The number of HiFi bases"
+    hifi_read_bases: Mapped[Optional[int]] = mapped_column(
+        BIGINT, comment="The number of HiFi bases"
     )
-    hifi_num_reads = Column(
-        mysqlINTEGER(10, unsigned=True), comment="The number of HiFi reads"
+    hifi_num_reads: Mapped[Optional[int]] = mapped_column(
+        INTEGER, comment="The number of HiFi reads"
     )
-    hifi_read_length_mean = Column(
-        mysqlINTEGER(10, unsigned=True), comment="The mean HiFi read length"
+    hifi_read_length_mean: Mapped[Optional[int]] = mapped_column(
+        INTEGER, comment="The mean HiFi read length"
     )
-    hifi_read_quality_median = Column(
-        mysqlSMALLINT(5, unsigned=True), comment="The median HiFi base quality"
+    hifi_read_quality_median: Mapped[Optional[int]] = mapped_column(
+        SMALLINT, comment="The median HiFi base quality"
     )
-    hifi_number_passes_mean = Column(
-        mysqlINTEGER(10, unsigned=True),
-        comment="The mean number of passes per HiFi read",
+    hifi_number_passes_mean: Mapped[Optional[int]] = mapped_column(
+        INTEGER, comment="The mean number of passes per HiFi read"
     )
-    hifi_low_quality_read_bases = Column(
-        mysqlBIGINT(20, unsigned=True),
-        comment="The number of HiFi bases filtered due to low quality (<Q20)",
+    hifi_low_quality_read_bases: Mapped[Optional[int]] = mapped_column(
+        BIGINT, comment="The number of HiFi bases filtered due to low quality (<Q20)"
     )
-    hifi_low_quality_num_reads = Column(
-        mysqlINTEGER(10, unsigned=True),
-        comment="The number of HiFi reads filtered due to low quality (<Q20)",
+    hifi_low_quality_num_reads: Mapped[Optional[int]] = mapped_column(
+        INTEGER, comment="The number of HiFi reads filtered due to low quality (<Q20)"
     )
-    hifi_low_quality_read_length_mean = Column(
-        mysqlINTEGER(10, unsigned=True),
+    hifi_low_quality_read_length_mean: Mapped[Optional[int]] = mapped_column(
+        INTEGER,
         comment="The mean length of HiFi reads filtered due to low quality (<Q20)",
     )
-    hifi_low_quality_read_quality_median = Column(
-        mysqlSMALLINT(5, unsigned=True),
+    hifi_low_quality_read_quality_median: Mapped[Optional[int]] = mapped_column(
+        SMALLINT,
         comment="The median base quality of HiFi bases filtered due to low quality (<Q20)",
     )
-    hifi_barcoded_reads = Column(
-        mysqlINTEGER(10, unsigned=True),
+    hifi_barcoded_reads: Mapped[Optional[int]] = mapped_column(
+        INTEGER,
         comment="Number of reads with an expected barcode in demultiplexed HiFi data",
     )
-    hifi_bases_in_barcoded_reads = Column(
-        mysqlBIGINT(20, unsigned=True),
+    hifi_bases_in_barcoded_reads: Mapped[Optional[int]] = mapped_column(
+        BIGINT,
         comment="Number of bases in reads with an expected barcode in demultiplexed HiFi data",
     )
-
-    pac_bio_product_metrics = relationship(
-        "PacBioProductMetrics", back_populates="pac_bio_run_well_metrics"
+    last_changed: Mapped[Optional[datetime.datetime]] = mapped_column(
+        DateTime,
+        server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"),
+        comment="Date this record was created or changed",
     )
 
-    """Custom or customised methods are added below"""
+    pac_bio_product_metrics: Mapped[List["PacBioProductMetrics"]] = relationship(
+        "PacBioProductMetrics", back_populates="pac_bio_run_well_metrics"
+    )
 
     def __repr__(self):
         """Returns a printable representation of the database row"""
@@ -588,74 +899,3 @@ class PacBioRunWellMetrics(Base):
             experiment_info = []
 
         return experiment_info
-
-
-class PacBioProductMetrics(Base):
-    __tablename__ = "pac_bio_product_metrics"
-    __table_args__ = (
-        Index(
-            "pac_bio_metrics_product",
-            "id_pac_bio_tmp",
-            "id_pac_bio_rw_metrics_tmp",
-            unique=True,
-        ),
-        {
-            "comment": "A linking table for the pac_bio_run and pac_bio_run_well_metrics "
-            "tables with a potential for adding per-product QC data"
-        },
-    )
-
-    id_pac_bio_pr_metrics_tmp = Column(mysqlINTEGER(11), primary_key=True)
-    id_pac_bio_rw_metrics_tmp = Column(
-        ForeignKey(
-            "pac_bio_run_well_metrics.id_pac_bio_rw_metrics_tmp", ondelete="CASCADE"
-        ),
-        nullable=False,
-        index=True,
-        comment='''PacBio run well metrics id, see
-        "pac_bio_run_well_metrics.id_pac_bio_rw_metrics_tmp"''',
-    )
-    id_pac_bio_tmp = Column(
-        ForeignKey("pac_bio_run.id_pac_bio_tmp", ondelete="SET NULL"),
-        comment='PacBio run id, see "pac_bio_run.id_pac_bio_tmp"',
-    )
-    id_pac_bio_product = Column(
-        mysqlCHAR(64, charset="utf8", collation="utf8_unicode_ci"),
-        nullable=False,
-        unique=True,
-        comment="Product id",
-    )
-    qc = Column(
-        mysqlTINYINT(1),
-        index=True,
-        comment="The final QC outcome of the product as 0(failed), 1(passed) or NULL",
-    )
-    hifi_read_bases = Column(
-        mysqlBIGINT(unsigned=True), nullable=True, comment="The number of HiFi bases"
-    )
-    hifi_num_reads = Column(
-        mysqlINTEGER(unsigned=True), nullable=True, comment="The number of HiFi reads"
-    )
-    hifi_read_length_mean = Column(
-        mysqlINTEGER(unsigned=True), nullable=True, comment="The mean HiFi read length"
-    )
-    barcode4deplexing = Column(
-        mysqlVARCHAR(62),
-        nullable=True,
-        comment="The barcode recorded in producing deplexed metrics for this product",
-    )
-    barcode_quality_score_mean = Column(
-        mysqlSMALLINT(unsigned=True),
-        nullable=True,
-        comment="The mean barcode HiFi quality score",
-    )
-    hifi_bases_percent = Column(
-        mysqlFLOAT(),
-        nullable=True,
-        comment="The HiFi bases expressed as a percentage of the total HiFi bases",
-    )
-
-    pac_bio_run_well_metrics = relationship(
-        "PacBioRunWellMetrics", back_populates="pac_bio_product_metrics"
-    )
-    pac_bio_run = relationship("PacBioRun", back_populates="pac_bio_product_metrics")
