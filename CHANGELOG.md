@@ -19,7 +19,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
-* A class for 'aliquot' table is added to ml warehouse ORM.
+* A class for `aliquot` table is added to ml warehouse ORM.
+* `misc/set_qc.py` script for setting QC outcomes when this cannot be done
+  via UI.
 * Cell use information, where available, was added to the Well QC View. This
   includes a link to the relevant unassigned reads report.
 
