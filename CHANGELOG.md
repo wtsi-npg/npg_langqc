@@ -5,10 +5,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [2.5.0] - 2026-08-05
+
 ### Changed
 
-* Cell use information, where available, was added to the Well QC View. This
-  includes a link to the relevant unassigned reads report.
 * Updated MySQL version in GitHub CI to 8.4
 * Upgrade poetry version to "poetry>=2.0,<3.0" in Dockerfile
 * Updated ORM for ml warehouse. Brought all classes in line with the production
@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 * A class for 'aliquot' table is added to ml warehouse ORM.
+* Cell use information, where available, was added to the Well QC View. This
+  includes a link to the relevant unassigned reads report.
 
 ## [2.4.0] - 2024-10-17
 
