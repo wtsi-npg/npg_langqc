@@ -14,8 +14,6 @@ Prior to merging to the master branch:
 - Update CHANGELOG.md
 - Update the hardcoded version in
     - frontend/package.json
-    - lang_qc/__init__.py
-    - pyproject.toml
 - If needed, update the Copyright year in frontend/src/App.vue
 
 ## Install and run locally
