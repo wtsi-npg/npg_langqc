@@ -57,7 +57,7 @@ router = APIRouter(
     https://github.com/wtsi-npg/npg_ml_warehouse/blob/49.0.0/lib/npg_warehouse/loader/pacbio/qc_state.pm
     """,
     responses={
-        status.HTTP_422_UNPROCESSABLE_ENTITY: {"description": "Invalid product ID"}
+        status.HTTP_422_UNPROCESSABLE_CONTENT: {"description": "Invalid product ID"}
     },
     response_model=dict[ChecksumSHA256, list[QcState]],
 )
@@ -86,7 +86,7 @@ def bulk_qc_fetch(
             returned.
     """,
     responses={
-        status.HTTP_422_UNPROCESSABLE_ENTITY: {"description": "Invalid number of weeks"}
+        status.HTTP_422_UNPROCESSABLE_CONTENT: {"description": "Invalid number of weeks"}
     },
     response_model=dict[ChecksumSHA256, list[QcState]],
 )

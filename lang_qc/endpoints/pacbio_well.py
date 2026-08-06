@@ -109,7 +109,7 @@ OptionalPositiveInt = Annotated[int | None, Query(gt=0)]
          `page_number`.
     """,
     responses={
-        status.HTTP_422_UNPROCESSABLE_ENTITY: {
+        status.HTTP_422_UNPROCESSABLE_CONTENT: {
             "description": "Invalid query parameter value"
         }
     },
@@ -174,7 +174,7 @@ def get_wells_in_run(
     summary="Get well summary and LIMS data for all libraries",
     responses={
         status.HTTP_404_NOT_FOUND: {"description": "Well product does not exist"},
-        status.HTTP_422_UNPROCESSABLE_ENTITY: {"description": "Invalid product ID"},
+        status.HTTP_422_UNPROCESSABLE_CONTENT: {"description": "Invalid product ID"},
         status.HTTP_409_CONFLICT: {"description": "Missing or incomplete LIMS data"},
     },
     response_model=PacBioWellLibraries,
@@ -200,7 +200,7 @@ def get_well_lims_info(
     summary="Get full sequencing QC metrics and state for a product",
     responses={
         status.HTTP_404_NOT_FOUND: {"description": "Well product does not exist"},
-        status.HTTP_422_UNPROCESSABLE_ENTITY: {"description": "Invalid product ID"},
+        status.HTTP_422_UNPROCESSABLE_CONTENT: {"description": "Invalid product ID"},
     },
     response_model=PacBioWellFull,
 )
@@ -223,7 +223,7 @@ def get_seq_metrics(
     responses={
         status.HTTP_404_NOT_FOUND: {"description": "Product not found"},
         status.HTTP_409_CONFLICT: {"description": "Missing or incomplete LIMS data"},
-        status.HTTP_422_UNPROCESSABLE_ENTITY: {"description": "Invalid product ID"},
+        status.HTTP_422_UNPROCESSABLE_CONTENT: {"description": "Invalid product ID"},
     },
     response_model=QCPoolMetrics | None,
 )
@@ -256,7 +256,7 @@ def get_product_metrics(
     """,
     responses={
         status.HTTP_201_CREATED: {"description": "Well successfully claimed"},
-        status.HTTP_422_UNPROCESSABLE_ENTITY: {
+        status.HTTP_422_UNPROCESSABLE_CONTENT: {
             "description": "Invalid query parameter value"
         },
         status.HTTP_404_NOT_FOUND: {"description": "Well does not exist"},
@@ -303,7 +303,7 @@ def claim_qc(
         status.HTTP_200_OK: {"description": "Well QC state updated"},
         status.HTTP_400_BAD_REQUEST: {"description": "Request details are incorrect"},
         status.HTTP_403_FORBIDDEN: {"description": "User cannot perform QC"},
-        status.HTTP_422_UNPROCESSABLE_ENTITY: {
+        status.HTTP_422_UNPROCESSABLE_CONTENT: {
             "description": "Invalid query parameter value"
         },
         status.HTTP_409_CONFLICT: {"description": "Requested operation is not allowed"},
