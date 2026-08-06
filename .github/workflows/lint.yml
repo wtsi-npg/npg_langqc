@@ -14,28 +14,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Poetry
+      - name: Install ruff
         run: |
-          pipx install poetry
+          pipx install ruff
 
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.12'
           architecture: 'x64'
-          # cache: 'poetry'
 
-      - name: Run poetry install
+      - name: Check with ruff
         run: |
-          poetry env use '3.10'
-          poetry install
-
-      - name: Check formatting with Black
-        run: |
-          poetry run black --check --diff --color .
-
-      - name: Run flake8
-        run: |
-          poetry run flake8
+          ruff check lang_qc
 
       - name: Run isort
         run: |
