@@ -150,10 +150,10 @@ class QCDataWell(BaseModel):
                 qc_data[name]["label"] = attrs[name]["title"]
 
                 if name in dispatch:
-                    callable, obj_keys = dispatch[name]
+                    callable_, obj_keys = dispatch[name]
                     # Check all keys required for dispatch have values
                     if all(getattr(obj, key, None) for key in obj_keys):
-                        qc_data[name]["value"] = callable(obj, name)
+                        qc_data[name]["value"] = callable_(obj, name)
                 else:
                     qc_data[name]["value"] = getattr(obj, name, None)
 

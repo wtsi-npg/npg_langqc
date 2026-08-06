@@ -152,11 +152,11 @@ def get_qc_states(
     for qc_state in [
         QcState.from_orm(row) for row in session.execute(query).scalars().all()
     ]:
-        id = qc_state.id_product
-        if id in qc_states_dict:
-            qc_states_dict[id].append(qc_state)
+        id_ = qc_state.id_product
+        if id_ in qc_states_dict:
+            qc_states_dict[id_].append(qc_state)
         else:
-            qc_states_dict[id] = [qc_state]
+            qc_states_dict[id_] = [qc_state]
 
     return qc_states_dict
 
