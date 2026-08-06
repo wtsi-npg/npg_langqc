@@ -95,12 +95,12 @@ def test_creating_qc_data_well(mlwhdb_test_session, mlwhdb_load_runs):
     row = helper.get_mlwh_well_by_product_id(id_product)
     qc = QCDataWell.from_orm(row)
 
-    assert (
-        qc.percentage_deplexed_bases["value"] == None
-    ), "Absent metrics mean this is set to none"
-    assert (
-        qc.percentage_deplexed_reads["value"] == None
-    ), "Absent metrics mean this is set to none"
+    assert qc.percentage_deplexed_bases["value"] == None, (
+        "Absent metrics mean this is set to none"
+    )
+    assert qc.percentage_deplexed_reads["value"] == None, (
+        "Absent metrics mean this is set to none"
+    )
 
 
 def test_pool_metrics_from_single_sample_well(mlwhdb_test_session, simplex_run):
@@ -133,28 +133,28 @@ def test_pool_metrics_from_well(mlwhdb_test_session, multiplexed_run):
     )
 
     for metrics in [metrics_via_db, metrics_direct]:
-        assert (
-            int(metrics.pool_coeff_of_variance) == 33
-        ), "Variance between 20 reads and 10 reads is ~33%"
+        assert int(metrics.pool_coeff_of_variance) == 33, (
+            "Variance between 20 reads and 10 reads is ~33%"
+        )
 
         assert metrics.products[0].hifi_read_bases == 0.01
-        assert (
-            metrics.products[1].hifi_read_bases == 0.09
-        ), "hifi read base counts are scaled to Gigabases"
+        assert metrics.products[1].hifi_read_bases == 0.09, (
+            "hifi read base counts are scaled to Gigabases"
+        )
 
-        assert (
-            metrics.products[0].percentage_total_reads == 33.33
-        ), "10Mb of 30Mb reads is 33.33% (2 d.p.)"
-        assert (
-            metrics.products[1].percentage_total_reads == 66.67
-        ), "20Mb of 30Mb reads is 66.67% (2 d.p.)"
+        assert metrics.products[0].percentage_total_reads == 33.33, (
+            "10Mb of 30Mb reads is 33.33% (2 d.p.)"
+        )
+        assert metrics.products[1].percentage_total_reads == 66.67, (
+            "20Mb of 30Mb reads is 66.67% (2 d.p.)"
+        )
 
-    assert (
-        metrics.products[0].sample_name is None
-    ), "Sample without name returned successfully"
-    assert (
-        metrics.products[1].sample_name == "It's a test"
-    ), "Sample name added to products when present"
+    assert metrics.products[0].sample_name is None, (
+        "Sample without name returned successfully"
+    )
+    assert metrics.products[1].sample_name == "It's a test", (
+        "Sample name added to products when present"
+    )
 
 
 def test_errors_instantiating_pool_metrics(mlwhdb_test_session, mlwhdb_load_runs):

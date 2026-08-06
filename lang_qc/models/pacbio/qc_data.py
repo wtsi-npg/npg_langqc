@@ -106,7 +106,6 @@ dispatch = {
 
 
 class QCDataWell(BaseModel):
-
     smrt_link: dict = Field(title="URL components for a SMRT Link page")
     binding_kit: dict = Field(default=None, title="Binding Kit")
     control_num_reads: dict = Field(default=None, title="Number of Control Reads")
@@ -183,7 +182,6 @@ class SampleDeplexingStats(BaseModel):
 
 @dataclass(kw_only=True, frozen=True)
 class QCPoolMetrics:
-
     db_well: PacBioRunWellMetrics = Field(init_var=True)
     pool_coeff_of_variance: float | None = Field(
         title="Coefficient of variance for reads in the pool",

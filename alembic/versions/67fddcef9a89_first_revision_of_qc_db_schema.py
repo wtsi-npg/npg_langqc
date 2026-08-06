@@ -1,10 +1,11 @@
 """First revision of QC DB schema
 
 Revision ID: 67fddcef9a89
-Revises: 
+Revises:
 Create Date: 2022-07-21 12:52:34.723050
 
 """
+
 import sqlalchemy as sa
 from sqlalchemy.dialects import mysql
 

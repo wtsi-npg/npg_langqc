@@ -86,7 +86,9 @@ def bulk_qc_fetch(
             returned.
     """,
     responses={
-        status.HTTP_422_UNPROCESSABLE_CONTENT: {"description": "Invalid number of weeks"}
+        status.HTTP_422_UNPROCESSABLE_CONTENT: {
+            "description": "Invalid number of weeks"
+        }
     },
     response_model=dict[ChecksumSHA256, list[QcState]],
 )

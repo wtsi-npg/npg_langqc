@@ -841,7 +841,6 @@ def load_data4well_retrieval(
     dict_rows = _get_dict_of_dict_rows(qcdb_test_session)
 
     for qc_data in QC_DATA:
-
         pbe = PacBioEntity(
             run_name=qc_data[0], well_label=qc_data[1], plate_number=qc_data[5]
         )
