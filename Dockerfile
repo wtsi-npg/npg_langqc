@@ -1,16 +1,4 @@
-FROM python:3.10 as requirements-stage
-
-WORKDIR /tmp
-
-RUN pip install --no-cache-dir --upgrade "poetry>=2.0,<3.0"
-
-RUN poetry self add poetry-plugin-export
-
-COPY ./pyproject.toml ./poetry.lock /tmp/
-
-RUN poetry export -f requirements.txt --output requirements.txt --without-hashes
-
-FROM python:3.10-slim as base
+FROM python:3.14-slim as base
 
 RUN apt-get update -qq \
     && apt-get install -qq --no-install-recommends git \
@@ -20,11 +8,18 @@ RUN apt-get update -qq \
 
 WORKDIR /code
 
-COPY --from=requirements-stage /tmp/requirements.txt /code/requirements.txt
+# git and .git are needed only so setuptools-git-versioning can derive the
+# version while building the project during the install below.
+COPY ./pyproject.toml ./COPYING ./
+COPY ./lang_qc ./lang_qc
+COPY ./.git ./.git
 
-RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt \
-    && apt-get remove -qq --autoremove git \
-    && apt-get clean \
+# Install the dependencies; the app is run from the source tree (COPYed for
+# production, bind-mounted for development), so the source and build inputs are
+# removed once the install is done.
+RUN pip install --no-cache-dir . \
+    && rm -rf ./lang_qc ./.git ./pyproject.toml ./COPYING \
+    && apt-get purge --auto-remove -qq -y git \
     && rm -rf /var/lib/apt/lists/*
 
 FROM base as production

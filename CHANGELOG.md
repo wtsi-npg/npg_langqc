@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Switched to Python 3.12 as the lowest allowed version.
 * Updated Python code dependencies.
 * Updated the copyright message on web pages.
+* GitHub CI now runs lint and tests on all branches.
 
 ## [2.5.0] - 2026-08-05
 
