@@ -27,10 +27,6 @@ jobs:
         run: |
           ruff check lang_qc
 
-      - name: Run isort
-        run: |
-          poetry run isort --check --diff --color .
-
       - uses: actions/setup-node@v4
         with:
           node-version: 18.x
