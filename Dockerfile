@@ -1,4 +1,4 @@
-FROM python:3.12-slim as base
+FROM python:3.14-slim as base
 
 RUN apt-get update -qq \
     && apt-get install -qq --no-install-recommends git \
