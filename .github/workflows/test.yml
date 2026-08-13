@@ -59,10 +59,16 @@ jobs:
           MYSQL_DATABASE: "langqc"
 
     steps:
+      - uses: actions/checkout@v7
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
           architecture: 'x64'
+
+      - name: Run pip install
+        run: |
+          pip install ".[test]"
 
       - name: Run pytest
         run: |
