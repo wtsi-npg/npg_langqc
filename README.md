@@ -14,16 +14,13 @@ Prior to merging to the master branch:
 - Update CHANGELOG.md
 - Update the hardcoded version in
     - frontend/package.json
-    - lang_qc/__init__.py
-    - pyproject.toml
 - If needed, update the Copyright year in frontend/src/App.vue
 
 ## Install and run locally
 
-You can install the package with `pip install .` from the repository's root.
-Alternatively you can use [Poetry](https://python-poetry.org/docs/basic-usage/#installing-dependencies)
-to install and manage a virtual environment. Poetry will demand python => 3.10
-available via package manager or pyenv.
+You can install the package with `pip install .` from the repository's root, or
+`pip install ".[test]"` to include the test dependencies. This requires Python
+3.12 or later.
 
 Then set two environment variables:
 

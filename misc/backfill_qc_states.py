@@ -114,7 +114,6 @@ for col_name in ("Run ID", "Well Location", "Movie ID"):
 well_helper = WellWh(session=session)
 
 for index, row in df.iterrows():
-
     run = row["Run ID"]
     well = row["Well Location"]
     well_metrics = None

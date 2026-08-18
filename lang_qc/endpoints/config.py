@@ -63,7 +63,7 @@ def get_config(
 def _states_for_update(session) -> List:
 
     states = []
-    for (name, row) in qc_state_dict(session).items():
+    for name, row in qc_state_dict(session).items():
         if name not in ["Aborted", "Claimed"]:
             states.append(
                 {"description": name, "only_prelim": "on hold" in row.state.lower()}

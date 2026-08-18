@@ -28,7 +28,6 @@ def inbox_data(mlwhdb_test_session):
     timedeltas_labels = [(timedelta(days=i, minutes=2), f"A{i}") for i in range(9)]
 
     for delta, label in timedeltas_labels:
-
         metrics = PacBioRunWellMetrics(
             well_complete=datetime.now() - delta,
             run_complete=datetime.now() - delta,

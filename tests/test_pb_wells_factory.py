@@ -186,7 +186,6 @@ def test_paged_retrieval_for_statuses(
         QcFlowStatusEnum.UPCOMING,
         QcFlowStatusEnum.UNKNOWN,
     ]:
-
         factory = PacBioPagedWellsFactory(
             qcdb_session=qcdb_test_session,
             mlwh_session=mlwhdb_test_session,
@@ -448,9 +447,9 @@ def test_retrieval_for_unknown_status(
         page_number=1,
     )
     paged_wells = factory.create_for_qc_status(QcFlowStatusEnum.UNKNOWN)
-    assert (
-        paged_wells.total_number_of_items == 2
-    ), "two wells with unknown status, no qc state"
+    assert paged_wells.total_number_of_items == 2, (
+        "two wells with unknown status, no qc state"
+    )
 
     # Create seq QC states for these wells and test that they are gone
     # from the Unknown status.

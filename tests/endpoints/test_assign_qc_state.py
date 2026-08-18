@@ -21,7 +21,10 @@ def test_error_invalid_product_id(test_client: TestClient, load_data4well_retrie
     response = test_client.put(
         "/pacbio/products/12345q/qc_assign",
         content=post_data,
-        headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
+        headers={
+            "OIDC_CLAIM_EMAIL": "zx80@example.com",
+            "Content-Type": "application/json",
+        },
     )
     assert response.status_code == 422
     # Pydantic version upgrade makes full response check cumbersome.
@@ -40,7 +43,10 @@ def test_error_nonexistent_well(test_client: TestClient, load_data4well_retrieva
     response = test_client.put(
         f"/pacbio/products/{id}/qc_assign",
         content=post_data,
-        headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
+        headers={
+            "OIDC_CLAIM_EMAIL": "zx80@example.com",
+            "Content-Type": "application/json",
+        },
     )
     assert response.status_code == 404
     assert response.json()["detail"] == f"PacBio well for product ID {id} not found."
@@ -82,7 +88,10 @@ def test_error_updating_unclaimed_well(
     response = test_client.put(
         f"/pacbio/products/{id_product_15A1}/qc_assign",
         content=post_data,
-        headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
+        headers={
+            "OIDC_CLAIM_EMAIL": "zx80@example.com",
+            "Content-Type": "application/json",
+        },
     )
     assert response.status_code == 409
     assert (
@@ -104,7 +113,10 @@ def test_error_inconsistent_preliminary_flag(
     response = test_client.put(
         f"/pacbio/products/{id_product_2A1}/qc_assign",
         content=post_data_prelim,
-        headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
+        headers={
+            "OIDC_CLAIM_EMAIL": "zx80@example.com",
+            "Content-Type": "application/json",
+        },
     )
     assert response.status_code == 400
     assert response.json()["detail"] == "QC state 'On hold' cannot be final"
@@ -123,7 +135,10 @@ def test_error_invalid_state(test_client: TestClient, load_data4well_retrieval):
     response = test_client.put(
         f"/pacbio/products/{id_product_2A1}/qc_assign",
         content=post_data_state,
-        headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
+        headers={
+            "OIDC_CLAIM_EMAIL": "zx80@example.com",
+            "Content-Type": "application/json",
+        },
     )
     assert response.status_code == 400
     assert response.json()["detail"] == "QC state 'On reprimand' is invalid"
@@ -142,7 +157,10 @@ def test_error_wrong_qc_type(test_client: TestClient, load_data4well_retrieval):
     response = test_client.put(
         f"/pacbio/products/{id_product_2A1}/qc_assign",
         content=post_data_lib,
-        headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
+        headers={
+            "OIDC_CLAIM_EMAIL": "zx80@example.com",
+            "Content-Type": "application/json",
+        },
     )
     assert response.status_code == 400
     assert (
@@ -157,7 +175,10 @@ def test_assign_state(test_client: TestClient, load_data4well_retrieval):
     response = test_client.put(
         f"/pacbio/products/{id_product_2A1}/qc_assign",
         content=post_data,
-        headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
+        headers={
+            "OIDC_CLAIM_EMAIL": "zx80@example.com",
+            "Content-Type": "application/json",
+        },
     )
     content = response.json()
 
@@ -188,7 +209,10 @@ def test_assign_state(test_client: TestClient, load_data4well_retrieval):
     response = test_client.put(
         f"/pacbio/products/{id_product_2A1}/qc_assign",
         content=post_data_update,
-        headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
+        headers={
+            "OIDC_CLAIM_EMAIL": "zx80@example.com",
+            "Content-Type": "application/json",
+        },
     )
     content = response.json()
 
@@ -218,7 +242,10 @@ def test_permutations_of_plates(test_client: TestClient, load_data4well_retrieva
     response = test_client.put(
         f"/pacbio/products/{id_product_1A1}/qc_assign",
         content=post_data_update,
-        headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
+        headers={
+            "OIDC_CLAIM_EMAIL": "zx80@example.com",
+            "Content-Type": "application/json",
+        },
     )
     assert response.status_code == 200
 
@@ -230,7 +257,10 @@ def test_permutations_of_plates(test_client: TestClient, load_data4well_retrieva
         response = test_client.put(
             f"/pacbio/products/{id_product}/qc_assign",
             content=post_data_update,
-            headers={"OIDC_CLAIM_EMAIL": "zx80@example.com"},
+            headers={
+            "OIDC_CLAIM_EMAIL": "zx80@example.com",
+            "Content-Type": "application/json",
+        },
         )
         if pn == 1:
             assert response.status_code == 200

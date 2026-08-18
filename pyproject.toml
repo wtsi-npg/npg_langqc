@@ -1,35 +1,57 @@
-[tool.poetry]
-name = "npg_langqc"
-packages = [
-  { include = "lang_qc" },
-]
-version = "2.4.0"
-description = "FastAPI application for Long Read QC"
-authors = ["Adam Blanchet", "Marina Gourtovaia <mg8@sanger.ac.uk>", "Kieron Taylor <kt19@sanger.ac.uk>"]
-license = "GPL-3.0-or-later"
-
-[tool.poetry.dependencies]
-python = "^3.10"
-fastapi = { version = "^0.103", extras = ["standard"] }
-uvicorn = { version = "^0.17", extras = ["standard"] }
-cryptography = { version = "^40.0.2" }
-SQLAlchemy = { version = "^2.0.1", extras = ["pymysql"] }
-pydantic = "^2.4"
-pydantic-settings = "^2.0"
-
-[tool.poetry.dev-dependencies]
-npg_id_generation = { git = "https://github.com/wtsi-npg/npg_id_generation.git", tag="5.0.1" }
-black = "^22.3.0"
-flake8 = "^4.0.1"
-pytest = "^7.1.1"
-fastapi = { extras = ["all"], version = "^0.103.0" }
-alembic = "^1.13.0"
-isort = { version = "^5.10.1", extras = ["colors"] }
-pandas = "1.5.2"
-
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools >= 64", "wheel", "setuptools-git-versioning>=2.0,<3"]
+build-backend = "setuptools.build_meta"
 
-[tool.isort]
-profile = "black"
+[tool.setuptools.packages]
+find = { include = ["lang_qc*"] }
+
+[project]
+name = "npg_langqc"
+description = "FastAPI application for Long Read QC"
+license = { file = "COPYING", content-type = "text/plain" }
+authors = [
+    { name = "Adam Blanchet" },
+    { name = "Marina Gourtovaia",  email = "mg8@sanger.ac.uk" },
+    { name = "Kieron Taylor", email = "kt19@sanger.ac.uk" },
+    { name = "Carol Scott", email = "ces@sanger.ac.uk" },
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python",
+    "Operating System :: Unix",
+    "Natural Language :: English",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+]
+keywords = ["npg"]
+requires-python = ">= 3.12"
+
+dynamic = ["version"]
+
+dependencies = [
+    "fastapi [standard] >= 0.103",
+    "uvicorn [standard] >= 0.17",
+    "cryptography",
+    "pymysql",
+    "sqlalchemy >= 2.0.1",
+    "pydantic >= 2.4",
+    "pydantic-settings >= 2.0",
+]
+
+[project.optional-dependencies]
+test = [
+    "npg_id_generation @ git+https://github.com/wtsi-npg/npg_id_generation@5.0.1",
+    "pytest >= 7.1.1",
+    "fastapi [all] >= 0.103.0",
+    "alembic >= 1.13.0",
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["W", "F", "I", "A"]
+
+[tool.setuptools-git-versioning]
+enabled = true

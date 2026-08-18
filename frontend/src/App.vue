@@ -14,7 +14,6 @@ let appConfig = ref(null);
 const apiClient = new LangQc();
 // Some variables managed by vite, see vite.config.js
 const VERSION = APP_VERSION; // eslint-disable-line no-undef
-const DEVMODE = import.meta.env.DEV
 
 let route = useRoute()
 
@@ -122,8 +121,7 @@ function notInWellsByRun() {
 
   </el-main>
 
-  <el-footer>Copyright Genome Research Ltd 2023, 2024 - client version: {{ VERSION.replace(/['"]+/g) + (DEVMODE ? "+DEV" : "")
-  }}</el-footer>
+  <el-footer>LangQC v{{ VERSION.replace(/['"]+/g) }}, &#xA9; Genome Research Ltd. 2023, 2024, 2025, 2026</el-footer>
 </template>
 
 <style scoped>

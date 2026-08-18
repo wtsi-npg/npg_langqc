@@ -5,6 +5,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [2.6.0]
+
+### Changed
+
+* In order to comply with team's current practice for Python packages, switched
+  the build system for the Python code from poetry to setup tools.
+* Dropped hardcoding of versions in Python code, switched to git dynamic
+  versioning.
+* Switched to Python 3.12 as the lowest allowed version.
+* Updated Python code dependencies.
+* Updated the copyright message on web pages.
+* GitHub CI now runs lint and tests on all branches.
+
 ## [2.5.0] - 2026-08-05
 
 ### Changed
